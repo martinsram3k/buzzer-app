@@ -26,7 +26,7 @@ import io from 'socket.io-client';
 //    Příklad: const SOCKET_SERVER_URL = 'https://muj-super-server.onrender.com';
 //
 // Vyber tu, která odpovídá tvé aktuální testovací konfiguraci:
-const SOCKET_SERVER_URL = 'http://localhost:3001'; // <--- ZMĚŇ TOTO PODLE POTŘEBY!
+const SOCKET_SERVER_URL = 'https://buzzer-app-t20g.onrender.com'; // <--- ZMĚŇ TOTO PODLE POTŘEBY!
 
 // Inicializace socketu. Toto naváže spojení se serverem.
 const socket = io(SOCKET_SERVER_URL);
