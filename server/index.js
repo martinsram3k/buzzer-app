@@ -1,63 +1,149 @@
 // server/index.js
 
 const express = require('express');
-const http = require('http'); // Modul pro HTTP server
-const { Server } = require('socket.io'); // Třída Socket.IO serveru
+const http = require('http');
+const { Server } = require('socket.io');
 
 const app = express();
-const server = http.createServer(app); // Vytvoříme HTTP server z Express aplikace
+const server = http.createServer(app);
 
-// Inicializace Socket.IO serveru
-// Cors nastavení jsou důležitá pro komunikaci s klientem (Expo Web / React Native)
 const io = new Server(server, {
   cors: {
-    origin: "*", // Povolí připojení z jakékoli domény (pro vývoj)
-    methods: ["GET", "POST"] // Povolí HTTP metody
+    origin: "*", // Povolí připojení z jakékoli domény
+    methods: ["GET", "POST"]
   }
 });
 
-const PORT = process.env.PORT || 3001; // Port, na kterém server poběží
+const PORT = process.env.PORT || 3001;
 
-// Jednoduchý testovací endpoint pro ověření, že server běží
+// Datová struktura pro ukládání stavu místností
+// Klíč: roomId (string), Hodnota: { winner: null, players: [], hostId: string }
+const rooms = {};
+
+// Funkce pro generování unikátního 5místného kódu místnosti
+function generateRoomCode() {
+    let code;
+    do {
+        code = Math.floor(10000 + Math.random() * 90000).toString(); // 5místné číslo
+    } while (rooms[code]); // Zajišťuje unikátnost kódu
+    return code;
+}
+
+// Základní HTTP GET endpoint pro kontrolu, že server běží
 app.get('/', (req, res) => {
   res.send('Buzzer server is running!');
 });
 
-let winner = null; // Proměnná pro uložení vítěze bzučení
-
 // Socket.IO event handlery
 io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id); // Vypíše ID připojeného klienta
+  console.log('A user connected:', socket.id);
 
-  // Pošli novému klientovi aktuálního vítěze (pokud existuje)
-  if (winner) {
-    socket.emit('buzzerWinner', winner);
-  }
+  // --- NOVÉ UDÁLOSTI PRO MÍSTNOSTI ---
 
-  // Poslouchání na událost 'buzz' od klienta
-  socket.on('buzz', () => {
-    if (!winner) { // Pokud ještě nikdo bzučák nestiskl
-      winner = { id: socket.id, time: new Date().toISOString() };
-      console.log('Buzz received from:', socket.id);
-      // Odešli informaci o vítězi všem připojeným klientům
-      io.emit('buzzerWinner', winner);
+  // UDÁLOST: Klient chce vytvořit novou místnost
+  socket.on('createRoom', () => {
+    const roomId = generateRoomCode();
+    rooms[roomId] = { winner: null, players: [], hostId: socket.id }; // Uložíme i hosta
+    socket.join(roomId); // Uživatel se připojí do Socket.IO místnosti
+    rooms[roomId].players.push(socket.id); // Přidáme hráče do seznamu
+    
+    console.log(`Místnost ${roomId} vytvořena uživatelem ${socket.id} (HOST)`);
+    socket.emit('roomCreated', roomId); // Pošleme kód místnosti hostiteli
+    
+    // Pošleme aktuální stav místnosti nově připojenému hostiteli
+    io.to(roomId).emit('roomState', rooms[roomId]);
+  });
+
+  // UDÁLOST: Klient se chce připojit do existující místnosti
+  socket.on('joinRoom', (roomId) => {
+    // Ověříme, zda místnost existuje
+    if (rooms[roomId]) {
+      // Zabráníme duplicitnímu připojení (pokud už je v místnosti)
+      if (!rooms[roomId].players.includes(socket.id)) {
+        socket.join(roomId); // Uživatel se připojí do Socket.IO místnosti
+        rooms[roomId].players.push(socket.id); // Přidáme hráče do seznamu
+        console.log(`Uživatel ${socket.id} se připojil do místnosti ${roomId}`);
+        socket.emit('roomJoined', roomId); // Potvrdíme připojení klientovi
+
+        // Pošleme aktuální stav místnosti nově připojenému hráči A všem ostatním v místnosti
+        io.to(roomId).emit('roomState', rooms[roomId]);
+      } else {
+        // Pokud už je uživatel v místnosti, prostě ho tam potvrdíme
+        socket.emit('roomJoined', roomId);
+        io.to(roomId).emit('roomState', rooms[roomId]); // Pošleme mu stav
+      }
+    } else {
+      socket.emit('roomNotFound'); // Místnost neexistuje
+      console.log(`Uživatel ${socket.id} se pokusil připojit do neexistující místnosti ${roomId}`);
     }
   });
 
-  // Poslouchání na událost 'resetBuzzer' (např. od hostitele hry)
-  socket.on('resetBuzzer', () => {
-    winner = null; // Resetujeme vítěze
-    console.log('Buzzer reset by:', socket.id);
-    io.emit('buzzerReset'); // Informujeme všechny o resetu
+  // --- UPRAVENÉ PŮVODNÍ UDÁLOSTI (buzz, resetBuzzer) ---
+
+  // UDÁLOST: Klient bzučí
+  socket.on('buzz', () => {
+    // Získáme ID místnosti, ve které je uživatel připojen (první, která není jeho vlastní ID)
+    const roomId = Array.from(socket.rooms).find(room => room !== socket.id);
+    
+    // Zkontrolujeme, zda je v místnosti a zda v ní ještě není vítěz
+    if (roomId && rooms[roomId] && !rooms[roomId].winner) {
+      rooms[roomId].winner = { id: socket.id, time: new Date().toISOString() };
+      console.log(`Buzz v místnosti ${roomId} od: ${socket.id}`);
+      // Odešleme informaci o vítězi POUZE klientům v této místnosti
+      io.to(roomId).emit('buzzerWinner', rooms[roomId].winner);
+    }
   });
 
-  // Když se klient odpojí
+  // UDÁLOST: Klient resetuje bzučák
+  socket.on('resetBuzzer', () => {
+    const roomId = Array.from(socket.rooms).find(room => room !== socket.id);
+
+    // Resetovat může pouze hostitel místnosti
+    if (roomId && rooms[roomId] && rooms[roomId].hostId === socket.id) {
+      rooms[roomId].winner = null;
+      console.log(`Buzzer reset v místnosti ${roomId} uživatelem: ${socket.id}`);
+      // Odešleme reset POUZE klientům v této místnosti
+      io.to(roomId).emit('buzzerReset');
+    } else {
+        // Volitelné: Poslat zprávu, že nemají oprávnění resetovat
+        socket.emit('notAuthorized', 'K resetu bzučáku má oprávnění pouze hostitel místnosti.');
+    }
+  });
+
+  // --- UPRAVENÁ UDÁLOST disconnect ---
+
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
-    // Pokud se odpojí aktuální vítěz, resetujeme stav (volitelné, záleží na logice hry)
-    if (winner && winner.id === socket.id) {
-        winner = null;
-        io.emit('buzzerReset');
+    
+    const roomId = Array.from(socket.rooms).find(room => room !== socket.id);
+
+    if (roomId && rooms[roomId]) {
+      // Odeber uživatele ze seznamu hráčů v místnosti
+      rooms[roomId].players = rooms[roomId].players.filter(id => id !== socket.id);
+      
+      console.log(`Uživatel ${socket.id} opustil místnost ${roomId}. Zbývající hráči: ${rooms[roomId].players.length}`);
+      
+      // Pokud je odpojený uživatel hostitel, zruš místnost
+      if (rooms[roomId].hostId === socket.id) {
+          console.log(`Hostitel ${socket.id} se odpojil. Místnost ${roomId} bude zrušena.`);
+          io.to(roomId).emit('roomClosed', 'Hostitel se odpojil. Místnost byla zrušena.');
+          delete rooms[roomId]; // Odstraní celou místnost
+      } else if (rooms[roomId].players.length === 0) {
+          // Pokud je odpojený poslední hráč (a není hostitel), zruš místnost
+          console.log(`Místnost ${roomId} zrušena (žádní hráči nezbyli).`);
+          delete rooms[roomId];
+      } else {
+          // Jinak jen aktualizuj stav místnosti pro zbývající hráče
+          io.to(roomId).emit('playerDisconnected', socket.id); // Informuj ostatní o odpojení hráče
+          
+          // Pokud se odpojí aktuální vítěz, a místnost nebyla zrušena hostitelem
+          if (rooms[roomId].winner && rooms[roomId].winner.id === socket.id) {
+              rooms[roomId].winner = null;
+              io.to(roomId).emit('buzzerReset'); // Informuje ostatní o resetu
+          }
+          // Posílej aktuální stav místnosti zbývajícím hráčům (např. pro aktualizaci počtu hráčů)
+          io.to(roomId).emit('roomState', rooms[roomId]);
+      }
     }
   });
 });

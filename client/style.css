@@ -1,15 +1,29 @@
 /* client-web/css/style.css */
 
+/* Barvová paleta */
+:root {
+    --buzzer-red: #E74C3C;
+    --darker-red: #C0392B;
+    --soft-beige: #F8F4E3;
+    --creamy-white: #FFFBF5;
+    --sandy-taupe: #D4C9B3;
+    --deep-charcoal: #34495E;
+    --success-green: #2ECC71;
+    --light-grey: #ECF0F1; /* Pro pozadí inputu atd. */
+    --error-red: #E74C3C; /* Pro chybové zprávy */
+}
+
 /* Obecné styly pro tělo stránky a reset */
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh; /* Zajistí, že stránka zabere celou výšku okna */
-    background-color: #F8F4E3; /* Soft Beige */
-    color: #34495E; /* Deep Charcoal */
+    min-height: 100vh;
+    background-color: var(--soft-beige);
+    color: var(--deep-charcoal);
+    box-sizing: border-box; /* Zajišťuje, že padding a border se započítávají do šířky/výšky */
 }
 
 /* Kontejner pro celou aplikaci */
@@ -17,62 +31,211 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
-    background-color: #FFFBF5; /* Creamy White */
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Jemný stín */
-    max-width: 400px; /* Omezí šířku pro lepší vzhled na větších obrazovkách */
+    padding: 30px;
+    background-color: var(--creamy-white);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    max-width: 450px;
     width: 90%;
+    text-align: center;
+    position: relative; /* Pro absolutní pozicování */
+}
+
+.main-title {
+    font-size: 2.8em;
+    font-weight: 700;
+    margin-bottom: 30px;
+    color: var(--buzzer-red);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.section-title {
+    font-size: 1.8em;
+    font-weight: 600;
+    margin-bottom: 25px;
+    color: var(--deep-charcoal);
+}
+
+/* --- Startovací obrazovka --- */
+#startScreen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.action-button {
+    padding: 15px 30px;
+    border-radius: 10px;
+    font-size: 1.3em;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    width: 100%;
+    max-width: 280px;
+    margin-bottom: 20px; /* Mezera pod tlačítky */
+}
+
+.action-button.primary-button {
+    background-color: var(--buzzer-red);
+    color: var(--creamy-white);
+}
+
+.action-button.primary-button:hover {
+    background-color: var(--darker-red);
+}
+
+.action-button.secondary-button {
+    background-color: var(--deep-charcoal); /* Tmavý pro připojení */
+    color: var(--creamy-white);
+}
+
+.action-button.secondary-button:hover {
+    background-color: #2C3E50; /* Ještě tmavší */
+}
+
+
+.separator {
+    margin: 20px 0;
+    font-size: 1.1em;
+    color: var(--sandy-taupe);
+    position: relative;
+    width: 100%;
     text-align: center;
 }
 
-/* Nadpis aplikace */
-.title {
-    font-size: 2.5em; /* Větší velikost písma */
-    font-weight: bold;
-    margin-bottom: 40px;
-    color: #34495E; /* Deep Charcoal */
+.separator::before,
+.separator::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background-color: var(--sandy-taupe);
 }
 
-/* Styl pro tlačítko BZUČÁK */
+.separator::before {
+    left: 0;
+}
+
+.separator::after {
+    right: 0;
+}
+
+.join-room-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+#roomCodeInput {
+    padding: 15px;
+    border: 2px solid var(--sandy-taupe);
+    border-radius: 8px;
+    font-size: 1.2em;
+    text-align: center;
+    width: calc(100% - 30px); /* Adjust for padding */
+    max-width: 280px;
+    margin-bottom: 15px;
+    background-color: var(--light-grey);
+    color: var(--deep-charcoal);
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+#roomCodeInput:focus {
+    border-color: var(--buzzer-red);
+}
+
+.error-message {
+    color: var(--error-red);
+    font-weight: bold;
+    margin-top: 15px;
+    font-size: 1.1em;
+}
+
+/* --- Herní obrazovka --- */
+#gameScreen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.room-info {
+    font-size: 1.2em;
+    color: var(--sandy-taupe);
+    margin-bottom: 10px;
+}
+
+.room-info span {
+    font-weight: bold;
+    color: var(--deep-charcoal);
+}
+
+.room-player-count {
+    font-size: 1.1em;
+    color: var(--sandy-taupe);
+    margin-bottom: 20px;
+}
+
+.room-player-count span {
+    font-weight: bold;
+    color: var(--deep-charcoal);
+}
+
+.game-status-message {
+    font-size: 1.6em;
+    font-weight: 600;
+    color: var(--deep-charcoal);
+    margin-bottom: 30px;
+}
+
+
+/* Styl pro tlačítko BZUČÁK (stejné jako dříve) */
 .buzzer-button {
     width: 200px;
     height: 200px;
     border-radius: 50%; /* Kruhové tlačítko */
-    background-color: #E74C3C; /* Buzzer Red */
+    background-color: var(--buzzer-red);
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 3.5em;
     font-weight: bold;
-    color: #FFFBF5; /* Creamy White */
+    color: var(--creamy-white);
     border: none;
     cursor: pointer;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     transition: background-color 0.3s ease, transform 0.1s ease;
-    -webkit-tap-highlight-color: transparent; /* Pro mobilní zařízení, aby se neschovávalo */
+    -webkit-tap-highlight-color: transparent;
+    margin-bottom: 30px;
 }
 
 .buzzer-button:hover {
-    background-color: #C0392B; /* Tmavší odstín červené při najetí myší */
+    background-color: var(--darker-red);
 }
 
 .buzzer-button:active {
-    transform: scale(0.98); /* Mírné zmenšení při stisku */
+    transform: scale(0.95); /* Mírné zmenšení při stisku */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .buzzer-button:disabled {
-    background-color: #D4C9B3; /* Sandy Taupe, když je tlačítko zakázáno */
+    background-color: var(--sandy-taupe);
     cursor: not-allowed;
     box-shadow: none;
 }
 
-/* Kontejner pro zobrazení vítěze */
+/* Kontejner pro zobrazení vítěze (stejné jako dříve) */
 .winner-container {
-    background-color: #2ECC71; /* Success Green */
+    background-color: var(--success-green);
     padding: 20px;
     border-radius: 10px;
-    margin-top: 30px;
+    margin-top: 0; /* Upraveno, aby navazovalo na buzzer-button */
     margin-bottom: 30px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     width: 100%;
@@ -82,46 +245,64 @@ body {
 .winner-text {
     font-size: 1.5em;
     font-weight: bold;
-    color: #FFFBF5; /* Creamy White */
+    color: var(--creamy-white);
     margin-bottom: 5px;
 }
 
 .winner-id {
     font-size: 2.5em;
     font-weight: bold;
-    color: #FFFBF5; /* Creamy White */
+    color: var(--creamy-white);
     margin-bottom: 5px;
-    word-break: break-all; /* Zajistí zalomení dlouhého ID */
+    word-break: break-all;
 }
 
 .winner-text-small {
     font-size: 0.9em;
-    color: #F8F4E3; /* Soft Beige - pro menší texty na zeleném pozadí */
+    color: var(--soft-beige);
 }
 
-/* Styl pro tlačítko RESET */
+/* Styl pro tlačítko RESET (stejné jako dříve) */
 .reset-button {
-    background-color: #E74C3C; /* Buzzer Red */
+    background-color: var(--buzzer-red);
     padding: 15px 30px;
     border-radius: 8px;
     font-size: 1.2em;
     font-weight: bold;
-    color: #FFFBF5; /* Creamy White */
+    color: var(--creamy-white);
     border: none;
     cursor: pointer;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     transition: background-color 0.3s ease;
+    margin-bottom: 20px; /* Nová mezera */
 }
 
 .reset-button:hover {
-    background-color: #C0392B;
+    background-color: var(--darker-red);
 }
 
 .reset-button:disabled {
-    background-color: #D4C9B3; /* Sandy Taupe, když je tlačítko zakázáno */
+    background-color: var(--sandy-taupe);
     cursor: not-allowed;
     box-shadow: none;
 }
+
+/* Nové tlačítko Opustit místnost */
+.leave-room-button {
+    background-color: #95A5A6; /* Šedá */
+    color: var(--creamy-white);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 1em;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.leave-room-button:hover {
+    background-color: #7F8C8D; /* Tmavší šedá */
+}
+
 
 /* Pomocná třída pro skrytí elementu */
 .hidden {
