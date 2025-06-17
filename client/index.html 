@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bzučáková Aplikace</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Bzučáková Aplikace</h1>
+
+        <button id="buzzerButton" class="buzzer-button">BUZZ!</button>
+
+        <div id="winnerContainer" class="winner-container hidden">
+            <p class="winner-text">Vítěz kola:</p>
+            <p id="winnerId" class="winner-id"></p>
+            <p id="winnerTime" class="winner-text-small"></p>
+        </div>
+
+        <button id="resetButton" class="reset-button" disabled>Reset Bzučáku</button>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    
+    <script src="js/socketService.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
