@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bzučáková Aplikace</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css"> 
 </head>
 <body>
     <div class="container">
@@ -12,10 +12,13 @@
 
         <div id="startScreen">
             <h2 class="section-title">Vítejte!</h2>
+            
+            <input type="text" id="usernameInput" placeholder="Zadejte své jméno" maxlength="20" class="text-input">
+            
             <button id="createRoomButton" class="action-button primary-button">Vytvořit Místnost</button>
             <div class="separator">Nebo</div>
             <div class="join-room-section">
-                <input type="text" id="roomCodeInput" placeholder="Zadejte kód místnosti" maxlength="5" pattern="\d*">
+                <input type="text" id="roomCodeInput" placeholder="Zadejte kód místnosti" maxlength="5" pattern="\d*" class="text-input">
                 <button id="joinRoomButton" class="action-button secondary-button">Připojit se</button>
             </div>
             <p id="errorMessage" class="error-message hidden"></p>
@@ -24,14 +27,13 @@
         <div id="gameScreen" class="hidden">
             <p class="room-info">Jste v místnosti: <span id="currentRoomCode"></span></p>
             <p class="room-player-count">Hráči: <span id="playerCount">1</span></p>
-            
             <h2 class="game-status-message" id="gameStatusMessage">Čekám na hráče...</h2>
             
             <button id="buzzerButton" class="buzzer-button">BUZZ!</button>
 
             <div id="winnerContainer" class="winner-container hidden">
                 <p class="winner-text">Vítěz kola:</p>
-                <p id="winnerId" class="winner-id"></p>
+                <p id="winnerName" class="winner-id"></p> 
                 <p id="winnerTime" class="winner-text-small"></p>
             </div>
 
@@ -42,8 +44,5 @@
     </div>
 
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-    
-    <script src="js/socketService.js"></script>
-    <script src="js/app.js"></script>
-</body>
+    <script src="socketService.js"></script> <script src="app.js"></script> </body>
 </html>

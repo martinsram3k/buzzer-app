@@ -4,6 +4,20 @@
 // Příklad: 'https://tvuj-nazev-sluzby.onrender.com'
 const SOCKET_SERVER_URL = 'https://buzzer-app-t20g.onrender.com'; // <--- TADY POUŽIJ SVOU SKUTEČNOU URL!
 
+// --- NOVÉ Funkce pro odesílání událostí na server (pro místnosti) ---
+
+// Nyní přijímá jméno uživatele a posílá ho na server
+window.createRoom = (username) => {
+  socket.emit('createRoom', username); // Posíláme jméno
+  console.log('Odeslána událost: createRoom s jménem:', username);
+};
+
+// Nyní přijímá jméno uživatele a posílá ho na server
+window.joinRoom = (roomId, username) => {
+  socket.emit('joinRoom', roomId, username); // Posíláme kód místnosti a jméno
+  console.log('Odeslána událost: joinRoom s kódem:', roomId, 'a jménem:', username);
+};
+
 // Vytvoříme instanci Socket.IO klienta
 const socket = io(SOCKET_SERVER_URL);
 
