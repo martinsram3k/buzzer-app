@@ -64,6 +64,26 @@ body {
     width: 100%;
 }
 
+/* Nový styl pro textové inputy (jméno, kód místnosti) */
+.text-input {
+    padding: 15px;
+    border: 2px solid var(--sandy-taupe);
+    border-radius: 8px;
+    font-size: 1.2em;
+    text-align: center;
+    width: calc(100% - 30px); /* Adjust for padding */
+    max-width: 280px;
+    margin-bottom: 15px; /* Pro mezery mezi inputy/tlačítky */
+    background-color: var(--light-grey);
+    color: var(--deep-charcoal);
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.text-input:focus {
+    border-color: var(--buzzer-red);
+}
+
 .action-button {
     padding: 15px 30px;
     border-radius: 10px;
@@ -131,25 +151,6 @@ body {
     width: 100%;
 }
 
-/* #roomCodeInput {
-    // Tyto styly jsou nyní v .text-input
-    // padding: 15px;
-    // border: 2px solid var(--sandy-taupe);
-    // border-radius: 8px;
-    // font-size: 1.2em;
-    // text-align: center;
-    // width: calc(100% - 30px);
-    // max-width: 280px;
-    // margin-bottom: 15px;
-    // background-color: var(--light-grey);
-    // color: var(--deep-charcoal);
-    // outline: none;
-    // transition: border-color 0.3s ease;
-}
-
-#roomCodeInput:focus {
-    // border-color: var(--buzzer-red);
-} */
 
 .error-message {
     color: var(--error-red);
@@ -250,7 +251,7 @@ body {
     margin-bottom: 5px;
 }
 
-.winner-id {
+.winner-id { /* Původně winner-id, nyní pro jméno */
     font-size: 2.5em;
     font-weight: bold;
     color: var(--creamy-white);
@@ -308,24 +309,4 @@ body {
 /* Pomocná třída pro skrytí elementu */
 .hidden {
     display: none !important;
-}
-
-
-.text-input {
-    padding: 15px;
-    border: 2px solid var(--sandy-taupe);
-    border-radius: 8px;
-    font-size: 1.2em;
-    text-align: center;
-    width: calc(100% - 30px); /* Adjust for padding */
-    max-width: 280px;
-    margin-bottom: 15px; /* Pro mezery mezi inputy/tlačítky */
-    background-color: var(--light-grey);
-    color: var(--deep-charcoal);
-    outline: none;
-    transition: border-color 0.3s ease;
-}
-
-.text-input:focus {
-    border-color: var(--buzzer-red);
 }

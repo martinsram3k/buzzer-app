@@ -4,20 +4,6 @@
 // Příklad: 'https://tvuj-nazev-sluzby.onrender.com'
 const SOCKET_SERVER_URL = 'https://buzzer-app-t20g.onrender.com'; // <--- TADY POUŽIJ SVOU SKUTEČNOU URL!
 
-// --- NOVÉ Funkce pro odesílání událostí na server (pro místnosti) ---
-
-// Nyní přijímá jméno uživatele a posílá ho na server
-window.createRoom = (username) => {
-  socket.emit('createRoom', username); // Posíláme jméno
-  console.log('Odeslána událost: createRoom s jménem:', username);
-};
-
-// Nyní přijímá jméno uživatele a posílá ho na server
-window.joinRoom = (roomId, username) => {
-  socket.emit('joinRoom', roomId, username); // Posíláme kód místnosti a jméno
-  console.log('Odeslána událost: joinRoom s kódem:', roomId, 'a jménem:', username);
-};
-
 // Vytvoříme instanci Socket.IO klienta
 const socket = io(SOCKET_SERVER_URL);
 
@@ -27,54 +13,43 @@ window.socket = socket;
 
 // --- Obecné události socketu (pro debugování) ---
 socket.on('connect', () => {
-  console.log('Připojeno k serveru Socket.IO! ID:', socket.id);
+  console.log('socketService: Připojeno k serveru Socket.IO! ID:', socket.id);
 });
 
 socket.on('disconnect', () => {
-  console.log('Odpojeno od serveru Socket.IO.');
+  console.log('socketService: Odpojeno od serveru Socket.IO.');
 });
 
 socket.on('connect_error', (err) => {
-  console.error('Chyba připojení Socket.IO:', err.message);
+  console.error('socketService: Chyba připojení Socket.IO:', err.message);
   // app.js může reagovat na tuto chybu zobrazením zprávy uživateli
 });
 
+
 // --- NOVÉ Funkce pro odesílání událostí na server (pro místnosti) ---
 
-// Odešle požadavek na server pro vytvoření nové místnosti
-window.createRoom = () => {
-  socket.emit('createRoom');
-  console.log('Odeslána událost: createRoom');
+// Nyní přijímá jméno uživatele a posílá ho na server
+window.createRoom = (username) => {
+  console.log('socketService: Emituji createRoom s jménem:', username); // Ladící výstup
+  socket.emit('createRoom', username);
 };
 
-// Odešle požadavek na server pro připojení do existující místnosti
-window.joinRoom = (roomId) => {
-  socket.emit('joinRoom', roomId);
-  console.log('Odeslána událost: joinRoom s kódem:', roomId);
+// Nyní přijímá jméno uživatele a posílá ho na server
+window.joinRoom = (roomId, username) => {
+  console.log('socketService: Emituji joinRoom s kódem:', roomId, 'a jménem:', username); // Ladící výstup
+  socket.emit('joinRoom', roomId, username);
 };
 
 // --- PŮVODNÍ Funkce pro odesílání událostí na server (pro hru) ---
 window.buzz = () => {
   socket.emit('buzz');
-  console.log('Odeslána událost: buzz');
+  console.log('socketService: Odeslána událost: buzz');
 };
 
 window.resetBuzzer = () => {
   socket.emit('resetBuzzer');
-  console.log('Odeslána událost: resetBuzzer');
+  console.log('socketService: Odeslána událost: resetBuzzer');
 };
 
 // --- Funkce pro příjem událostí ze serveru ---
 // app.js bude přímo registrovat posluchače na 'window.socket'
-
-// Zde už nepotřebujeme tyto funkce, protože app.js bude volat window.socket.on přímo.
-// Ponechávám je zakomentované pro referenci, pokud bys je chtěl použít jinak.
-/*
-window.onBuzzerWinner = (callback) => {
-  socket.on('buzzerWinner', callback);
-};
-
-window.onBuzzerReset = (callback) => {
-  socket.on('buzzerReset', callback);
-};
-*/

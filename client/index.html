@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bzučáková Aplikace</title>
-    <link rel="stylesheet" href="style.css"> 
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
@@ -27,6 +27,7 @@
         <div id="gameScreen" class="hidden">
             <p class="room-info">Jste v místnosti: <span id="currentRoomCode"></span></p>
             <p class="room-player-count">Hráči: <span id="playerCount">1</span></p>
+            
             <h2 class="game-status-message" id="gameStatusMessage">Čekám na hráče...</h2>
             
             <button id="buzzerButton" class="buzzer-button">BUZZ!</button>
@@ -44,5 +45,8 @@
     </div>
 
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-    <script src="js/socketService.js"></script> <script src="js/app.js"></script> </body>
+    
+    <script src="js/socketService.js"></script>
+    <script src="js/app.js"></script>
+</body>
 </html>
