@@ -11,6 +11,8 @@
     --success-green: #2ECC71;
     --light-grey: #ECF0F1; /* Pro pozadí inputu atd. */
     --error-red: #E74C3C; /* Pro chybové zprávy */
+    --accent-blue: #3498DB; /* Pro vykopnutí / aktivní prvky */
+    --darker-blue: #2980B9;
 }
 
 /* Obecné styly pro tělo stránky a reset */
@@ -116,6 +118,15 @@ body {
     background-color: #2C3E50; /* Ještě tmavší */
 }
 
+/* Speciální styly pro menší akční tlačítka */
+.action-button.small-button {
+    font-size: 1em;
+    padding: 10px 20px;
+    max-width: 200px;
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
 
 .separator {
     margin: 20px 0;
@@ -159,6 +170,167 @@ body {
     font-size: 1.1em;
 }
 
+
+/* --- NOVÉ: Lobby Screen styly --- */
+#lobbyScreen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.lobby-status-message {
+    font-size: 1.4em;
+    font-weight: 500;
+    color: var(--sandy-taupe);
+    margin-bottom: 25px;
+}
+
+/* Panel pro nastavení hostitele */
+.settings-panel {
+    background-color: var(--light-grey);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 25px;
+    width: calc(100% - 40px);
+    max-width: 350px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.settings-panel h3 {
+    font-size: 1.5em;
+    color: var(--deep-charcoal);
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.setting-item label {
+    font-size: 1.1em;
+    margin-right: 15px;
+    color: var(--deep-charcoal);
+    text-align: left;
+    flex-grow: 1; /* Aby zabíralo co nejvíce místa */
+}
+
+/* Styly pro select a input (číslo) v nastavení */
+.text-input.small-select,
+.text-input.small-input {
+    width: auto; /* Přizpůsobí se obsahu */
+    max-width: 150px; /* Omezí šířku */
+    margin-bottom: 0; /* Zruší margin z obecného .text-input */
+    flex-shrink: 0; /* Nebude se zmenšovat */
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Zarovnat doleva */
+    margin-top: 20px;
+    margin-bottom: 0;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    /* Vlastní stylizace checkboxu */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: 2px solid var(--sandy-taupe);
+    border-radius: 4px;
+    background-color: var(--creamy-white);
+    cursor: pointer;
+    position: relative;
+}
+
+.checkbox-item input[type="checkbox"]:checked {
+    background-color: var(--accent-blue);
+    border-color: var(--darker-blue);
+}
+
+.checkbox-item input[type="checkbox"]:checked::after {
+    content: '✔';
+    color: var(--creamy-white);
+    font-size: 16px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.checkbox-item label {
+    margin-right: 0; /* Přizpůsobíme label k checkboxu */
+}
+
+
+/* Seznam hráčů */
+.player-list-section {
+    width: 100%;
+    max-width: 350px;
+    margin-bottom: 25px;
+}
+
+.player-list-section h3 {
+    font-size: 1.3em;
+    color: var(--deep-charcoal);
+    margin-bottom: 15px;
+}
+
+.player-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background-color: var(--light-grey);
+    border-radius: 10px;
+    max-height: 200px; /* Scrollable list */
+    overflow-y: auto;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.player-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--sandy-taupe);
+    font-size: 1.1em;
+    color: var(--deep-charcoal);
+}
+
+.player-list li:last-child {
+    border-bottom: none;
+}
+
+.player-list li span {
+    flex-grow: 1; /* Jméno hráče zabírá většinu místa */
+    text-align: left;
+    font-weight: 500;
+}
+
+/* Tlačítko pro vykopnutí hráče */
+.kick-button {
+    background-color: var(--buzzer-red);
+    color: var(--creamy-white);
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.kick-button:hover {
+    background-color: var(--darker-red);
+}
+
 /* --- Herní obrazovka --- */
 #gameScreen {
     display: flex;
@@ -194,6 +366,19 @@ body {
     font-weight: 600;
     color: var(--deep-charcoal);
     margin-bottom: 30px;
+    min-height: 1.6em; /* Aby se zprávy neposouvaly s výškou */
+}
+
+/* Styly pro odpočet */
+.countdown-display {
+    font-size: 5em;
+    font-weight: bold;
+    color: var(--buzzer-red);
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+}
+.countdown-display.hidden { /* Override pro skrytí */
+    display: none !important;
 }
 
 
@@ -264,7 +449,7 @@ body {
     color: var(--soft-beige);
 }
 
-/* Styl pro tlačítko RESET (stejné jako dříve) */
+/* Styl pro tlačítko RESET / Další kolo */
 .reset-button {
     background-color: var(--buzzer-red);
     padding: 15px 30px;
@@ -289,7 +474,7 @@ body {
     box-shadow: none;
 }
 
-/* Nové tlačítko Opustit místnost */
+/* Nové tlačítko Opustit místnost/hru */
 .leave-room-button {
     background-color: #95A5A6; /* Šedá */
     color: var(--creamy-white);
