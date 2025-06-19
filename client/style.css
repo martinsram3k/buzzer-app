@@ -495,3 +495,18 @@ body {
 .hidden {
     display: none !important;
 }
+
+#countdownDisplay {
+    margin-top: 20px;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+    text-align: center;
+}
+
+.countdown-value {
+    font-size: 2.5em; /* Větší velikost čísla odpočtu */
+    color: #d9534f; /* Červená barva pro lepší viditelnost */
+    display: block; /* Zajistí, že číslo bude na vlastním řádku */
+    margin-top: 5px;
+}

@@ -34,10 +34,10 @@ const buzzerButton = document.getElementById('buzzerButton');
 const winnerContainer = document.getElementById('winnerContainer');
 const winnerNameDisplay = document.getElementById('winnerName');
 const winnerTimeDisplay = document.getElementById('winnerTime');
-const countdownDisplay = document.getElementById('countdownDisplay'); // NOVÉ
-const countdownValueDisplay = document.getElementById('countdownValue'); // NOVÉ
-const nextRoundButton = document.getElementById('nextRoundButton'); // NOVÉ
-const resetButton = document.getElementById('resetButton'); // Stávající, ale s jinou rolí/viditelností
+const countdownDisplay = document.getElementById('countdownDisplay');
+const countdownValueDisplay = document.getElementById('countdownValue');
+const nextRoundButton = document.getElementById('nextRoundButton');
+const resetButton = document.getElementById('resetButton');
 const leaveGameButton = document.getElementById('leaveGameButton');
 
 // --- Globální proměnné stavu ---
@@ -51,7 +51,8 @@ let gameSettings = {
     numRounds: 3,
     hostPlays: true // Hostitel hraje (může bzučet)
 };
-let countdownInterval = null; // Pro ukládání intervalu odpočtu
+let preRoundCountdownInterval = null; // Změněno z countdownInterval
+let roundTimerInterval = null; // NOVÉ: Pro časovač během kola
 window.gameRoomState = null; // Globální stav místnosti, přijatý ze serveru
 
 // --- Pomocné funkce pro zobrazení obrazovek ---
@@ -70,7 +71,6 @@ function showScreen(screenId) {
     // Zobrazí požadovanou obrazovku
     document.getElementById(screenId).classList.remove('hidden');
     console.log(`app.js: Zobrazena obrazovka: ${screenId}`);
-    // currentGameState se aktualizuje z roomState na základě dat ze serveru
 }
 
 /**
@@ -108,7 +108,6 @@ function updateWinnerDisplay(winner) {
     currentWinner = winner;
     if (winner) {
         winnerNameDisplay.textContent = winner.username;
-        // Formátování času, pokud existuje
         winnerTimeDisplay.textContent = winner.time ? `(Bzučel v: ${new Date(winner.time).toLocaleTimeString()})` : '';
         winnerContainer.classList.remove('hidden');
         buzzerButton.disabled = true; // Zakáže bzučák
@@ -150,28 +149,72 @@ function updateWinnerDisplay(winner) {
 }
 
 /**
- * Spustí vizuální odpočet na UI.
+ * Spustí vizuální odpočet PŘED kolem (3 sekundy).
  * @param {number} initialTime Počáteční hodnota odpočtu v sekundách.
  */
-function startCountdownUI(initialTime) {
+function startPreRoundCountdownUI(initialTime) {
     let timeLeft = initialTime;
     countdownDisplay.classList.remove('hidden');
     countdownValueDisplay.textContent = timeLeft;
     buzzerButton.disabled = true; // Bzučák je zakázán během odpočtu
     winnerContainer.classList.add('hidden'); // Skryj vítěze během odpočtu
 
-    if (countdownInterval) clearInterval(countdownInterval); // Vyčisti předchozí interval
+    if (preRoundCountdownInterval) clearInterval(preRoundCountdownInterval);
 
-    countdownInterval = setInterval(() => {
+    preRoundCountdownInterval = setInterval(() => {
         timeLeft--;
         countdownValueDisplay.textContent = timeLeft;
         if (timeLeft <= 0) {
-            clearInterval(countdownInterval);
+            clearInterval(preRoundCountdownInterval);
             countdownDisplay.classList.add('hidden');
-            // Bzučák se povolí až po události 'roundStarted' ze serveru, která se odešle po odpočtu
-            console.log('app.js: Odpočet UI dokončen.');
+            console.log('app.js: Předkolo odpočet UI dokončen.');
         }
     }, 1000);
+}
+
+/**
+ * Spustí vizuální časovač BĚHEM aktivního kola.
+ * @param {number} duration Délka kola v sekundách (0 pro bez omezení).
+ */
+function startRoundTimerUI(duration) {
+    if (roundTimerInterval) clearInterval(roundTimerInterval); // Vyčisti předchozí časovač
+
+    if (duration === 0) {
+        countdownDisplay.classList.remove('hidden');
+        countdownValueDisplay.textContent = '∞'; // Nekonečno pro bez omezení
+        console.log('app.js: Spuštěn časovač kola: Bez omezení.');
+        return;
+    }
+
+    let timeLeft = duration;
+    countdownDisplay.classList.remove('hidden');
+    countdownValueDisplay.textContent = timeLeft;
+
+    roundTimerInterval = setInterval(() => {
+        timeLeft--;
+        countdownValueDisplay.textContent = timeLeft;
+        if (timeLeft <= 0) {
+            clearInterval(roundTimerInterval);
+            countdownDisplay.classList.add('hidden');
+            console.log('app.js: Časovač kola vypršel.');
+        }
+    }, 1000);
+    console.log(`app.js: Spuštěn časovač kola na ${duration} sekund.`);
+}
+
+/**
+ * Zastaví všechny aktivní časovače.
+ */
+function stopAllTimers() {
+    if (preRoundCountdownInterval) {
+        clearInterval(preRoundCountdownInterval);
+        preRoundCountdownInterval = null;
+    }
+    if (roundTimerInterval) {
+        clearInterval(roundTimerInterval);
+        roundTimerInterval = null;
+    }
+    countdownDisplay.classList.add('hidden'); // Skryj časovač
 }
 
 
@@ -196,8 +239,6 @@ window.updateUIFromRoomState = (roomState) => {
         let playerText = `<span>${player.username}</span>`;
         if (player.id === window.socket.id) {
             playerText = `<span>${player.username} (Ty)</span>`;
-        } else if (isHost && player.id === roomState.hostId) {
-            playerText = `<span>${player.username} (Hostitel)</span>`;
         } else if (player.id === roomState.hostId) { // Pro ostatní hráče označí hostitele
             playerText = `<span>${player.username} (Hostitel)</span>`;
         }
@@ -235,21 +276,22 @@ window.updateUIFromRoomState = (roomState) => {
     switch (roomState.gameState) {
         case 'LOBBY':
             showScreen('lobbyScreen');
+            stopAllTimers(); // Zastav časovače v lobby
             lobbyStatusMessage.textContent = isHost ? 
                 `Jsi hostitel. Kód: ${roomState.roomId}. Nastav hru a počkej na hráče.` : 
                 `Jsi připojen do místnosti ${roomState.roomId}. Čekám na hostitele, aby spustil hru...`;
             startGameButton.classList.toggle('hidden', !isHost); // Jen hostitel vidí Start Game
             leaveLobbyButton.classList.remove('hidden'); // Oba vidí Opustit místnost
             buzzerButton.disabled = true; // V lobby se nebzučí
-            countdownDisplay.classList.add('hidden'); // Skryj odpočet
             winnerContainer.classList.add('hidden'); // Skryj vítěze
             nextRoundButton.classList.add('hidden');
             resetButton.classList.add('hidden');
             break;
         case 'COUNTDOWN':
             showScreen('gameScreen');
+            stopAllTimers(); // Zastav časovače před spuštěním nového
             updateGameStatusMessage(`Kolo ${roomState.currentRound} začíná za...`, false);
-            startCountdownUI(roomState.countdownTime); // Spustí UI odpočet
+            startPreRoundCountdownUI(roomState.countdownTime); // Spustí UI odpočet
             buzzerButton.disabled = true; // Bzučák je zakázán během odpočtu
             winnerContainer.classList.add('hidden');
             nextRoundButton.classList.add('hidden');
@@ -257,9 +299,14 @@ window.updateUIFromRoomState = (roomState) => {
             break;
         case 'ACTIVE_ROUND':
             showScreen('gameScreen');
+            stopAllTimers(); // Zastav předchozí časovače (pokud by byly)
             updateGameStatusMessage(`Kolo ${roomState.currentRound} v plném proudu!`, true);
-            countdownDisplay.classList.add('hidden'); // Skryj odpočet
-            updateWinnerDisplay(roomState.winner); // Zobrazí vítěze, pokud už byl
+            
+            // Spustí časovač kola na UI
+            startRoundTimerUI(roomState.gameSettings.roundDuration);
+
+            updateWinnerDisplay(roomState.winner); // Zobrazí vítěze, pokud už byl (neměl by být v ACTIVE_ROUND)
+            
             // Povol bzučák, pokud není vítěz a hostitel hraje nebo nejsi hostitel
             if (!roomState.winner) {
                 if (isHost && !roomState.gameSettings.hostPlays) {
@@ -272,16 +319,18 @@ window.updateUIFromRoomState = (roomState) => {
             break;
         case 'ROUND_END':
             showScreen('gameScreen');
+            stopAllTimers(); // Zastav časovače na konci kola
             updateGameStatusMessage(`Kolo ${roomState.currentRound} skončilo!`, true);
-            countdownDisplay.classList.add('hidden');
             updateWinnerDisplay(roomState.winner); // Zobraz vítěze
+            buzzerButton.disabled = true; // Zakáže bzučák
+            
             // Tlačítko Další kolo se zobrazí jen hostiteli, pokud nejsou všechna kola odehrána
             if (isHost && roomState.currentRound < roomState.gameSettings.numRounds) {
                 nextRoundButton.classList.remove('hidden');
                 nextRoundButton.textContent = "Další kolo";
                 nextRoundButton.disabled = false;
             } else if (isHost && roomState.currentRound >= roomState.gameSettings.numRounds) {
-                // Poslední kolo, hostitel vidí tlačítko "Konec hry" nebo podobně
+                // Poslední kolo, hostitel vidí tlačítko "Konec hry"
                 nextRoundButton.textContent = "Konec hry"; // Změníme text tlačítka
                 nextRoundButton.classList.remove('hidden');
                 nextRoundButton.disabled = false;
@@ -289,13 +338,15 @@ window.updateUIFromRoomState = (roomState) => {
             } else {
                 nextRoundButton.classList.add('hidden');
             }
+            resetButton.classList.add('hidden'); // Skryjeme staré reset tlačítko
             break;
         case 'GAME_OVER':
             showScreen('gameScreen');
+            stopAllTimers(); // Zastav časovače
             updateGameStatusMessage(`Hra skončila!`, true);
-            countdownDisplay.classList.add('hidden');
             updateWinnerDisplay(roomState.winner); // Zobraz posledního vítěze (pokud byl)
             nextRoundButton.classList.add('hidden');
+            buzzerButton.disabled = true; // Bzučák je zakázán
             if (isHost) {
                 // Hostitel může mít tlačítko pro novou hru nebo opuštění
                 resetButton.classList.remove('hidden'); // Můžeme použít reset pro restart hry
@@ -324,23 +375,17 @@ document.addEventListener('DOMContentLoaded', () => {
     window.socket.on('roomCreated', (roomId) => {
         currentRoomId = roomId;
         isHost = true;
-        // Po vytvoření místnosti se přejde do lobby.
-        // Server brzy pošle 'roomState', který aktualizuje celé UI.
         showScreen('lobbyScreen'); // Okamžitě zobrazíme lobby
-        // Aktualizace lobbyStatusMessage proběhne v roomState handleru
         console.log(`app.js: Místnost vytvořena: ${roomId}. Jsi hostitel.`);
-        console.log(`app.js: V roomCreated, currentRoomId je nastaveno na: ${currentRoomId}`); // LADÍCÍ ZPRÁVA
+        console.log(`app.js: V roomCreated, currentRoomId je nastaveno na: ${currentRoomId}`);
     });
 
     window.socket.on('roomJoined', (roomId) => {
         currentRoomId = roomId;
         isHost = false; // Pokud je to join, nejsi hostitel
-        // Po připojení do místnosti se přejde do lobby.
-        // Server brzy pošle 'roomState', který aktualizuje celé UI.
         showScreen('lobbyScreen'); // Okamžitě zobrazíme lobby
-        // Aktualizace lobbyStatusMessage proběhne v roomState handleru
         console.log(`app.js: Připojeno do místnosti: ${roomId}.`);
-        console.log(`app.js: V roomJoined, currentRoomId je nastaveno na: ${currentRoomId}`); // LADÍCÍ ZPRÁVA
+        console.log(`app.js: V roomJoined, currentRoomId je nastaveno na: ${currentRoomId}`);
     });
 
     window.socket.on('roomNotFound', () => {
@@ -351,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Hlavní událost pro aktualizaci celého UI
     window.socket.on('roomState', (roomState) => {
-        console.log(`app.js: updateUIFromRoomState volána. roomState.roomId je: ${roomState.roomId}, currentRoomId je: ${currentRoomId}`); // LADÍCÍ ZPRÁVA
+        console.log(`app.js: updateUIFromRoomState volána. roomState.roomId je: ${roomState.roomId}, currentRoomId je: ${currentRoomId}`);
         updateUIFromRoomState(roomState);
         console.log('app.js: Událost roomState přijata. Aktuální stav místnosti:', roomState);
     });
@@ -359,6 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.socket.on('roomClosed', (message) => {
         alert(message || 'Místnost byla zrušena.');
         showScreen('startScreen');
+        stopAllTimers(); // Zastav všechny časovače při zavření místnosti
         // Reset lokálních proměnných po opuštění
         currentRoomId = null;
         isHost = false;
@@ -380,6 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- POSLUCHAČE PRO HERNÍ LOGIKU ---
     window.socket.on('buzzerWinner', (winner) => {
         // updateWinnerDisplay(winner); // Toto už se volá z roomState události
+        stopAllTimers(); // Zastav časovač kola po bzučení
         console.log('app.js: Událost buzzerWinner přijata. Vítěz kola:', winner.username || winner.id);
     });
 
@@ -389,27 +436,25 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('app.js: Událost buzzerReset přijata.');
     });
 
-    // NOVÉ: Událost pro začátek odpočtu (server řekne, kdy začít)
     window.socket.on('countdownStart', (countdownTime) => {
         // UI se přepne na herní obrazovku a odpočet se spustí uvnitř updateUIFromRoomState
         console.log(`app.js: Odpočet zahájen s ${countdownTime} sekundami.`);
     });
     
-    // NOVÉ: Událost pro start kola (server řekne, kdy je kolo aktivní)
     window.socket.on('roundStarted', (roundNumber, gameSettings) => {
         // UI se aktualizuje přes roomState událost, která už zpracuje zobrazení
         console.log(`app.js: Kolo ${roundNumber} začalo.`);
     });
 
-    // NOVÉ: Událost pro konec kola (vypršení času nebo bzučení)
     window.socket.on('roundEnded', (roundNumber, winner) => {
         // UI se aktualizuje přes roomState událost, která už zpracuje zobrazení vítěze a tlačítek
+        stopAllTimers(); // Zastav časovače na konci kola
         console.log(`app.js: Kolo ${roundNumber} skončilo.`);
     });
 
-    // NOVÉ: Událost pro konec celé hry
     window.socket.on('gameOver', () => {
         // UI se aktualizuje přes roomState událost, která už zpracuje zobrazení
+        stopAllTimers(); // Zastav časovače na konci hry
         console.log('app.js: Hra skončila.');
     });
 });
@@ -547,6 +592,7 @@ leaveLobbyButton.addEventListener('click', () => {
         if (confirm('Opravdu chcete opustit místnost?')) {
             window.leaveRoom(currentRoomId); 
             showScreen('startScreen');
+            stopAllTimers(); // Zastav všechny časovače při opuštění místnosti
             // Reset lokálních proměnných po opuštění
             currentRoomId = null;
             isHost = false;
@@ -562,6 +608,7 @@ leaveGameButton.addEventListener('click', () => {
         if (confirm('Opravdu chcete opustit hru?')) {
             window.leaveRoom(currentRoomId); 
             showScreen('startScreen');
+            stopAllTimers(); // Zastav všechny časovače při opuštění místnosti
              // Reset lokálních proměnných po opuštění
             currentRoomId = null;
             isHost = false;
