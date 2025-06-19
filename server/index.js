@@ -17,7 +17,7 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 3001;
 
 // Datová struktura pro ukládání stavu místností
-// Rozšířený objekt místnosti o herní nastavení a stav hry
+// Klíč: roomId (string), Hodnota: { winner: null, players: [], hostId: string, gameState: string, currentRound: number, gameSettings: object, roundTimer: object|null }
 const rooms = {};
 
 // Funkce pro generování unikátního 5místného kódu místnosti
@@ -35,13 +35,13 @@ app.get('/', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
+  console.log('Server: A user connected:', socket.id);
 
   // Funkce pro odeslání aktuálního stavu místnosti všem hráčům v místnosti
   function emitRoomState(roomId) {
     if (rooms[roomId]) {
       io.to(roomId).emit('roomState', rooms[roomId]);
-      console.log(`Server: Odeslán roomState pro místnost ${roomId}. Stav: ${rooms[roomId].gameState}, Kolo: ${rooms[roomId].currentRound}`);
+      console.log(`Server: Odeslán roomState pro místnost ${roomId}. Stav: ${rooms[roomId].gameState}, Kolo: ${rooms[roomId].currentRound}, Hráči: ${rooms[roomId].players.length}`);
     }
   }
 
@@ -60,12 +60,15 @@ io.on('connection', (socket) => {
 
   // Funkce pro spuštění nového kola
   function startNewRound(roomId) {
-    if (!rooms[roomId]) return;
+    if (!rooms[roomId]) {
+      console.warn(`Server: Pokus o spuštění kola v neexistující místnosti: ${roomId}`);
+      return;
+    }
 
     resetBuzzerState(roomId); // Resetujeme stav bzučáku před novým kolem
 
     // Zvýšíme číslo kola, pokud už nejsme v lobby nebo je to první kolo
-    if (rooms[roomId].gameState !== 'LOBBY') {
+    if (rooms[roomId].gameState !== 'LOBBY' && rooms[roomId].gameState !== 'GAME_OVER') {
         rooms[roomId].currentRound++;
     } else {
         rooms[roomId].currentRound = 1; // Začínáme první kolo
@@ -122,16 +125,17 @@ io.on('connection', (socket) => {
     console.log('Server: Přijata createRoom událost.');
     console.log('Server: Přijaté jméno pro createRoom:', username);
 
-    if (username) {
-        socket.username = username;
+    if (username && username.trim().length > 0) { // Ověření jména
+        socket.username = username.trim();
     } else {
         socket.username = 'Uživatel_' + socket.id.substring(0, 4);
-        console.warn('Server: Username NENÍ předáno pro createRoom. Používám fallback:', socket.username);
+        console.warn('Server: Username NENÍ předáno pro createRoom nebo je prázdné. Používám fallback:', socket.username);
     }
 
     const roomId = generateRoomCode();
     // Počáteční stav místnosti pro lobby
     rooms[roomId] = {
+        roomId: roomId, // Uložení ID místnosti do objektu místnosti
         winner: null,
         players: [],
         hostId: socket.id,
@@ -144,14 +148,14 @@ io.on('connection', (socket) => {
         },
         roundTimer: null // Pro ukládání časovače kola
     };
-    socket.join(roomId);
+    socket.join(roomId); // Uživatel se připojí do Socket.IO místnosti
     
     // Uložíme hráče jako objekt s ID a jménem
     rooms[roomId].players.push({ id: socket.id, username: socket.username }); 
     socket.currentRoom = roomId; // Uložíme si, ve které místnosti je socket
     
-    console.log(`Místnost ${roomId} vytvořena uživatelem ${socket.id} (${socket.username}) (HOST)`);
-    socket.emit('roomCreated', roomId);
+    console.log(`Server: Místnost ${roomId} vytvořena uživatelem ${socket.id} (${socket.username}) (HOST)`);
+    socket.emit('roomCreated', roomId); // Potvrzení vytvoření klientovi
     
     emitRoomState(roomId); // Pošli počáteční stav lobby
   });
@@ -162,11 +166,11 @@ io.on('connection', (socket) => {
     console.log('Server: Přijatý kód místnosti pro joinRoom:', roomId);
     console.log('Server: Přijaté jméno pro joinRoom:', username);
 
-    if (username) {
-        socket.username = username;
+    if (username && username.trim().length > 0) { // Ověření jména
+        socket.username = username.trim();
     } else {
         socket.username = 'Uživatel_' + socket.id.substring(0, 4);
-        console.warn('Server: Username NENÍ předáno pro joinRoom. Používám fallback:', socket.username);
+        console.warn('Server: Username NENÍ předáno pro joinRoom nebo je prázdné. Používám fallback:', socket.username);
     }
 
     if (rooms[roomId]) {
@@ -177,7 +181,7 @@ io.on('connection', (socket) => {
         rooms[roomId].players.push({ id: socket.id, username: socket.username });
         socket.currentRoom = roomId;
         
-        console.log(`Uživatel ${socket.id} (${socket.username}) se připojil do místnosti ${roomId}`);
+        console.log(`Server: Uživatel ${socket.id} (${socket.username}) se připojil do místnosti ${roomId}`);
         socket.emit('roomJoined', roomId);
 
         emitRoomState(roomId); // Pošle stav nově připojenému hráči A všem ostatním v místnosti
@@ -187,33 +191,37 @@ io.on('connection', (socket) => {
         emitRoomState(roomId);
       }
     } else {
-      socket.emit('roomNotFound');
-      console.log(`Uživatel ${socket.id} (${socket.username}) se pokusil připojit do neexistující místnosti ${roomId}`);
+      socket.emit('roomNotFound'); // Místnost neexistuje
+      console.log(`Server: Uživatel ${socket.id} (${socket.username}) se pokusil připojit do neexistující místnosti ${roomId}`);
     }
   });
 
   // NOVÉ: Hostitel aktualizuje nastavení hry
   socket.on('updateGameSettings', (roomId, settings) => {
     if (rooms[roomId] && rooms[roomId].hostId === socket.id) {
-        // Základní validace
-        if (typeof settings.roundDuration !== 'number' || typeof settings.numRounds !== 'number' || typeof settings.hostPlays !== 'boolean') {
+        // Základní validace nastavení
+        const newRoundDuration = parseInt(settings.roundDuration);
+        const newNumRounds = parseInt(settings.numRounds);
+        const newHostPlays = Boolean(settings.hostPlays); // Zajistí boolean
+
+        if (isNaN(newRoundDuration) || (newRoundDuration < 0 && newRoundDuration !== 0) || // 0 pro bez omezení
+            isNaN(newNumRounds) || newNumRounds < 1 || newNumRounds > 100 ||
+            typeof newHostPlays !== 'boolean') {
             socket.emit('notAuthorized', 'Neplatné nastavení hry.');
-            return;
-        }
-        if (settings.numRounds < 1) {
-            socket.emit('notAuthorized', 'Počet kol musí být alespoň 1.');
+            console.warn(`Server: Neplatné nastavení hry od ${socket.username} v místnosti ${roomId}.`);
             return;
         }
         
         rooms[roomId].gameSettings = {
-            roundDuration: settings.roundDuration,
-            numRounds: settings.numRounds,
-            hostPlays: settings.hostPlays
+            roundDuration: newRoundDuration,
+            numRounds: newNumRounds,
+            hostPlays: newHostPlays
         };
         console.log(`Server: Nastavení hry v místnosti ${roomId} aktualizováno hostitelem ${socket.username}:`, rooms[roomId].gameSettings);
         emitRoomState(roomId); // Informuj všechny o změně nastavení
     } else {
         socket.emit('notAuthorized', 'Pouze hostitel může měnit nastavení hry.');
+        console.warn(`Server: Pokus o změnu nastavení bez oprávnění od ${socket.username} v místnosti ${roomId}.`);
     }
   });
 
@@ -221,15 +229,19 @@ io.on('connection', (socket) => {
   socket.on('kickPlayer', (playerIdToKick) => {
     const roomId = socket.currentRoom;
     if (rooms[roomId] && rooms[roomId].hostId === socket.id) {
-        const playerToKick = rooms[roomId].players.find(p => p.id === playerIdToKick);
-        if (playerToKick) {
-            rooms[roomId].players = rooms[roomId].players.filter(p => p.id !== playerIdToKick);
+        const playerToKickIndex = rooms[roomId].players.findIndex(p => p.id === playerIdToKick);
+        if (playerToKickIndex !== -1) {
+            const playerToKick = rooms[roomId].players[playerToKickIndex];
+            rooms[roomId].players.splice(playerToKickIndex, 1); // Odeber hráče
+            
             const kickedSocket = io.sockets.sockets.get(playerIdToKick);
             if (kickedSocket) {
                 kickedSocket.emit('roomClosed', `Byl jsi vykopnut z místnosti ${roomId} hostitelem.`);
                 kickedSocket.leave(roomId); // Odeber ho ze Socket.IO místnosti
                 kickedSocket.currentRoom = null; // Vyčisti jeho stav
                 console.log(`Server: Hráč ${playerToKick.username} (${playerIdToKick}) vykopnut z místnosti ${roomId}.`);
+            } else {
+              console.warn(`Server: Vykořeněný socket pro ID ${playerIdToKick} nebyl nalezen.`);
             }
             emitRoomState(roomId); // Aktualizuj stav pro zbývající hráče
             io.to(roomId).emit('playerKicked', playerToKick.username); // Informuj ostatní
@@ -247,6 +259,7 @@ io.on('connection', (socket) => {
         const requiredPlayers = rooms[roomId].gameSettings.hostPlays ? 1 : 2;
         if (rooms[roomId].players.length < requiredPlayers) {
             socket.emit('notAuthorized', `Potřebujete alespoň ${requiredPlayers} hráče(ů) pro spuštění hry.`);
+            console.warn(`Server: Hostitel ${socket.username} se pokusil spustit hru s nedostatkem hráčů.`);
             return;
         }
         console.log(`Server: Hostitel ${socket.username} spustil hru v místnosti ${roomId}.`);
@@ -277,7 +290,7 @@ io.on('connection', (socket) => {
         console.log(`Server: Hostitel ${socket.username} ukončil hru v místnosti ${roomId}.`);
         rooms[roomId].gameState = 'GAME_OVER';
         emitRoomState(roomId);
-        io.to(roomId).emit('gameOver');
+        io.to(roomId).emit('gameOver'); // Můžeme poslat i tuto specifickou událost
     } else {
         socket.emit('notAuthorized', 'Hru může ukončit pouze hostitel na konci všech kol.');
     }
@@ -291,8 +304,6 @@ io.on('connection', (socket) => {
         rooms[roomId].winner = null;
         rooms[roomId].gameState = 'LOBBY';
         rooms[roomId].currentRound = 0;
-        // Nastavení hry zůstanou zachována, ale můžeme je také resetovat na výchozí, pokud chceme
-        // rooms[roomId].gameSettings = { roundDuration: 30, numRounds: 3, hostPlays: true };
         resetBuzzerState(roomId); // Vyčisti případný časovač
         emitRoomState(roomId);
     } else {
@@ -333,31 +344,36 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('gameOver');
       }
     } else {
-        console.warn(`Server: Buzz zamítnut v místnosti ${roomId} od ${socket.username}. Stav: ${rooms[roomId]?.gameState}, Vítěz: ${rooms[roomId]?.winner?.username || 'žádný'}`);
+        console.warn(`Server: Buzz zamítnut v místnosti ${roomId} od ${socket.username || socket.id}. Stav: ${rooms[roomId]?.gameState}, Vítěz: ${rooms[roomId]?.winner?.username || 'žádný'}`);
         // Můžeš poslat i konkrétní chybu klientovi
         if (rooms[roomId]?.gameState !== 'ACTIVE_ROUND') {
             socket.emit('notAuthorized', 'Nemůžeš bzučet v tomto stavu hry.');
         } else if (rooms[roomId]?.winner) {
             socket.emit('notAuthorized', 'Někdo už bzučel.');
+        } else if (!roomId || !rooms[roomId]) {
+            socket.emit('notAuthorized', 'Nejsi v žádné místnosti.');
         }
     }
   });
 
   // Původní resetBuzzer, nyní volaný interně nebo pro specifické účely
-  socket.on('resetBuzzer', () => {
+  socket.on('resetBuzzer', () => { // Toto tlačítko je nyní "Nová Hra" pro hostitele
     const roomId = socket.currentRoom;
     if (roomId && rooms[roomId] && rooms[roomId].hostId === socket.id) {
-        // Použijeme interní funkci, ale zkontrolujeme, zda je to ve správném stavu
-        if (rooms[roomId].gameState === 'ROUND_END' || rooms[roomId].gameState === 'ACTIVE_ROUND') {
-             resetBuzzerState(roomId);
-             rooms[roomId].gameState = 'ACTIVE_ROUND'; // Pokud jen resetuje, vrátí se do aktivního kola
-             emitRoomState(roomId);
-             console.log(`Server: Manuální reset bzučáku v místnosti ${roomId} hostitelem ${socket.username}.`);
+        // Logika pro reset hry z game over stavu
+        if (rooms[roomId].gameState === 'GAME_OVER') {
+            console.log(`Server: Manuální reset bzučáku (Nová Hra) v místnosti ${roomId} hostitelem ${socket.username}.`);
+            rooms[roomId].winner = null;
+            rooms[roomId].gameState = 'LOBBY';
+            rooms[roomId].currentRound = 0;
+            resetBuzzerState(roomId);
+            emitRoomState(roomId);
         } else {
-            socket.emit('notAuthorized', 'Bzučák lze resetovat pouze během aktivního kola nebo po jeho konci.');
+            // Pokud by to bylo potřeba resetovat uprostřed kola, což teď neděláme
+            socket.emit('notAuthorized', 'Tlačítko pro reset bzučáku je nyní "Nová Hra" a je aktivní pouze na konci hry pro hostitele.');
         }
     } else {
-        socket.emit('notAuthorized', 'K resetu bzučáku má oprávnění pouze hostitel místnosti.');
+        socket.emit('notAuthorized', 'K tomuto resetu má oprávnění pouze hostitel místnosti.');
     }
   });
   
@@ -397,15 +413,15 @@ io.on('connection', (socket) => {
                     io.to(roomId).emit('buzzerReset');
                 }
             }
-            emitRoomState(roomId);
+            emitRoomState(roomId); // Pošle aktualizovaný stav
         }
     }
   });
 
 
-  // UDÁLOST: Odpojení uživatele
+  // UDÁLOST: Odpojení uživatele (zavření prohlížeče, obnovení stránky atd.)
   socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
+    console.log('Server: User disconnected:', socket.id);
     
     const roomId = socket.currentRoom; // Použijeme uložené ID místnosti
 
@@ -413,11 +429,11 @@ io.on('connection', (socket) => {
       // Odeber uživatele ze seznamu hráčů v místnosti
       rooms[roomId].players = rooms[roomId].players.filter(player => player.id !== socket.id);
       
-      console.log(`Uživatel ${socket.username || socket.id} opustil místnost ${roomId}. Zbývající hráči: ${rooms[roomId].players.length}`);
+      console.log(`Server: Uživatel ${socket.username || socket.id} opustil místnost ${roomId}. Zbývající hráči: ${rooms[roomId].players.length}`);
       
       // Pokud je odpojený uživatel hostitel, zruš místnost
       if (rooms[roomId].hostId === socket.id) {
-          console.log(`Hostitel ${socket.username || socket.id} se odpojil. Místnost ${roomId} bude zrušena.`);
+          console.log(`Server: Hostitel ${socket.username || socket.id} se odpojil. Místnost ${roomId} bude zrušena.`);
           io.to(roomId).emit('roomClosed', 'Hostitel se odpojil. Místnost byla zrušena.');
           if (rooms[roomId].roundTimer) { // Zruš i časovač kola
               clearTimeout(rooms[roomId].roundTimer);
@@ -426,7 +442,7 @@ io.on('connection', (socket) => {
           delete rooms[roomId]; // Odstraní celou místnost
       } else if (rooms[roomId].players.length === 0) {
           // Pokud je odpojený poslední hráč (a není hostitel), zruš místnost
-          console.log(`Místnost ${roomId} zrušena (žádní hráči nezbyli).`);
+          console.log(`Server: Místnost ${roomId} zrušena (žádní hráči nezbyli).`);
           if (rooms[roomId].roundTimer) { // Zruš i časovač kola
               clearTimeout(rooms[roomId].roundTimer);
               rooms[roomId].roundTimer = null;
