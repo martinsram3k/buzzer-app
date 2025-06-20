@@ -79,10 +79,11 @@ html, body {
 .bottom-nav {
     position: fixed;
     /* Pevná pozice na spodní části obrazovky */
-    bottom: 0;
-    left: 0;
-    width: 100%;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
     height: fit-content;
+    border-radius: 20px;
     /* Zvýšená výška pro lepší dotyk a ikony/text */
     background-color: var(--secondary-color);
     display: flex;
@@ -115,16 +116,19 @@ html, body {
 }
 
 .nav-icon {
-width: 50px;
+    width: 50px;
+    /* Možná bys chtěl přidat i sem filter pro ikony, aby se měnily s aktivním textem */
 }
 
 .nav-text {
     font-size: 15px;
-    color: var(--background-dark);
+    color: var(--background-dark); /* Výchozí barva textu pro neaktivní */
+    transition: color 0.3s ease;
 }
 
 .nav-text.active {
-    color: var(--primary-color);
+    color: var(--primary-color); /* Toto je tvůj stávající styl pro aktivní text */
+    font-weight: bold; /* Můžeš přidat pro větší zvýraznění */
 }
 
 /* Pomocná třída pro skrytí elementu */

@@ -35,23 +35,23 @@
 
     <!-- Spodní navigační panel -->
     <nav class="bottom-nav">
-        <!-- Používáme tlačítka s ikonami a textem -->
-        <button class="nav-button active" data-section="homeSection">
-
-            <img src="assets/icon/home.svg" alt="Domovská stránka" class="nav-icon">
-<h1 class="nav-text active">HOME</h1>
+        <button class="nav-button active" data-section="homeSection" 
+                data-inactive-icon="assets/icon/home.svg" 
+                data-active-icon="assets/icon/homeactive.svg">
+            <img src="assets/icon/homeactive.svg" alt="Domovská stránka" class="nav-icon">
+            <h1 class="nav-text active">HOME</h1>
         </button>
-        <button class="nav-button" data-section="gameSection">
-
+        <button class="nav-button" data-section="gameSection" 
+                data-inactive-icon="assets/icon/game.svg" 
+                data-active-icon="assets/icon/gameactive.svg">
             <img src="assets/icon/game.svg" alt="Hra" class="nav-icon">
             <h1 class="nav-text">GAME</h1>
-
         </button>
-        <button class="nav-button" data-section="accountSection">
-
+        <button class="nav-button" data-section="accountSection" 
+                data-inactive-icon="assets/icon/account.svg" 
+                data-active-icon="assets/icon/accountactive.svg">
             <img src="assets/icon/account.svg" alt="Účet" class="nav-icon">
             <h1 class="nav-text">ACCOUNT</h1>
-
         </button>
     </nav>
 
