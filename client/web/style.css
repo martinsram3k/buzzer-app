@@ -1,0 +1,498 @@
+/* client-web/css/style.css */
+
+/* Barvová paleta */
+:root {
+    --buzzer-red: #E74C3C;
+    --darker-red: #C0392B;
+    --soft-beige: #F8F4E3;
+    --creamy-white: #FFFBF5;
+    --sandy-taupe: #D4C9B3;
+    --deep-charcoal: #34495E;
+    --success-green: #2ECC71;
+    --light-grey: #ECF0F1; /* Pro pozadí inputu atd. */
+    --error-red: #E74C3C; /* Pro chybové zprávy */
+    --accent-blue: #3498DB; /* Pro vykopnutí / aktivní prvky */
+    --darker-blue: #2980B9;
+}
+
+/* Obecné styly pro tělo stránky a reset */
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: var(--soft-beige);
+    color: var(--deep-charcoal);
+    box-sizing: border-box; /* Zajišťuje, že padding a border se započítávají do šířky/výšky */
+}
+
+/* Kontejner pro celou aplikaci */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px;
+    background-color: var(--creamy-white);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    max-width: 450px;
+    width: 90%;
+    text-align: center;
+    position: relative; /* Pro absolutní pozicování */
+}
+
+.main-title {
+    font-size: 2.8em;
+    font-weight: 700;
+    margin-bottom: 30px;
+    color: var(--buzzer-red);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.section-title {
+    font-size: 1.8em;
+    font-weight: 600;
+    margin-bottom: 25px;
+    color: var(--deep-charcoal);
+}
+
+/* --- Startovací obrazovka --- */
+#startScreen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+/* Nový styl pro textové inputy (jméno, kód místnosti) */
+.text-input {
+    padding: 15px;
+    border: 2px solid var(--sandy-taupe);
+    border-radius: 8px;
+    font-size: 1.2em;
+    text-align: center;
+    width: calc(100% - 30px); /* Adjust for padding */
+    max-width: 280px;
+    margin-bottom: 15px; /* Pro mezery mezi inputy/tlačítky */
+    background-color: var(--light-grey);
+    color: var(--deep-charcoal);
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.text-input:focus {
+    border-color: var(--buzzer-red);
+}
+
+.action-button {
+    padding: 15px 30px;
+    border-radius: 10px;
+    font-size: 1.3em;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    width: 100%;
+    max-width: 280px;
+    margin-bottom: 20px; /* Mezera pod tlačítky */
+}
+
+.action-button.primary-button {
+    background-color: var(--buzzer-red);
+    color: var(--creamy-white);
+}
+
+.action-button.primary-button:hover {
+    background-color: var(--darker-red);
+}
+
+.action-button.secondary-button {
+    background-color: var(--deep-charcoal); /* Tmavý pro připojení */
+    color: var(--creamy-white);
+}
+
+.action-button.secondary-button:hover {
+    background-color: #2C3E50; /* Ještě tmavší */
+}
+
+/* Speciální styly pro menší akční tlačítka */
+.action-button.small-button {
+    font-size: 1em;
+    padding: 10px 20px;
+    max-width: 200px;
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
+
+.separator {
+    margin: 20px 0;
+    font-size: 1.1em;
+    color: var(--sandy-taupe);
+    position: relative;
+    width: 100%;
+    text-align: center;
+}
+
+.separator::before,
+.separator::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background-color: var(--sandy-taupe);
+}
+
+.separator::before {
+    left: 0;
+}
+
+.separator::after {
+    right: 0;
+}
+
+.join-room-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+
+.error-message {
+    color: var(--error-red);
+    font-weight: bold;
+    margin-top: 15px;
+    font-size: 1.1em;
+}
+
+
+/* --- NOVÉ: Lobby Screen styly --- */
+#lobbyScreen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.lobby-status-message {
+    font-size: 1.4em;
+    font-weight: 500;
+    color: var(--sandy-taupe);
+    margin-bottom: 25px;
+}
+
+/* Panel pro nastavení hostitele */
+.settings-panel {
+    background-color: var(--light-grey);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 25px;
+    width: calc(100% - 40px);
+    max-width: 350px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.settings-panel h3 {
+    font-size: 1.5em;
+    color: var(--deep-charcoal);
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.setting-item label {
+    font-size: 1.1em;
+    margin-right: 15px;
+    color: var(--deep-charcoal);
+    text-align: left;
+    flex-grow: 1; /* Aby zabíralo co nejvíce místa */
+}
+
+/* Styly pro select a input (číslo) v nastavení */
+.text-input.small-select,
+.text-input.small-input {
+    width: auto; /* Přizpůsobí se obsahu */
+    max-width: 150px; /* Omezí šířku */
+    margin-bottom: 0; /* Zruší margin z obecného .text-input */
+    flex-shrink: 0; /* Nebude se zmenšovat */
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Zarovnat doleva */
+    margin-top: 20px;
+    margin-bottom: 0;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    /* Vlastní stylizace checkboxu */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border: 2px solid var(--sandy-taupe);
+    border-radius: 4px;
+    background-color: var(--creamy-white);
+    cursor: pointer;
+    position: relative;
+}
+
+.checkbox-item input[type="checkbox"]:checked {
+    background-color: var(--accent-blue);
+    border-color: var(--darker-blue);
+}
+
+.checkbox-item input[type="checkbox"]:checked::after {
+    content: '✔';
+    color: var(--creamy-white);
+    font-size: 16px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.checkbox-item label {
+    margin-right: 0; /* Přizpůsobíme label k checkboxu */
+}
+
+
+/* Seznam hráčů */
+.player-list-section {
+    width: 100%;
+    max-width: 350px;
+    margin-bottom: 25px;
+}
+
+.player-list-section h3 {
+    font-size: 1.3em;
+    color: var(--deep-charcoal);
+    margin-bottom: 15px;
+}
+
+.player-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background-color: var(--light-grey);
+    border-radius: 10px;
+    max-height: 200px; /* Scrollable list */
+    overflow-y: auto;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.player-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--sandy-taupe);
+    font-size: 1.1em;
+    color: var(--deep-charcoal);
+}
+
+.player-list li:last-child {
+    border-bottom: none;
+}
+
+.player-list li span {
+    flex-grow: 1; /* Jméno hráče zabírá většinu místa */
+    text-align: left;
+    font-weight: 500;
+}
+
+/* Tlačítko pro vykopnutí hráče */
+.kick-button {
+    background-color: var(--buzzer-red);
+    color: var(--creamy-white);
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.kick-button:hover {
+    background-color: var(--darker-red);
+}
+
+/* --- Herní obrazovka --- */
+#gameScreen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.room-info {
+    font-size: 1.2em;
+    color: var(--sandy-taupe);
+    margin-bottom: 10px;
+}
+
+.room-info span {
+    font-weight: bold;
+    color: var(--deep-charcoal);
+}
+
+.room-player-count {
+    font-size: 1.1em;
+    color: var(--sandy-taupe);
+    margin-bottom: 20px;
+}
+
+.room-player-count span {
+    font-weight: bold;
+    color: var(--deep-charcoal);
+}
+
+.game-status-message {
+    font-size: 1.6em;
+    font-weight: 600;
+    color: var(--deep-charcoal);
+    margin-bottom: 30px;
+    min-height: 1.6em; /* Aby se zprávy neposouvaly s výškou */
+}
+
+/* Styly pro odpočet */
+.countdown-display {
+    font-size: 5em;
+    font-weight: bold;
+    color: var(--buzzer-red);
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+}
+.countdown-display.hidden { /* Override pro skrytí */
+    display: none !important;
+}
+
+
+/* Styl pro tlačítko BZUČÁK (stejné jako dříve) */
+.buzzer-button {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%; /* Kruhové tlačítko */
+    background-color: var(--buzzer-red);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3.5em;
+    font-weight: bold;
+    color: var(--creamy-white);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    -webkit-tap-highlight-color: transparent;
+    margin-bottom: 30px;
+}
+
+.buzzer-button:hover {
+    background-color: var(--darker-red);
+}
+
+.buzzer-button:active {
+    transform: scale(0.95); /* Mírné zmenšení při stisku */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.buzzer-button:disabled {
+    background-color: var(--sandy-taupe);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Kontejner pro zobrazení vítěze (stejné jako dříve) */
+.winner-container {
+    background-color: var(--success-green);
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 0; /* Upraveno, aby navazovalo na buzzer-button */
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 300px;
+}
+
+.winner-text {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--creamy-white);
+    margin-bottom: 5px;
+}
+
+.winner-id { /* Původně winner-id, nyní pro jméno */
+    font-size: 2.5em;
+    font-weight: bold;
+    color: var(--creamy-white);
+    margin-bottom: 5px;
+    word-break: break-all;
+}
+
+.winner-text-small {
+    font-size: 0.9em;
+    color: var(--soft-beige);
+}
+
+/* Styl pro tlačítko RESET / Další kolo */
+.reset-button {
+    background-color: var(--buzzer-red);
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: var(--creamy-white);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease;
+    margin-bottom: 20px; /* Nová mezera */
+}
+
+.reset-button:hover {
+    background-color: var(--darker-red);
+}
+
+.reset-button:disabled {
+    background-color: var(--sandy-taupe);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Nové tlačítko Opustit místnost/hru */
+.leave-room-button {
+    background-color: #95A5A6; /* Šedá */
+    color: var(--creamy-white);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 1em;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.leave-room-button:hover {
+    background-color: #7F8C8D; /* Tmavší šedá */
+}
+
+
+/* Pomocná třída pro skrytí elementu */
+.hidden {
+    display: none !important;
+}
+
