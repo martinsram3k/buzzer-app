@@ -1,90 +1,66 @@
 <!DOCTYPE html>
 <html lang="cs">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bzučáková Aplikace phone</title>
+    <title>Bzučáková Aplikace</title>
+    <!-- Odkaz na náš CSS soubor (předpokládáme, že je ve stejné složce) -->
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-    <div class="container">
-        <h1 class="main-title">Bzučáková Hra</h1>
+    <div class="main-wrapper">
+        <!-- Zde bude dynamický obsah stránek -->
+        <div id="homeSection" class="content-section active">
 
-        <div id="startScreen">
-            <h2 class="section-title">Vítejte!</h2>
-            <input type="text" id="usernameInput" placeholder="Zadejte své jméno" maxlength="20" class="text-input">
-            <button id="createRoomButton" class="action-button primary-button">Vytvořit Místnost</button>
-            <div class="separator">Nebo</div>
-            <div class="join-room-section">
-                <input type="text" id="roomCodeInput" placeholder="Zadejte kód místnosti" maxlength="5" pattern="\d*" class="text-input">
-                <button id="joinRoomButton" class="action-button secondary-button">Připojit se</button>
-            </div>
-            <p id="errorMessage" class="error-message hidden"></p>
+<h1>Home</h1>
+
         </div>
 
-        <div id="lobbyScreen" class="hidden">
-            <p class="room-info">Místnost: <span id="lobbyRoomCode"></span></p>
-            <h2 class="section-title" id="lobbyTitle">Přípravná Místnost</h2>
-            <p class="lobby-status-message" id="lobbyStatusMessage"></p>
+        <div id="gameSection" class="content-section hidden">
 
-            <div id="hostSettings" class="settings-panel hidden">
-                <h3>Nastavení Hry</h3>
-                <div class="setting-item">
-                    <label for="roundDuration">Délka kola (sekundy):</label>
-                    <select id="roundDuration" class="text-input small-select">
-                        <option value="10">10 sekund</option>
-                        <option value="20">20 sekund</option>
-                        <option value="30">30 sekund</option>
-                        <option value="60">60 sekund</option>
-                        <option value="0">Bez omezení</option>
-                    </select>
-                </div>
-                <div class="setting-item">
-                    <label for="numRounds">Počet kol:</label>
-                    <input type="number" id="numRounds" value="3" min="1" max="100" class="text-input small-input">
-                </div>
-                <div class="setting-item checkbox-item">
-                    <input type="checkbox" id="hostPlays" checked>
-                    <label for="hostPlays">Hostitel hraje (může bzučet)</label>
-                </div>
-                <button id="saveSettingsButton" class="action-button secondary-button small-button">Uložit Nastavení</button>
-            </div>
+            <h1>Game</h1>
 
-            <div class="player-list-section">
-                <h3>Hráči v místnosti: <span id="lobbyPlayerCount"></span></h3>
-                <ul id="playerList" class="player-list">
-                    </ul>
-            </div>
-            
-            <button id="startGameButton" class="action-button primary-button">Spustit Hru!</button>
-            <button id="leaveLobbyButton" class="leave-room-button">Opustit Místnost</button>
+
         </div>
 
-        <div id="gameScreen" class="hidden">
-            <p class="room-info">Jste v místnosti: <span id="currentRoomCode"></span></p>
-            <p class="room-player-count">Hráči: <span id="playerCount"></span></p>
-            
-            <h2 class="game-status-message" id="gameStatusMessage"></h2>
-            
-            <div id="countdownDisplay" class="countdown-display hidden">
-                <span id="countdownValue"></span>
-            </div>
+        <div id="accountSection" class="content-section hidden">
 
-            <button id="buzzerButton" class="buzzer-button">BUZZ!</button>
+            <h1>Account</h1>
 
-            <div id="winnerContainer" class="winner-container hidden">
-                <p class="winner-text">Vítěz kola:</p>
-                <p id="winnerName" class="winner-id"></p> 
-                <p id="winnerTime" class="winner-text-small"></p>
-            </div>
 
-            <button id="nextRoundButton" class="reset-button hidden">Další kolo</button>
-            <button id="resetButton" class="reset-button hidden">Reset Bzučáku</button> <button id="leaveGameButton" class="leave-room-button">Opustit hru</button>
         </div>
     </div>
 
+    <!-- Spodní navigační panel -->
+    <nav class="bottom-nav">
+        <!-- Používáme tlačítka s ikonami a textem -->
+        <button class="nav-button active" data-section="homeSection">
+
+            <img src="assets/icon/home.svg" alt="Domovská stránka" class="nav-icon">
+       
+        </button>
+        <button class="nav-button" data-section="gameSection">
+
+            <img src="assets/icon/game.svg" alt="Hra" class="nav-icon">
+        
+        </button>
+        <button class="nav-button" data-section="accountSection">
+
+            <img src="assets/icon/account.svg" alt="Účet" class="nav-icon">
+       
+        </button>
+    </nav>
+
+    <!-- Font Awesome pro ikony (přidáno pro jednoduchost) -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <!-- Socket.IO klienta můžete načíst, ale jeho použití bude záviset na tom, kdy se uživatel dostane do herní sekce -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+    <!-- Vaše vlastní JavaScript soubory (cesty upraveny, předpokládám složku js/) -->
     <script src="js/socketService.js"></script>
     <script src="js/app.js"></script>
 </body>
+
 </html>
