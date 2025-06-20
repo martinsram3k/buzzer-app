@@ -544,7 +544,7 @@ leaveLobbyButton.addEventListener('click', () => {
             isHost = false;
             myUsername = 'Neznámý';
             gameSettings = { roundDuration: 30, numRounds: 3, hostPlays: true }; // Reset na výchozí
-        }
+        } 
     }
 });
 
