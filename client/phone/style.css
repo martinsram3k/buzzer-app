@@ -5,6 +5,7 @@
     --primary-color: #E74C3C;
     /* Buzzer Red */
     --secondary-color: #34495E;
+    --secondary-color-opacity: #34495e0b;
     /* Deep Charcoal */
     --background-light: #FFFBF5;
     /* Creamy White */
@@ -13,46 +14,63 @@
     --text-color: #34495E;
 }
 
-html, body {
+html,
+body {
     margin: 0;
     padding: 0;
-    height: 100%; /* Důležité: Tělo i HTML zabírají celou výšku viewportu */
-    overflow: hidden; /* Důležité: Zabrání scrollování na úrovni body/html */
+    height: 100%;
+    /* Důležité: Tělo i HTML zabírají celou výšku viewportu */
+    overflow: hidden;
+    /* Důležité: Zabrání scrollování na úrovni body/html */
     font-family: Tahoma;
     background-color: var(--background-dark);
     color: var(--text-color);
     display: flex;
-    flex-direction: column; /* Aby se obsah a nav vyrovnaly svisle */
+    flex-direction: column;
+    /* Aby se obsah a nav vyrovnaly svisle */
 }
 
 /* Hlavní obal pro obsah (zabere většinu místa) */
 .main-wrapper {
-    flex-grow: 1; /* Zabere veškerý dostupný prostor */
+    height: fit-content;
+    flex-grow: 1;
+    /* Zabere veškerý dostupný prostor */
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start; /* Zarovnání obsahu na začátek */
+    justify-content: flex-start;
+    /* Zarovnání obsahu na začátek */
     padding: 20px;
-    padding-bottom: 80px; /* Důležité: Místo pro bottom nav, aby se nepřekrýval */
+    padding-top: 100px;
+    padding-bottom: 80px;
+    /* Důležité: Místo pro bottom nav, aby se nepřekrýval */
     width: 100%;
-    margin-bottom: 20px; /* Prostor pod hlavním wrapperem */
-    margin: 0 auto; /* Centrování obsahu */
-    box-sizing: border-box; /* Zajišťuje, že padding se započítává do šířky/výšky */
-    overflow-y: auto; /* Pokud je obsah sekce delší, povolí scrollování uvnitř sekce */
-    -webkit-overflow-scrolling: touch; /* Pro plynulejší scrollování na iOS */
+    margin-bottom: 20px;
+    /* Prostor pod hlavním wrapperem */
+    margin: 0 auto;
+    /* Centrování obsahu */
+    box-sizing: border-box;
+    /* Zajišťuje, že padding se započítává do šířky/výšky */
+    overflow-y: auto;
+    /* Pokud je obsah sekce delší, povolí scrollování uvnitř sekce */
+    -webkit-overflow-scrolling: touch;
+    /* Pro plynulejší scrollování na iOS */
 }
 
 
 /* Styly pro sekce obsahu */
 .content-section {
+    height: fit-content;
     width: 100%;
     padding: 20px;
     padding-bottom: 40px;
     text-align: center;
     box-sizing: border-box;
     /* Důležité: Zajištění, aby sekce zabíraly plnou dostupnou výšku, pokud je to potřeba */
-    min-height: calc(100vh - 100px); /* Odhadovaná výška bez navigace a marginu */
-    display: flex; /* Pro lepší zarovnání obsahu uvnitř sekce */
+    min-height: calc(100vh - 200px);
+    /* Odhadovaná výška bez navigace a marginu */
+    display: flex;
+    /* Pro lepší zarovnání obsahu uvnitř sekce */
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
@@ -83,7 +101,7 @@ html, body {
     left: 10px;
     right: 10px;
     height: fit-content;
-    border-radius: 20px;
+    border-radius: 25px;
     /* Zvýšená výška pro lepší dotyk a ikony/text */
     background-color: var(--secondary-color);
     display: flex;
@@ -95,7 +113,9 @@ html, body {
     z-index: 1000;
     padding-top: 10px;
     /* Zajistí, že bude nad ostatním obsahem */
-    padding-bottom: env(safe-area-inset-bottom, 0); /* Pro vykousnutí na moderních telefonech */
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    /* Pro vykousnutí na moderních telefonech */
+    box-shadow: var(--secondary-color-opacity) 0px 0px 10px 1px;
 }
 
 .nav-button {
@@ -106,46 +126,110 @@ html, body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-size: 0.85em; /* Trochu větší text */
+    font-size: 0.85em;
+    /* Trochu větší text */
     font-weight: 500;
     cursor: pointer;
-    padding: 8px 10px; /* Menší padding než 40px */
+    padding: 8px 10px;
+    /* Menší padding než 40px */
     transition: color 0.3s ease, transform 0.1s ease;
-    flex: 1; /* Zajistí rovnoměrné rozdělení prostoru */
-    max-width: 120px; /* Omezení šířky tlačítka */
+    flex: 1;
+    /* Zajistí rovnoměrné rozdělení prostoru */
+    max-width: 120px;
+    /* Omezení šířky tlačítka */
 }
 
 .nav-icon {
-    width: 50px; /* Pevná šířka */
-    height: 50px; /* Pevná výška, důležité pro PNG, aby se neroztáhly */
-    object-fit: contain; /* Udrží poměr stran PNG ikon */
-    transition: opacity 0.3s ease, filter 0.3s ease; /* Plynulý přechod pro opacitu a filtr */
+    width: 50px;
+    /* Pevná šířka */
+    height: 50px;
+    /* Pevná výška, důležité pro PNG, aby se neroztáhly */
+    object-fit: contain;
+    /* Udrží poměr stran PNG ikon */
+    transition: opacity 0.3s ease, filter 0.3s ease;
+    /* Plynulý přechod pro opacitu a filtr */
 
     /* Neaktivní stav (výchozí) */
-    opacity: 0.7; /* 70% průhlednost */
-    filter: grayscale(100%); /* Zcela černobílá */
+    opacity: 0.7;
+    /* 70% průhlednost */
+    filter: grayscale(100%);
+    /* Zcela černobílá */
 }
 
 .nav-icon.active {
     /* Aktivní stav */
-    opacity: 1; /* 100% průhlednost */
-    filter: grayscale(0%); /* Bez šedého filtru (barevná) */
+    opacity: 1;
+    /* 100% průhlednost */
+    filter: grayscale(0%);
+    /* Bez šedého filtru (barevná) */
 }
 
 .nav-text {
     font-size: 15px;
-    color: var(--background-dark); /* Výchozí barva textu pro neaktivní */
+    color: var(--background-dark);
+    /* Výchozí barva textu pro neaktivní */
     transition: color 0.3s ease;
+    font-weight: 400;
 }
 
 .nav-text.active {
-    color: var(--primary-color); /* Toto je tvůj stávající styl pro aktivní text */
-    font-weight: bold; /* Můžeš přidat pro větší zvýraznění */
+    color: var(--primary-color);
+    /* Toto je tvůj stávající styl pro aktivní text */
+    font-weight: 900;
+    /* Můžeš přidat pro větší zvýraznění */
+}
+
+.top-nav {
+    position: fixed;
+    width: calc(100% - 20px);
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    height: 10px;
+    border-radius: 25px;
+    height: fit-content;
+    /* background-color: var(--background-light); */
+    z-index: 1000;
+    /* Prostor pod horní navigací */
+    box-shadow: var(--secondary-color-opacity) 0px 0px 10px 1px;
+}
+
+.top-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    height: 100%;
+    margin-left: 20px;
+    /* Prostor vlevo */
+    margin-right: 20px;
+}
+
+.top-nav .nav-item .nav-title {
+    letter-spacing: 2px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    font-size: 1.2em;
+    color: var(--primary-color);
+    font-weight: 900;
+    text-align: center;
+    margin: auto;
+    /* Padding pro lepší vzhled */
+}
+
+.top-nav .nav-item .nav-arrow {
+    font-size: 40px;
+    font-weight: 900;
+    color: var(--background-dark);
 }
 
 /* Pomocná třída pro skrytí elementu */
 .hidden {
     display: none !important;
+    transition: none !important;
+    /* Zabrání jakýmkoli přechodům při skrytí */
 }
 
 /* Původní .main-container a nav ul/li styly jsou odstraněny, protože nová struktura je nahrazuje. */
