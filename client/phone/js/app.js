@@ -103,7 +103,7 @@ function hideLoadingScreen() {
     // Použijeme krátkou prodlevu, aby se stihl appContainer zobrazit.
     setTimeout(() => {
         showSection('homeSection');
-    }, 100); 
+    }, 250); 
     
     console.log('Aplikace je načtena a připravena.');
 }
@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Při načtení DOMu spustíme simulaci loading screenu
     setTimeout(() => {
         hideLoadingScreen();
-    }, 2000); 
+    }, 150); 
 
     // Přidání posluchačů pro navigační tlačítka
     if (navButtons.length > 0) {
