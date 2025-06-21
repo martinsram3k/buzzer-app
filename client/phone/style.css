@@ -5,7 +5,8 @@
     --primary-color: #E74C3C;
     /* Buzzer Red */
     --secondary-color: #34495E;
-    --secondary-color-opacity: #34495e0b;
+    --secondary-color-opacity: rgba(52, 73, 94 , 0.8);
+    /* Liquid Glass */
     /* Pokud nechceš Liquid Glass, zvaž odstranění */
     /* Deep Charcoal */
     --background-light: #FFFBF5;
@@ -26,7 +27,8 @@ body {
     padding: 0;
     height: 100%;
     /* Důležité: Tělo i HTML zabírají celou výšku viewportu */
-    overflow: hidden; /* <-- TOTO JE KLÍČOVÉ */
+    overflow: hidden;
+    /* <-- TOTO JE KLÍČOVÉ */
     /* Důležité: Zabrání scrollování na úrovni body/html */
     font-family: 'akzidenz-grotesk-next', sans-serif;
     font-style: normal;
@@ -41,9 +43,12 @@ body {
 }
 
 .content-section::-webkit-scrollbar {
-    display: none; /* Skryje scrollbar */
-    width: 0; /* Pro jistotu nastaví šířku na 0 */
-    height: 0; /* Pro jistotu nastaví výšku na 0 (pro horizontální scrollbar) */
+    display: none;
+    /* Skryje scrollbar */
+    width: 0;
+    /* Pro jistotu nastaví šířku na 0 */
+    height: 0;
+    /* Pro jistotu nastaví výšku na 0 (pro horizontální scrollbar) */
 }
 
 /* --- Loading Screen Styly --- */
@@ -136,7 +141,6 @@ body {
     /* Místo pro bottom nav */
     width: 100%;
     margin: 0 auto;
-    margin-bottom: 200px;
     box-sizing: border-box;
     /* Odebírám overflow-y z main-wrapperu a přesunu ho na content-section */
     /* overflow-y: auto; */
@@ -150,8 +154,8 @@ body {
 .content-section {
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Skryje scrollbar */
-    margin-top: 80px;
+    scrollbar-width: none;
+    /* Skryje scrollbar */
     position: absolute;
     /* Sekce se budou překrývat */
     top: 0;
@@ -160,7 +164,8 @@ body {
     height: 100%;
     /* Sekce vyplní celý main-wrapper */
     padding: 20px;
-    padding-bottom: 40px;
+    padding-top: 60px;
+    padding-bottom: 200px;
     text-align: center;
     box-sizing: border-box;
     display: flex;
@@ -192,41 +197,55 @@ body {
     /* Aktivní sekce je nahoře */
 }
 
-
-.text-input {
-    padding: 15px;
-    border: 2px solid var(--sandy-taupe);
-    border-radius: 8px;
-    font-size: 1.2em;
-    text-align: center;
-    width: calc(100% - 30px);
-    max-width: 280px;
-    margin-bottom: 15px;
-    background-color: var(--light-grey);
-    color: var(--text-color);
-    outline: none;
-    transition: border-color 0.3s ease;
-}
-
 /* --- Spodní navigační panel --- */
 .bottom-nav {
     user-select: none;
     position: fixed;
     bottom: 10px;
-    left: 20px;
-    right: 20px;
+    left: 20px; /* Zde je 20px, v tvém HTML je left: 10px, right: 10px, tak si to sjednoť */
+    right: 20px; /* Zde je 20px, v tvém HTML je left: 10px, right: 10px, tak si to sjednoť */
     height: fit-content;
     border-radius: 25px;
-    background-color: var(--secondary-color);
+
+    /* --- Liquid Glass Styly --- */
+    /* 1. Pozadí s průhledností */
+    background-color: rgba(52, 73, 94, 0.3); /* Používáme RGBA pro explicitní průhlednost, 0.2 je příklad */
+    /* 2. Rozmazání pozadí za elementem */
+    backdrop-filter: blur(10px); /* Zvýšil jsem blur na 10px pro výraznější efekt */
+    -webkit-backdrop-filter: blur(10px); /* Pro Safari */
+
+    /* 3. Jemný průhledný okraj (border) */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Světlý, téměř průhledný okraj */
+
+    /* 4. Jemný stín */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); /* Rozšířený a jemnější stín */
+    /* Můžeš experimentovat s více stíny, např. pro zvýraznění "lesku" */
+    /* box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), 0 0 10px rgba(255, 255, 255, 0.6) inset; */
+
+
+    /* --- Původní styly (úprava některých) --- */
     display: flex;
     justify-content: space-around;
     align-items: center;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
     z-index: 1000;
     padding-top: 10px;
     padding-bottom: env(safe-area-inset-bottom, 0);
-    /* box-shadow: var(--secondary-color-opacity) 0px 0px 10px 1px; */
+    overflow: visible; /* Toto je v pořádku, pokud nechceš scrollování uvnitř nav */
 }
+
+.bottom-nav::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+    border-radius: inherit;
+    z-index: -1;
+    pointer-events: none;
+}
+
 
 .nav-button {
     user-select: none;
@@ -245,6 +264,7 @@ body {
     flex: 1;
     max-width: 120px;
     /* animation: button-hop 1s linear infinite; */
+
 }
 
 .nav-button-hop {
@@ -300,14 +320,28 @@ body {
     position: fixed;
     width: calc(100% - 20px);
     top: 10px;
+    border-radius: 10px;
     left: 10px;
     right: 10px;
-    border-radius: 25px;
     height: fit-content;
-    /* background-color: var(--secondary-color); */
     z-index: 1000;
     /* box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); */
     /* box-shadow: var(--secondary-color-opacity) 0px 0px 10px 1px; */
+
+      /* --- Liquid Glass Styly --- */
+    /* 1. Pozadí s průhledností */
+    background-color: rgba(52, 73, 94, 0.3); /* Používáme RGBA pro explicitní průhlednost, 0.2 je příklad */
+    /* 2. Rozmazání pozadí za elementem */
+    backdrop-filter: blur(10px); /* Zvýšil jsem blur na 10px pro výraznější efekt */
+    -webkit-backdrop-filter: blur(10px); /* Pro Safari */
+
+    /* 3. Jemný průhledný okraj (border) */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Světlý, téměř průhledný okraj */
+
+    /* 4. Jemný stín */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); /* Rozšířený a jemnější stín */
+    /* Můžeš experimentovat s více stíny, např. pro zvýraznění "lesku" */
+    /* box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), 0 0 10px rgba(255, 255, 255, 0.6) inset; */
 }
 
 .top-nav ul {
@@ -331,12 +365,6 @@ body {
     font-weight: 900;
     text-align: center;
     margin: auto;
-}
-
-.top-nav .nav-item .nav-arrow {
-    font-size: 40px;
-    font-weight: 900;
-    color: var(--background-dark);
 }
 
 .content-section h1 {
@@ -375,18 +403,23 @@ body {
     align-items: center;
     justify-content: space-evenly;
     background-color: var(--primary-color);
-    box-sizing: border-box; /* Zajistí, že padding je součástí vypočtené šířky */
-    
+    box-sizing: border-box;
+    /* Zajistí, že padding je součástí vypočtené šířky */
+
     /* Tyto vlastnosti roztáhnou element přes paddingy rodičovského .content-section */
-    margin-left: -20px; 
-    margin-right: -20px; 
-    margin-top: 20px; /* Mezery od ostatních sekcí */
-    margin-bottom: 20px; /* Mezery od ostatních sekcí */
-    width: calc(100% + 40px); /* 100% šířky rodiče + 2x 20px pro záporné marginy */
-    padding: 20px; /* Vnitřní padding pro obsah tlačítek */
+    margin-left: -20px;
+    margin-right: -20px;
+    margin-top: 20px;
+    /* Mezery od ostatních sekcí */
+    margin-bottom: 20px;
+    /* Mezery od ostatních sekcí */
+    width: calc(100% + 40px);
+    /* 100% šířky rodiče + 2x 20px pro záporné marginy */
+    padding: 20px;
+    /* Vnitřní padding pro obsah tlačítek */
 
     /* Volitelně, pro zaoblené rohy */
-    /* border-radius: 8px; */ 
+    /* border-radius: 8px; */
 }
 
 .quick-actions button {
@@ -425,15 +458,17 @@ body {
 
 .news-item {
     margin-left: auto;
-    margin-right:  auto;
+    margin-right: auto;
     background-color: var(--background-light);
     border-radius: 20px;
     padding: 10px;
     margin-bottom: 15px;
     box-shadow: 0 0px 10px rgba(0, 0, 0, 0.2);
-    width: 100%; /* Aby se vešel do paddingu content-section */
+    width: 100%;
+    /* Aby se vešel do paddingu content-section */
     box-sizing: border-box;
 }
+
 .news-item img {
     width: 100%;
     height: auto;
