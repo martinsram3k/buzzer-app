@@ -5,7 +5,11 @@ const homeSection = document.getElementById('homeSection');
 const gameSection = document.getElementById('gameSection');
 const accountSection = document.getElementById('accountSection');
 
-// Navigační tlačítka - třída 'nav-button' musí být použita u tlačítek v bottom nav
+const loadingScreen = document.getElementById('loadingScreen');
+const mainWrapper = document.querySelector('.main-wrapper'); // Obal pro všechny sekce
+const bottomNav = document.querySelector('.bottom-nav'); // Spodní navigace
+
+// Navigační tlačítka
 const navButtons = document.querySelectorAll('.nav-button'); 
 
 // --- Globální proměnné stavu ---
@@ -90,14 +94,37 @@ function showSection(sectionId) {
     }
 }
 
+// --- Funkce pro skrytí loading screenu a zobrazení obsahu ---
+function hideLoadingScreen() {
+    if (loadingScreen) {
+        loadingScreen.classList.add('fade-out');
+        // Po skončení animace fade-out odstraníme loadingScreen z DOMu
+        loadingScreen.addEventListener('transitionend', () => {
+            loadingScreen.style.display = 'none';
+        }, { once: true }); // Zajistíme, že posluchač se spustí jen jednou
+    }
+
+    // Zobrazíme hlavní obsah aplikace
+    if (mainWrapper) mainWrapper.classList.add('visible-content');
+    if (bottomNav) bottomNav.classList.add('visible-content');
+
+    // Inicializujeme první zobrazení sekce (např. Home)
+    showSection('homeSection');
+    console.log('Aplikace je načtena a připravena.');
+}
+
 // --- Nastavení posluchačů událostí ---
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOMContentLoaded: DOM je načten.');
-    console.log('DOMContentLoaded: Počet nalezených navigačních tlačítek:', navButtons.length);
 
-    // Inicializace: Zobrazíme domovskou stránku při prvním načtení aplikace
-    showSection('homeSection');
+    // --- Simulace načítání aplikace ---
+    // V reálné aplikaci by zde byla volání API, inicializace modulů atd.
+    // Jakmile je vše hotovo, zavolá se hideLoadingScreen().
+    setTimeout(() => {
+        hideLoadingScreen();
+    }, 1000); // Simulace načítání 2 sekundy. Můžeš to upravit.
 
+    // Přidání posluchačů pro navigační tlačítka (zůstává stejné)
     if (navButtons.length > 0) {
         navButtons.forEach(button => {
             button.addEventListener('click', (event) => {

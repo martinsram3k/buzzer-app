@@ -30,6 +30,50 @@ body {
     /* Aby se obsah a nav vyrovnaly svisle */
 }
 
+/* --- Loading Screen Styly --- */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--background-dark); /* Stejná barva jako pozadí aplikace */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* Zajistí, že je nad vším ostatním */
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.5s ease, visibility 0.5s ease; /* Plynulé zmizení */
+}
+
+.loading-screen.fade-out {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.loading-logo {
+    width: 150px; /* Velikost loga */
+    height: auto;
+    margin-bottom: 30px;
+}
+
+.spinner {
+    border: 8px solid rgba(0, 0, 0, 0.1); /* Světlejší okraj spinneru */
+    border-top: 8px solid var(--primary-color); /* Barva aktivní části spinneru */
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite; /* Animace rotace */
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
 /* Hlavní obal pro obsah (zabere většinu místa) */
 .main-wrapper {
     height: fit-content;
@@ -191,8 +235,8 @@ body {
     /* background-color: var(--background-light); */
     z-index: 1000;
     /* Prostor pod horní navigací */
-    /* box-shadow: var(--secondary-color-opacity) 0px 0px 10px 1px; */
-}
+/*     box-shadow: var(--secondary-color-opacity) 0px 0px 10px 1px;
+ */}
 
 .top-nav ul {
     list-style: none;
