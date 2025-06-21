@@ -1,94 +1,90 @@
 // client-web/js/socketService.js
 
-const SOCKET_SERVER_URL = 'https://buzzer-app-t20g.onrender.com'; // <--- ZKONTROLUJ A POUŽIJ SVOU SKUTEČNOU URL!
+// Zde specifikujeme URL tvého nasazeného serveru na Renderu.
+// Je DŮLEŽITÉ, aby tato URL odpovídala adrese, kde běží tvůj backend.
+const SOCKET_SERVER_URL = "https://buzzer-app-t20g.onrender.com";
 
-const socket = io(SOCKET_SERVER_URL);
-window.socket = socket; // Zpřístupníme socket objekt globálně
+// Inicializace Socket.IO klienta s explicitní URL
+const socket = io(SOCKET_SERVER_URL, {
+    // Volitelné: Vynutí websocket jako primární transport.
+    // Může pomoci při některých síťových konfiguracích nebo proxy serverech.
+    transports: ['websocket']
+});
 
-// --- Obecné události socketu (pro debugování) ---
+// --- Posluchači základních Socket.IO událostí ---
+
+// Událost: Klient se úspěšně připojil k serveru
 socket.on('connect', () => {
-  console.log('socketService: Připojeno k serveru Socket.IO! ID:', socket.id);
+    console.log('Socket.IO: Připojeno k serveru!', socket.id);
+    // Zde můžeš volat funkci pro zobrazení zprávy uživateli, např.
+    // displayMessage('Připojeno k serveru.');
 });
 
+// Událost: Klient se odpojil od serveru
 socket.on('disconnect', () => {
-  console.log('socketService: Odpojeno od serveru Socket.IO.');
+    console.log('Socket.IO: Odpojeno od serveru.');
+    // displayMessage('Odpojeno od serveru.');
 });
 
+// Událost: Došlo k chybě při připojování k serveru
 socket.on('connect_error', (err) => {
-  console.error('socketService: Chyba připojení Socket.IO:', err.message);
+    console.error('Socket.IO: Chyba připojení:', err.message);
+    // Zobraz chybovou zprávu uživateli
+    displayError('Chyba připojení k serveru: ' + err.message + '. Zkuste to prosím později.');
 });
 
 
-// --- Funkce pro odesílání událostí na server ---
+// --- Posluchače událostí souvisejících s přihlášením ---
 
-// Pro vytváření a připojování do místností
-window.createRoom = (username) => {
-  console.log('socketService: Emituji createRoom s jménem:', username);
-  socket.emit('createRoom', username);
-};
+// Událost: Server posílá odpověď na pokus o přihlášení
+socket.on('loginResponse', (response) => {
+    console.log('Přijata odpověď na přihlášení:', response);
 
-window.joinRoom = (roomId, username) => {
-  console.log('socketService: Emituji joinRoom s kódem:', roomId, 'a jménem:', username);
-  socket.emit('joinRoom', roomId, username);
-};
+    if (response.success) {
+        // Přihlášení bylo úspěšné
+        isAuthenticated = true; // Aktualizujeme globální stav v app.js
+        currentUsername = response.username; // Uložíme uživatelské jméno
 
-// NOVÉ: Pro aktualizaci nastavení hry hostitelem
-window.updateGameSettings = (roomId, settings) => {
-    console.log('socketService: Emituji updateGameSettings pro místnost:', roomId, 'nastavení:', settings);
-    socket.emit('updateGameSettings', roomId, settings);
-};
+        // Uložíme stav přihlášení a jméno uživatele do localStorage
+        // To zajistí, že uživatel zůstane přihlášen i po obnovení stránky
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('username', response.username);
 
-// NOVÉ: Pro vykopnutí hráče hostitelem
-window.kickPlayer = (playerId) => {
-    console.log('socketService: Emituji kickPlayer pro ID:', playerId);
-    socket.emit('kickPlayer', playerId);
-};
+        displayMessage(`Vítejte, ${response.username}! Úspěšné přihlášení.`);
+        
+        // Aktualizujeme uživatelské rozhraní v Account sekci
+        // Tato funkce je definována v app.js
+        updateAccountSectionUI(); 
+        
+        // Po úspěšném přihlášení přesměrujeme uživatele na Home sekci
+        // Tato funkce je definována v app.js
+        showSection('homeSection'); 
+    } else {
+        // Přihlášení selhalo
+        isAuthenticated = false; // Nastavíme stav na odhlášeno
+        currentUsername = null; // Vymažeme jméno uživatele
 
-// NOVÉ: Pro spuštění hry hostitelem (z lobby)
-window.startGame = (roomId) => {
-    console.log('socketService: Emituji startGame pro místnost:', roomId);
-    socket.emit('startGame', roomId);
-};
+        // Vymažeme uložené přihlašovací údaje z localStorage
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('username');
 
-// NOVÉ: Pro spuštění dalšího kola hostitelem
-window.startNextRound = (roomId) => {
-    console.log('socketService: Emituji startNextRound pro místnost:', roomId);
-    socket.emit('startNextRound', roomId);
-};
+        // Zobrazíme chybovou zprávu uživateli
+        displayError(`Chyba přihlášení: ${response.message}`);
+        
+        // Aktualizujeme uživatelské rozhraní, aby se zobrazil přihlašovací formulář
+        updateAccountSectionUI(); 
+    }
+});
 
-// NOVÉ: Pro ukončení hry hostitelem
-window.endGame = (roomId) => {
-    console.log('socketService: Emituji endGame pro místnost:', roomId);
-    socket.emit('endGame', roomId);
-};
-
-// NOVÉ: Pro reset celé hry hostitelem (např. po "Game Over")
-window.resetGame = (roomId) => {
-    console.log('socketService: Emituji resetGame pro místnost:', roomId);
-    socket.emit('resetGame', roomId);
-};
-
-// Stávající funkce pro bzučák a reset (použijeme v rámci herního cyklu)
-window.buzz = () => {
-  socket.emit('buzz');
-  console.log('socketService: Odeslána událost: buzz');
-};
-
-// Toto už nebudeme volat přímo z tlačítka, ale z logiky hry
-window.resetBuzzer = () => {
-  socket.emit('resetBuzzer');
-  console.log('socketService: Odeslána událost: resetBuzzer');
-};
-
-// NOVÉ: Pro explicitní opuštění místnosti
-window.leaveRoom = (roomId) => {
-    console.log('socketService: Emituji leaveRoom pro místnost:', roomId);
-    socket.emit('leaveRoom', roomId);
-    // Po opuštění místnosti můžeme socket odpojit, pokud chceme plný reset spojení
-    socket.disconnect();
-    // A znovu ho připojit pro další hru
-    setTimeout(() => {
-        socket.connect();
-        window.socket = socket; // Znovu nastavíme window.socket
-    }, 500); // Malá prodleva
-};
+// --- Důležité: Poznámka k proměnným 'isAuthenticated', 'currentUsername',
+//              'displayMessage', 'displayError', 'updateAccountSectionUI', 'showSection' ---
+// Tyto proměnné/funkce jsou definovány v 'app.js'.
+// Aby byly dostupné zde v 'socketService.js', ujisti se, že 'socketService.js' je
+// načten v HTML **před** 'app.js', NEBO že jsou tyto proměnné
+// explicitně "exponovány" z 'app.js' do globálního scope (což už děláš tím,
+// že je nedeklaruješ jako 'const'/'let' uvnitř úzce vymezených funkcí),
+// nebo že 'socketService.js' tyto funkce/proměnné přijímá jako parametry.
+// Současné nastavení (načtení socketService.js PŘED app.js) by fungovalo tak,
+// že app.js přepisuje ty globální proměnné, což je potenciálně matoucí.
+// Nejlepší je, aby app.js importoval socketService a předával funkce.
+// Prozatím předpokládáme, že global scope funguje, jak očekáváno díky pořadí načítání.

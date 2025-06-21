@@ -76,33 +76,28 @@
                 </div>
             </div>
 
-            <div id="accountSection" class="content-section"> 
+            <div id="accountSection" class="content-section">
                 <h1>Můj Účet</h1>
+                <p>Spravujte svůj profil a nastavení.</p>
 
-                <div class="profile-info">
-                    <img src="assets/icon/default-avatar.png" alt="Profilový obrázek" class="avatar">
-                    <h2>Uživatelské jmé: <span id="usernameDisplay">Hrac_123</span></h2>
-                    <button class="edit-profile-button">Upravit Profil</button>
+                <div id="loginRegisterContainer"> <form id="loginForm" class="login-form">
+                        <h2>Přihlásit se</h2>
+                        <input type="text" id="usernameInput" class="text-input" placeholder="Uživatelské jméno" required>
+                        <input type="password" id="passwordInput" class="text-input" placeholder="Heslo" required>
+                        <button type="submit" class="action-button">Přihlásit se</button>
+                        <p id="loginMessage" class="error-message"></p>
+                    </form>
+
+                    <p class="small-text">
+                        Ještě nemáte účet? <a href="#" id="showRegisterFormLink">Zaregistrujte se zde</a>
+                    </p>
                 </div>
-
-                <div class="user-stats">
-                    <h2>Mé Statistiky</h2>
-                    <p>Nejlepší skóre: <span id="bestScore">950</span></p>
-                    <p>Odehraných her: <span id="gamesPlayed">42</span></p>
+                
+                <div id="loggedInContent" style="display: none;">
+                    <h2>Vítejte zpět, <span id="loggedInUsername"></span>!</h2>
+                    <p>Zde budou vaše nastavení účtu a profil.</p>
+                    <button class="action-button" id="logoutButton">Odhlásit se</button>
                 </div>
-
-                <div class="app-settings">
-                    <h2>Nastavení Aplikace</h2>
-                    <label>
-                        <input type="checkbox" id="soundEffectsToggle" checked> Zvukové efekty
-                    </label>
-                    <label>
-                        <input type="checkbox" id="notificationsToggle"> Notifikace
-                    </label>
-                </div>
-
-                <button class="logout-button">Odhlásit se</button>
-            </div>
         </div>
 
         <nav class="bottom-nav">
