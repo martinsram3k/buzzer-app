@@ -191,7 +191,7 @@ body {
     /* background-color: var(--background-light); */
     z-index: 1000;
     /* Prostor pod horní navigací */
-    box-shadow: var(--secondary-color-opacity) 0px 0px 10px 1px;
+    /* box-shadow: var(--secondary-color-opacity) 0px 0px 10px 1px; */
 }
 
 .top-nav ul {
