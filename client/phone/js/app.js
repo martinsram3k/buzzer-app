@@ -6,89 +6,78 @@ const gameSection = document.getElementById('gameSection');
 const accountSection = document.getElementById('accountSection');
 
 const loadingScreen = document.getElementById('loadingScreen');
-const mainWrapper = document.querySelector('.main-wrapper'); // Obal pro všechny sekce
-const bottomNav = document.querySelector('.bottom-nav'); // Spodní navigace
+const appContainer = document.getElementById('appContainer'); 
 
 // Navigační tlačítka
 const navButtons = document.querySelectorAll('.nav-button'); 
 
 // --- Globální proměnné stavu ---
 let socketInitialized = false; 
-let currentActiveSection = 'homeSection';
+let currentActiveSectionId = null; // Změnil jsem výchozí hodnotu na null, bude nastavena prvním voláním showSection
 
 // --- Funkce pro přepínání sekcí ---
 /**
  * Zobrazí konkrétní sekci a skryje všechny ostatní.
- * Aktualizuje také aktivní stav navigačního tlačítka, jeho ikony a textu.
- * @param {string} sectionId ID HTML elementu sekce, který se má zobrazit (např. 'homeSection').
+ * Používá jen CSS třídy pro plynulý přechod.
+ * @param {string} newSectionId ID HTML elementu sekce, který se má zobrazit (např. 'homeSection').
  */
-function showSection(sectionId) {
-    console.log(`showSection: Pokus o zobrazení sekce: ${sectionId}`);
+function showSection(newSectionId) {
+    if (newSectionId === currentActiveSectionId) {
+        console.log(`showSection: Sekce '${newSectionId}' je již aktivní, přeskočím.`);
+        return; 
+    }
 
-    const allSections = [homeSection, gameSection, accountSection];
-    
-    // Skryjeme všechny sekce
-    allSections.forEach(section => {
-        if (section) {
-            section.classList.add('hidden');
-        }
-    });
+    console.log(`showSection: Přepínám ze sekce '${currentActiveSectionId || 'žádná'}' na '${newSectionId}'.`);
 
-    // Zobrazíme požadovanou sekci
-    const targetSection = document.getElementById(sectionId);
-    if (targetSection) {
-        targetSection.classList.remove('hidden');
-        currentActiveSection = sectionId;
-        console.log(`showSection: Sekce '${sectionId}' zobrazena.`);
+    const oldActiveSection = document.getElementById(currentActiveSectionId);
+    const newActiveSection = document.getElementById(newSectionId);
+
+    // Odebereme 'active' třídu ze staré sekce, což ji skryje pomocí CSS přechodu
+    if (oldActiveSection) {
+        oldActiveSection.classList.remove('active');
+        console.log(`showSection: Odebrána třída 'active' ze staré sekce '${currentActiveSectionId}'.`);
+    }
+
+    // Přidáme 'active' třídu na novou sekci, což ji zobrazí pomocí CSS přechodu
+    if (newActiveSection) {
+        newActiveSection.classList.add('active');
+        currentActiveSectionId = newSectionId;
+        console.log(`showSection: Sekce '${newSectionId}' zobrazena.`);
     } else {
-        console.warn(`showSection: Sekce s ID '${sectionId}' nebyla nalezena v DOMu.`);
-        return;
+        console.warn(`showSection: Nová sekce s ID '${newSectionId}' nebyla nalezena v DOMu.`);
     }
 
     // --- LOGIKA PRO AKTIVNÍ STAV NAVIGAČNÍCH TLAČÍTEK, TEXTŮ A IKON ---
-    // Projdeme všechna navigační tlačítka a resetujeme jejich stav na neaktivní
     navButtons.forEach(button => {
         const navText = button.querySelector('.nav-text');
         const navIcon = button.querySelector('.nav-icon');
         
-        // Odebereme 'active' třídu z textu
+        // Odebereme aktivní stav ze všech tlačítek
         if (navText) {
             navText.classList.remove('active');
         }
-        // Odebereme 'active' třídu z ikony
         if (navIcon) {
             navIcon.classList.remove('active');
         }
-        // Odebereme 'active' třídu z celého tlačítka
         button.classList.remove('active'); 
     });
-    console.log('showSection: Všechny navigační texty, ikony a tlačítka resetovány (odebrána třída active).');
 
-    // Nyní najdeme aktivní tlačítko a nastavíme mu správný stav
-    const activeButton = document.querySelector(`.nav-button[data-section="${sectionId}"]`);
+    // Aktivujeme správné tlačítko
+    const activeButton = document.querySelector(`.nav-button[data-section="${newSectionId}"]`);
     if (activeButton) {
         const activeNavText = activeButton.querySelector('.nav-text');
         const activeNavIcon = activeButton.querySelector('.nav-icon');
 
-        // Přidáme 'active' třídu k textu aktivního tlačítka
         if (activeNavText) {
             activeNavText.classList.add('active');
-            console.log(`showSection: Nav-text pro '${sectionId}' označen jako aktivní.`);
         }
-
-        // Přidáme 'active' třídu k ikonce aktivního tlačítka
         if (activeNavIcon) {
             activeNavIcon.classList.add('active');
-            console.log(`showSection: Ikona pro '${sectionId}' označen jako aktivní.`);
         }
-        // Přidáme 'active' třídu k celému tlačítku (pro případné další styly)
         activeButton.classList.add('active');
-    } else {
-        console.warn(`showSection: Nav-button pro data-section="${sectionId}" nebyl nalezen.`);
     }
-    // --- KONEC LOGIKY PRO AKTIVNÍ STAV ---
 
-    if (sectionId === 'gameSection' && !socketInitialized) {
+    if (newSectionId === 'gameSection' && !socketInitialized) {
         console.log('app.js: První přechod na herní sekci. Inicializuji herní logiku...');
         socketInitialized = true;
     }
@@ -98,18 +87,24 @@ function showSection(sectionId) {
 function hideLoadingScreen() {
     if (loadingScreen) {
         loadingScreen.classList.add('fade-out');
-        // Po skončení animace fade-out odstraníme loadingScreen z DOMu
         loadingScreen.addEventListener('transitionend', () => {
-            loadingScreen.style.display = 'none';
-        }, { once: true }); // Zajistíme, že posluchač se spustí jen jednou
+            loadingScreen.style.display = 'none'; 
+        }, { once: true });
     }
 
-    // Zobrazíme hlavní obsah aplikace
-    if (mainWrapper) mainWrapper.classList.add('visible-content');
-    if (bottomNav) bottomNav.classList.add('visible-content');
+    // Zobrazíme celý kontejner aplikace
+    if (appContainer) {
+        appContainer.classList.remove('hidden-app-content');
+        appContainer.classList.add('visible-app-content');
+        console.log('appContainer je viditelný.');
+    }
 
-    // Inicializujeme první zobrazení sekce (např. Home)
-    showSection('homeSection');
+    // Důležité: Tady poprvé zavoláme showSection pro 'homeSection'
+    // Použijeme krátkou prodlevu, aby se stihl appContainer zobrazit.
+    setTimeout(() => {
+        showSection('homeSection');
+    }, 100); 
+    
     console.log('Aplikace je načtena a připravena.');
 }
 
@@ -117,29 +112,21 @@ function hideLoadingScreen() {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOMContentLoaded: DOM je načten.');
 
-    // --- Simulace načítání aplikace ---
-    // V reálné aplikaci by zde byla volání API, inicializace modulů atd.
-    // Jakmile je vše hotovo, zavolá se hideLoadingScreen().
+    // Při načtení DOMu spustíme simulaci loading screenu
     setTimeout(() => {
         hideLoadingScreen();
-    }, 1000); // Simulace načítání 2 sekundy. Můžeš to upravit.
+    }, 2000); 
 
-    // Přidání posluchačů pro navigační tlačítka (zůstává stejné)
+    // Přidání posluchačů pro navigační tlačítka
     if (navButtons.length > 0) {
         navButtons.forEach(button => {
             button.addEventListener('click', (event) => {
-                console.log('DOMContentLoaded: Kliknutí na navigační tlačítko detekováno!', event.currentTarget);
                 const sectionId = button.dataset.section;
                 if (sectionId) {
-                    console.log(`DOMContentLoaded: data-section atribut: ${sectionId}`);
                     showSection(sectionId);
-                } else {
-                    console.warn('DOMContentLoaded: Kliknuté tlačítko nemá data-section atribut.');
                 }
             });
         });
-    } else {
-        console.error('DOMContentLoaded: Nebyla nalezena žádná navigační tlačítka s třídou "nav-button". Zkontrolujte HTML.');
     }
 });
 

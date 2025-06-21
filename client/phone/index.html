@@ -5,79 +5,123 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bzučáková Aplikace</title>
-    <!-- Odkaz na náš CSS soubor (předpokládáme, že je ve stejné složce) -->
     <link rel="stylesheet" href="style.css">
-</head>
+    </head>
 
 <body>
-
     <div id="loadingScreen" class="loading-screen">
         <img src="assets/img/logo.png" alt="Logo aplikace" class="loading-logo">
         <div class="spinner"></div>
     </div>
 
-    <div class="top-nav">
-
-        <ul>
-
-            <li class="nav-item">
-
-                <h1 class="nav-title">Bzučáková Aplikace</h1>
-            </li>
-
-        </ul>
-
-    </div>
-
-    <div class="main-wrapper">
-        <!-- Zde bude dynamický obsah stránek -->
-       
-        <div id="homeSection" class="content-section active">
-
-            <h1>Home</h1>
-
+    <div id="appContainer"> 
+        <div class="top-nav">
+            <ul>
+                <li class="nav-item">
+                    <h1 class="nav-title">Bzučáková Aplikace</h1>
+                </li>
+            </ul>
         </div>
 
-        <div id="gameSection" class="content-section hidden">
+        <div class="main-wrapper">
+            <div id="homeSection" class="content-section">
+                <h1>Vítejte v Bzučákové Aplikaci!</h1>
+                <p>Jsme rádi, že jste tu. Připravte se na zábavu a vzrušení!</p>
+            
+                <div class="quick-actions">
+                    <button class="action-button" data-section="gameSection">Spustit Hru</button>
+                    <button class="action-button" data-section="accountSection">Můj Profil</button>
+                </div>
 
-            <h1>Game</h1>
+                <div class="news">
+                    <h1>Zprávy</h1>
 
+                    <div class="container">
 
+                        <div class="news-item">
+                            <h2>Nová aktualizace!</h2>
+                            <img src="https://placehold.co/600x400/E74C3C/FFFFFF?text=Coming+Soon" alt="commingsoon" class="news-icon">
+                        </div>
+
+                        <div class="news-item">
+                            <h2>Nová aktualizace!</h2>
+                            <img src="https://placehold.co/600x400/E74C3C/FFFFFF?text=Coming+Soon" alt="commingsoon" class="news-icon">
+                        </div>
+
+                    </div>
+
+                </div>
+
+                
+               
+            </div>
+            <div id="gameSection" class="content-section"> 
+                <h1>Hra Bzučák</h1>
+                <p>Stiskněte tlačítko pro bzučení!</p>
+
+                <div class="game-area">
+                    <div class="score-display">Skóre: <span id="currentScore">0</span></div>
+                    <button id="buzzerButton" class="buzzer-button">Bzučet!</button>
+                    <div class="game-messages" id="gameMessages"></div>
+                </div>
+
+                <div class="game-settings">
+                    <h2>Nastavení Hry</h2>
+                    <label for="gameMode">Režim:</label>
+                    <select id="gameMode">
+                        <option value="single">Singleplayer</option>
+                        <option value="multi">Multiplayer</option>
+                    </select>
+                    <button id="startGameButton">Start Hry</button>
+                </div>
+            </div>
+
+            <div id="accountSection" class="content-section"> 
+                <h1>Můj Účet</h1>
+
+                <div class="profile-info">
+                    <img src="assets/icon/default-avatar.png" alt="Profilový obrázek" class="avatar">
+                    <h2>Uživatelské jmé: <span id="usernameDisplay">Hrac_123</span></h2>
+                    <button class="edit-profile-button">Upravit Profil</button>
+                </div>
+
+                <div class="user-stats">
+                    <h2>Mé Statistiky</h2>
+                    <p>Nejlepší skóre: <span id="bestScore">950</span></p>
+                    <p>Odehraných her: <span id="gamesPlayed">42</span></p>
+                </div>
+
+                <div class="app-settings">
+                    <h2>Nastavení Aplikace</h2>
+                    <label>
+                        <input type="checkbox" id="soundEffectsToggle" checked> Zvukové efekty
+                    </label>
+                    <label>
+                        <input type="checkbox" id="notificationsToggle"> Notifikace
+                    </label>
+                </div>
+
+                <button class="logout-button">Odhlásit se</button>
+            </div>
         </div>
 
-        <div id="accountSection" class="content-section hidden">
-
-            <h1>Account</h1>
-
-
-        </div>
-    </div>
-
-    <!-- Spodní navigační panel -->
-    <nav class="bottom-nav">
-        <button class="nav-button" data-section="homeSection" data-inactive-icon="assets/icon/home.png"
-            data-active-icon="assets/icon/homeactive.png">
-            <img src="assets/icon/home.png" alt="Domovská stránka" class="nav-icon">
-            <h1 class="nav-text">HOME</h1>
-        </button>
-        <button class="nav-button" data-section="gameSection" data-inactive-icon="assets/icon/game.png"
-            data-active-icon="assets/icon/gameactive.png">
-            <img src="assets/icon/game.png" alt="Hra" class="nav-icon">
-            <h1 class="nav-text">GAME</h1>
-        </button>
-        <button class="nav-button" data-section="accountSection" data-inactive-icon="assets/icon/account.png"
-            data-active-icon="assets/icon/accountactive.png">
-            <img src="assets/icon/account.png" alt="Účet" class="nav-icon">
-            <h1 class="nav-text">ACCOUNT</h1>
-        </button>
-    </nav>
-
-    <!-- Font Awesome pro ikony (přidáno pro jednoduchost) -->
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <!-- Socket.IO klienta můžete načíst, ale jeho použití bude záviset na tom, kdy se uživatel dostane do herní sekce -->
+        <nav class="bottom-nav">
+            <button class="nav-button" data-section="homeSection">
+                <img src="assets/icon/home.png" alt="Domovská stránka" class="nav-icon">
+                <h1 class="nav-text">HOME</h1>
+            </button>
+            <button class="nav-button" data-section="gameSection">
+                <img src="assets/icon/game.png" alt="Hra" class="nav-icon">
+                <h1 class="nav-text">GAME</h1>
+            </button>
+            <button class="nav-button" data-section="accountSection">
+                <img src="assets/icon/account.png" alt="Účet" class="nav-icon">
+                <h1 class="nav-text">ACCOUNT</h1>
+            </button>
+        </nav>
+    </div> <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
-    <!-- Vaše vlastní JavaScript soubory (cesty upraveny, předpokládám složku js/) -->
     <script src="js/socketService.js"></script>
     <script src="js/app.js"></script>
 </body>
