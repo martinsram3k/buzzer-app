@@ -116,8 +116,20 @@ html, body {
 }
 
 .nav-icon {
-    width: 50px;
-    /* Možná bys chtěl přidat i sem filter pro ikony, aby se měnily s aktivním textem */
+    width: 50px; /* Pevná šířka */
+    height: 50px; /* Pevná výška, důležité pro PNG, aby se neroztáhly */
+    object-fit: contain; /* Udrží poměr stran PNG ikon */
+    transition: opacity 0.3s ease, filter 0.3s ease; /* Plynulý přechod pro opacitu a filtr */
+
+    /* Neaktivní stav (výchozí) */
+    opacity: 0.7; /* 70% průhlednost */
+    filter: grayscale(100%); /* Zcela černobílá */
+}
+
+.nav-icon.active {
+    /* Aktivní stav */
+    opacity: 1; /* 100% průhlednost */
+    filter: grayscale(0%); /* Bez šedého filtru (barevná) */
 }
 
 .nav-text {
