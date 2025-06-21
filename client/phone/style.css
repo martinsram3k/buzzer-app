@@ -136,6 +136,7 @@ body {
     /* Místo pro bottom nav */
     width: 100%;
     margin: 0 auto;
+    margin-bottom: 200px;
     box-sizing: border-box;
     /* Odebírám overflow-y z main-wrapperu a přesunu ho na content-section */
     /* overflow-y: auto; */
@@ -212,8 +213,8 @@ body {
     user-select: none;
     position: fixed;
     bottom: 10px;
-    left: 10px;
-    right: 10px;
+    left: 20px;
+    right: 20px;
     height: fit-content;
     border-radius: 25px;
     background-color: var(--secondary-color);
@@ -418,21 +419,23 @@ body {
     font-weight: 700;
     color: var(--secondary-color);
     text-align: left;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .news-item {
     margin-left: auto;
     margin-right:  auto;
     background-color: var(--background-light);
-    border-radius: 8px;
-    padding: 15px;
+    border-radius: 20px;
+    padding: 10px;
     margin-bottom: 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0px 10px rgba(0, 0, 0, 0.2);
     width: 100%; /* Aby se vešel do paddingu content-section */
     box-sizing: border-box;
 }
 .news-item img {
     width: 100%;
     height: auto;
-    border-radius: 8px;
+    border-radius: 10px;
 }
