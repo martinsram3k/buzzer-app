@@ -22,7 +22,9 @@ body {
     /* Důležité: Tělo i HTML zabírají celou výšku viewportu */
     overflow: hidden;
     /* Důležité: Zabrání scrollování na úrovni body/html */
-    font-family: Tahoma;
+    font-family: akzidenz-grotesk-next, sans-serif;
+    font-style: normal;
+    font-weight: 200;
     background-color: var(--background-dark);
     color: var(--text-color);
     display: flex;
@@ -120,25 +122,9 @@ body {
     justify-content: flex-start;
 }
 
-
-.text-input {
-    padding: 15px;
-    border: 2px solid var(--sandy-taupe);
-    border-radius: 8px;
-    font-size: 1.2em;
-    text-align: center;
-    width: calc(100% - 30px);
-    /* Adjust for padding */
-    max-width: 280px;
-    margin-bottom: 15px;
-    background-color: var(--light-grey);
-    color: var(--deep-charcoal);
-    outline: none;
-    transition: border-color 0.3s ease;
-}
-
 /* --- Spodní navigační panel --- */
 .bottom-nav {
+    user-select: none;
     position: fixed;
     /* Pevná pozice na spodní části obrazovky */
     bottom: 10px;
@@ -163,6 +149,7 @@ body {
 }
 
 .nav-button {
+    user-select: none;
     background: none;
     border: none;
     color: var(--nav-item-inactive);
@@ -183,6 +170,23 @@ body {
     /* Omezení šířky tlačítka */
 }
 
+.nav-button-hop {
+    animation: button-hop 1s linear infinite;
+    /* Animace pro "hop" efekt */
+}
+
+@keyframes button-hop {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+    70% {
+        transform: translateY(0);
+    }
+}
+
 .nav-icon {
     width: 50px;
     /* Pevná šířka */
@@ -190,7 +194,7 @@ body {
     /* Pevná výška, důležité pro PNG, aby se neroztáhly */
     object-fit: contain;
     /* Udrží poměr stran PNG ikon */
-    transition: opacity 0.3s ease, filter 0.3s ease;
+    transition: opacity 0.5s ease-in-out, filter 0.5s ease-in-out;
     /* Plynulý přechod pro opacitu a filtr */
 
     /* Neaktivní stav (výchozí) */
@@ -212,7 +216,7 @@ body {
     font-size: 15px;
     color: var(--background-dark);
     /* Výchozí barva textu pro neaktivní */
-    transition: color 0.3s ease;
+    transition: color 0.5s ease-in-out;
     font-weight: 400;
 }
 
