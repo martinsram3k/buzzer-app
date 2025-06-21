@@ -1,498 +1,476 @@
 /* client-web/css/style.css */
 
-/* Barvová paleta */
+/* Základní reset a barvy */
 :root {
-    --buzzer-red: #E74C3C;
-    --darker-red: #C0392B;
-    --soft-beige: #F8F4E3;
-    --creamy-white: #FFFBF5;
-    --sandy-taupe: #D4C9B3;
-    --deep-charcoal: #34495E;
-    --success-green: #2ECC71;
-    --light-grey: #ECF0F1; /* Pro pozadí inputu atd. */
-    --error-red: #E74C3C; /* Pro chybové zprávy */
-    --accent-blue: #3498DB; /* Pro vykopnutí / aktivní prvky */
-    --darker-blue: #2980B9;
+    --primary-color: #E74C3C;
+    /* Buzzer Red */
+    --secondary-color: #34495E;
+    --secondary-color-opacity: rgba(52, 73, 94 , 0.8);
+    /* Liquid Glass */
+    /* Pokud nechceš Liquid Glass, zvaž odstranění */
+    /* Deep Charcoal */
+    --background-light: #FFFBF5;
+    /* Creamy White */
+    --background-dark: #F8F4E3;
+    /* Soft Beige */
+    --text-color: #34495E;
+
+    --sandy-taupe: #B2A28A;
+    --light-grey: #F0F0F0;
+    --nav-item-inactive: #A0A0A0;
 }
 
-/* Obecné styly pro tělo stránky a reset */
+
+html,
 body {
     margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 0;
+    height: 100%;
+    /* Důležité: Tělo i HTML zabírají celou výšku viewportu */
+    overflow: hidden;
+    /* <-- TOTO JE KLÍČOVÉ */
+    /* Důležité: Zabrání scrollování na úrovni body/html */
+    font-family: 'akzidenz-grotesk-next', sans-serif;
+    font-style: normal;
+    font-weight: 200;
+    background-color: var(--background-dark);
+    color: var(--text-color);
     display: flex;
+    flex-direction: column;
+    /* Aby se obsah a nav vyrovnaly svisle */
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+.content-section::-webkit-scrollbar {
+    display: none;
+    /* Skryje scrollbar */
+    width: 0;
+    /* Pro jistotu nastaví šířku na 0 */
+    height: 0;
+    /* Pro jistotu nastaví výšku na 0 (pro horizontální scrollbar) */
+}
+
+/* --- Loading Screen Styly --- */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--background-dark);
+    display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    background-color: var(--soft-beige);
-    color: var(--deep-charcoal);
-    box-sizing: border-box; /* Zajišťuje, že padding a border se započítávají do šířky/výšky */
+    z-index: 9999;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
 }
 
-/* Kontejner pro celou aplikaci */
-.container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 30px;
-    background-color: var(--creamy-white);
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    max-width: 450px;
-    width: 90%;
-    text-align: center;
-    position: relative; /* Pro absolutní pozicování */
+.loading-screen.fade-out {
+    opacity: 0;
+    visibility: hidden;
 }
 
-.main-title {
-    font-size: 2.8em;
-    font-weight: 700;
+.loading-logo {
+    width: 150px;
+    height: auto;
     margin-bottom: 30px;
-    color: var(--buzzer-red);
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
 }
 
-.section-title {
-    font-size: 1.8em;
-    font-weight: 600;
-    margin-bottom: 25px;
-    color: var(--deep-charcoal);
+.spinner {
+    border: 8px solid rgba(0, 0, 0, 0.1);
+    border-top: 8px solid var(--primary-color);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
 }
 
-/* --- Startovací obrazovka --- */
-#startScreen {
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* --- Konec Loading Screen Stylů --- */
+
+/* Kontejner pro celou aplikaci, aby se zobrazil po loading screenu */
+#appContainer {
+    display: flex;
+    /* Použij flex pro rozložení obsahu vertikálně */
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    /* Aplikace vyplní celý viewport */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+#appContainer.visible-app-content {
+    opacity: 1;
+    visibility: visible;
+}
+
+
+/* Hlavní obal pro obsah (zabere většinu místa) */
+.main-wrapper {
+    max-width: 100%;
+    flex-grow: 1;
+    position: relative;
+    /* Kontejner pro absolutně pozicované sekce */
+    display: flex;
+    /* Použij flex pro zarovnání sekcí */
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 20px;
+    /* Místo pro levý okraj */
+    padding-right: 20px;
+    /* Místo pro pravý okraj */
+    margin-top: 800px;
+    /* Místo pro top nav */
+    padding-bottom: 80px;
+    /* Místo pro bottom nav */
+    width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+    /* Odebírám overflow-y z main-wrapperu a přesunu ho na content-section */
+    /* overflow-y: auto; */
+    -webkit-overflow-scrolling: touch;
+    height: calc(100% - 180px);
+    /* Důležité: Vypočítaná výška, aby se vešel mezi navigační panely */
+}
+
+
+/* Styly pro sekce obsahu - KLÍČOVÉ PRO PŘECHODY */
+.content-section {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    /* Skryje scrollbar */
+    position: absolute;
+    /* Sekce se budou překrývat */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Sekce vyplní celý main-wrapper */
+    padding: 20px;
+    padding-top: 60px;
+    padding-bottom: 200px;
+    text-align: center;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
+    justify-content: flex-start;
+    overflow-y: auto;
+    /* Důležité: Scrollování je nyní na úrovni sekce */
+    -webkit-overflow-scrolling: touch;
+
+    /* VÝCHOZÍ STAV: SKRYTÉ A PRŮHLEDNÉ */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    /* Důležité: Zakáže klikání na neviditelné sekce */
+    transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+    /* Plynulý fade */
+    z-index: 0;
+    /* Neaktivní sekce jsou pod aktivní */
 }
 
-/* Nový styl pro textové inputy (jméno, kód místnosti) */
-.text-input {
-    padding: 15px;
-    border: 2px solid var(--sandy-taupe);
-    border-radius: 8px;
-    font-size: 1.2em;
-    text-align: center;
-    width: calc(100% - 30px); /* Adjust for padding */
-    max-width: 280px;
-    margin-bottom: 15px; /* Pro mezery mezi inputy/tlačítky */
-    background-color: var(--light-grey);
-    color: var(--deep-charcoal);
-    outline: none;
-    transition: border-color 0.3s ease;
+/* Třída pro AKTIVNÍ (zobrazenou) sekci */
+.content-section.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+    /* Důležité: Povolí klikání na aktivní sekci */
+    z-index: 1;
+    /* Aktivní sekce je nahoře */
 }
 
-.text-input:focus {
-    border-color: var(--buzzer-red);
+/* --- Spodní navigační panel --- */
+.bottom-nav {
+    user-select: none;
+    position: fixed;
+    bottom: 10px;
+    left: 20px; /* Zde je 20px, v tvém HTML je left: 10px, right: 10px, tak si to sjednoť */
+    right: 20px; /* Zde je 20px, v tvém HTML je left: 10px, right: 10px, tak si to sjednoť */
+    height: fit-content;
+    border-radius: 25px;
+
+    /* --- Liquid Glass Styly --- */
+    /* 1. Pozadí s průhledností */
+    background-color: rgba(52, 73, 94, 0.3); /* Používáme RGBA pro explicitní průhlednost, 0.2 je příklad */
+    /* 2. Rozmazání pozadí za elementem */
+    backdrop-filter: blur(10px); /* Zvýšil jsem blur na 10px pro výraznější efekt */
+    -webkit-backdrop-filter: blur(10px); /* Pro Safari */
+
+    /* 3. Jemný průhledný okraj (border) */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Světlý, téměř průhledný okraj */
+
+    /* 4. Jemný stín */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); /* Rozšířený a jemnější stín */
+    /* Můžeš experimentovat s více stíny, např. pro zvýraznění "lesku" */
+    /* box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), 0 0 10px rgba(255, 255, 255, 0.6) inset; */
+
+
+    /* --- Původní styly (úprava některých) --- */
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 1000;
+    padding-top: 10px;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    overflow: visible; /* Toto je v pořádku, pokud nechceš scrollování uvnitř nav */
 }
 
-.action-button {
-    padding: 15px 30px;
-    border-radius: 10px;
-    font-size: 1.3em;
-    font-weight: bold;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease, transform 0.1s ease;
-    width: 100%;
-    max-width: 280px;
-    margin-bottom: 20px; /* Mezera pod tlačítky */
-}
-
-.action-button.primary-button {
-    background-color: var(--buzzer-red);
-    color: var(--creamy-white);
-}
-
-.action-button.primary-button:hover {
-    background-color: var(--darker-red);
-}
-
-.action-button.secondary-button {
-    background-color: var(--deep-charcoal); /* Tmavý pro připojení */
-    color: var(--creamy-white);
-}
-
-.action-button.secondary-button:hover {
-    background-color: #2C3E50; /* Ještě tmavší */
-}
-
-/* Speciální styly pro menší akční tlačítka */
-.action-button.small-button {
-    font-size: 1em;
-    padding: 10px 20px;
-    max-width: 200px;
-    margin-top: 15px;
-    margin-bottom: 10px;
-}
-
-
-.separator {
-    margin: 20px 0;
-    font-size: 1.1em;
-    color: var(--sandy-taupe);
-    position: relative;
-    width: 100%;
-    text-align: center;
-}
-
-.separator::before,
-.separator::after {
+.bottom-nav::before {
     content: '';
     position: absolute;
-    top: 50%;
-    width: 40%;
-    height: 1px;
-    background-color: var(--sandy-taupe);
-}
-
-.separator::before {
+    top: 0;
     left: 0;
-}
-
-.separator::after {
     right: 0;
-}
-
-.join-room-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-}
-
-
-.error-message {
-    color: var(--error-red);
-    font-weight: bold;
-    margin-top: 15px;
-    font-size: 1.1em;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+    border-radius: inherit;
+    z-index: -1;
+    pointer-events: none;
 }
 
 
-/* --- NOVÉ: Lobby Screen styly --- */
-#lobbyScreen {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-}
-
-.lobby-status-message {
-    font-size: 1.4em;
-    font-weight: 500;
-    color: var(--sandy-taupe);
-    margin-bottom: 25px;
-}
-
-/* Panel pro nastavení hostitele */
-.settings-panel {
-    background-color: var(--light-grey);
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 25px;
-    width: calc(100% - 40px);
-    max-width: 350px;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.settings-panel h3 {
-    font-size: 1.5em;
-    color: var(--deep-charcoal);
-    margin-top: 0;
-    margin-bottom: 20px;
-}
-
-.setting-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.setting-item label {
-    font-size: 1.1em;
-    margin-right: 15px;
-    color: var(--deep-charcoal);
-    text-align: left;
-    flex-grow: 1; /* Aby zabíralo co nejvíce místa */
-}
-
-/* Styly pro select a input (číslo) v nastavení */
-.text-input.small-select,
-.text-input.small-input {
-    width: auto; /* Přizpůsobí se obsahu */
-    max-width: 150px; /* Omezí šířku */
-    margin-bottom: 0; /* Zruší margin z obecného .text-input */
-    flex-shrink: 0; /* Nebude se zmenšovat */
-}
-
-.checkbox-item {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start; /* Zarovnat doleva */
-    margin-top: 20px;
-    margin-bottom: 0;
-}
-
-.checkbox-item input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    margin-right: 10px;
-    /* Vlastní stylizace checkboxu */
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    border: 2px solid var(--sandy-taupe);
-    border-radius: 4px;
-    background-color: var(--creamy-white);
-    cursor: pointer;
-    position: relative;
-}
-
-.checkbox-item input[type="checkbox"]:checked {
-    background-color: var(--accent-blue);
-    border-color: var(--darker-blue);
-}
-
-.checkbox-item input[type="checkbox"]:checked::after {
-    content: '✔';
-    color: var(--creamy-white);
-    font-size: 16px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-.checkbox-item label {
-    margin-right: 0; /* Přizpůsobíme label k checkboxu */
-}
-
-
-/* Seznam hráčů */
-.player-list-section {
-    width: 100%;
-    max-width: 350px;
-    margin-bottom: 25px;
-}
-
-.player-list-section h3 {
-    font-size: 1.3em;
-    color: var(--deep-charcoal);
-    margin-bottom: 15px;
-}
-
-.player-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    background-color: var(--light-grey);
-    border-radius: 10px;
-    max-height: 200px; /* Scrollable list */
-    overflow-y: auto;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.player-list li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 15px;
-    border-bottom: 1px solid var(--sandy-taupe);
-    font-size: 1.1em;
-    color: var(--deep-charcoal);
-}
-
-.player-list li:last-child {
-    border-bottom: none;
-}
-
-.player-list li span {
-    flex-grow: 1; /* Jméno hráče zabírá většinu místa */
-    text-align: left;
-    font-weight: 500;
-}
-
-/* Tlačítko pro vykopnutí hráče */
-.kick-button {
-    background-color: var(--buzzer-red);
-    color: var(--creamy-white);
+.nav-button {
+    user-select: none;
+    background: none;
     border: none;
-    border-radius: 5px;
-    padding: 5px 10px;
-    font-size: 0.9em;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.kick-button:hover {
-    background-color: var(--darker-red);
-}
-
-/* --- Herní obrazovka --- */
-#gameScreen {
+    color: var(--nav-item-inactive);
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
+    justify-content: center;
+    font-size: 0.85em;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 8px 10px;
+    transition: color 0.3s ease, transform 0.1s ease;
+    flex: 1;
+    max-width: 120px;
+    /* animation: button-hop 1s linear infinite; */
+
 }
 
-.room-info {
+.nav-button-hop {
+    animation: button-hop 1s linear infinite;
+}
+
+@keyframes button-hop {
+    0% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+
+    70% {
+        transform: translateY(0);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+.nav-icon {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    transition: opacity 0.5s ease-in-out, filter 0.5s ease-in-out;
+
+    opacity: 0.7;
+    filter: grayscale(100%);
+}
+
+.nav-icon.active {
+    opacity: 1;
+    filter: grayscale(0%);
+}
+
+.nav-text {
+    font-size: 15px;
+    color: var(--background-dark);
+    transition: color 0.5s ease-in-out;
+    font-weight: 400;
+}
+
+.nav-text.active {
+    color: var(--primary-color);
+    font-weight: 900;
+}
+
+.top-nav {
+    position: fixed;
+    width: calc(100% - 20px);
+    top: 10px;
+    border-radius: 10px;
+    left: 10px;
+    right: 10px;
+    height: fit-content;
+    z-index: 1000;
+    /* box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); */
+    /* box-shadow: var(--secondary-color-opacity) 0px 0px 10px 1px; */
+
+      /* --- Liquid Glass Styly --- */
+    /* 1. Pozadí s průhledností */
+    background-color: rgba(52, 73, 94, 0.3); /* Používáme RGBA pro explicitní průhlednost, 0.2 je příklad */
+    /* 2. Rozmazání pozadí za elementem */
+    backdrop-filter: blur(10px); /* Zvýšil jsem blur na 10px pro výraznější efekt */
+    -webkit-backdrop-filter: blur(10px); /* Pro Safari */
+
+    /* 3. Jemný průhledný okraj (border) */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Světlý, téměř průhledný okraj */
+
+    /* 4. Jemný stín */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); /* Rozšířený a jemnější stín */
+    /* Můžeš experimentovat s více stíny, např. pro zvýraznění "lesku" */
+    /* box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), 0 0 10px rgba(255, 255, 255, 0.6) inset; */
+}
+
+.top-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    height: 100%;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.top-nav .nav-item .nav-title {
+    letter-spacing: 2px;
+    padding-top: 15px;
+    padding-bottom: 15px;
     font-size: 1.2em;
-    color: var(--sandy-taupe);
+    color: var(--primary-color);
+    font-weight: 900;
+    text-align: center;
+    margin: auto;
+}
+
+.content-section h1 {
+    font-size: 2em;
+    font-weight: 900;
+    color: var(--secondary-color);
+    margin-bottom: 5px;
+    text-align: left;
+}
+
+.content-section p {
+    font-size: 1em;
+    color: var(--text-color);
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.news {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.news h1 {
+    font-size: 2em;
+    font-weight: 900;
+    color: var(--secondary-color);
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.quick-actions {
+    padding-left: 20px;
+    padding-right: 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-evenly;
+    background-color: var(--primary-color);
+    box-sizing: border-box;
+    /* Zajistí, že padding je součástí vypočtené šířky */
+
+    /* Tyto vlastnosti roztáhnou element přes paddingy rodičovského .content-section */
+    margin-left: -20px;
+    margin-right: -20px;
+    margin-top: 20px;
+    /* Mezery od ostatních sekcí */
+    margin-bottom: 20px;
+    /* Mezery od ostatních sekcí */
+    width: calc(100% + 40px);
+    /* 100% šířky rodiče + 2x 20px pro záporné marginy */
+    padding: 20px;
+    /* Vnitřní padding pro obsah tlačítek */
+
+    /* Volitelně, pro zaoblené rohy */
+    /* border-radius: 8px; */
+}
+
+.quick-actions button {
+    margin-top: 12px;
+    margin-bottom: 12px;
+    background-color: var(--secondary-color);
+    border: none;
+    color: var(--background-dark);
+    font-size: 1.2em;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+
+    /* Přechod pro hover efekt */
+}
+
+.continer {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.news-item h2 {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: var(--secondary-color);
+    text-align: left;
+    margin-top: 10px;
     margin-bottom: 10px;
 }
 
-.room-info span {
-    font-weight: bold;
-    color: var(--deep-charcoal);
-}
-
-.room-player-count {
-    font-size: 1.1em;
-    color: var(--sandy-taupe);
-    margin-bottom: 20px;
-}
-
-.room-player-count span {
-    font-weight: bold;
-    color: var(--deep-charcoal);
-}
-
-.game-status-message {
-    font-size: 1.6em;
-    font-weight: 600;
-    color: var(--deep-charcoal);
-    margin-bottom: 30px;
-    min-height: 1.6em; /* Aby se zprávy neposouvaly s výškou */
-}
-
-/* Styly pro odpočet */
-.countdown-display {
-    font-size: 5em;
-    font-weight: bold;
-    color: var(--buzzer-red);
-    margin-bottom: 20px;
-    text-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-}
-.countdown-display.hidden { /* Override pro skrytí */
-    display: none !important;
-}
-
-
-/* Styl pro tlačítko BZUČÁK (stejné jako dříve) */
-.buzzer-button {
-    width: 200px;
-    height: 200px;
-    border-radius: 50%; /* Kruhové tlačítko */
-    background-color: var(--buzzer-red);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 3.5em;
-    font-weight: bold;
-    color: var(--creamy-white);
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    transition: background-color 0.3s ease, transform 0.1s ease;
-    -webkit-tap-highlight-color: transparent;
-    margin-bottom: 30px;
-}
-
-.buzzer-button:hover {
-    background-color: var(--darker-red);
-}
-
-.buzzer-button:active {
-    transform: scale(0.95); /* Mírné zmenšení při stisku */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.buzzer-button:disabled {
-    background-color: var(--sandy-taupe);
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
-/* Kontejner pro zobrazení vítěze (stejné jako dříve) */
-.winner-container {
-    background-color: var(--success-green);
-    padding: 20px;
-    border-radius: 10px;
-    margin-top: 0; /* Upraveno, aby navazovalo na buzzer-button */
-    margin-bottom: 30px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+.news-item {
+    margin-left: auto;
+    margin-right: auto;
+    background-color: var(--background-light);
+    border-radius: 20px;
+    padding: 10px;
+    margin-bottom: 15px;
+    box-shadow: 0 0px 10px rgba(0, 0, 0, 0.2);
     width: 100%;
-    max-width: 300px;
+    /* Aby se vešel do paddingu content-section */
+    box-sizing: border-box;
 }
 
-.winner-text {
-    font-size: 1.5em;
-    font-weight: bold;
-    color: var(--creamy-white);
-    margin-bottom: 5px;
+.news-item img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
 }
-
-.winner-id { /* Původně winner-id, nyní pro jméno */
-    font-size: 2.5em;
-    font-weight: bold;
-    color: var(--creamy-white);
-    margin-bottom: 5px;
-    word-break: break-all;
-}
-
-.winner-text-small {
-    font-size: 0.9em;
-    color: var(--soft-beige);
-}
-
-/* Styl pro tlačítko RESET / Další kolo */
-.reset-button {
-    background-color: var(--buzzer-red);
-    padding: 15px 30px;
-    border-radius: 8px;
-    font-size: 1.2em;
-    font-weight: bold;
-    color: var(--creamy-white);
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.3s ease;
-    margin-bottom: 20px; /* Nová mezera */
-}
-
-.reset-button:hover {
-    background-color: var(--darker-red);
-}
-
-.reset-button:disabled {
-    background-color: var(--sandy-taupe);
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
-/* Nové tlačítko Opustit místnost/hru */
-.leave-room-button {
-    background-color: #95A5A6; /* Šedá */
-    color: var(--creamy-white);
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 1em;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.leave-room-button:hover {
-    background-color: #7F8C8D; /* Tmavší šedá */
-}
-
-
-/* Pomocná třída pro skrytí elementu */
-.hidden {
-    display: none !important;
-}
-
