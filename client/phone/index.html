@@ -80,17 +80,22 @@
                 <h1>Můj Účet</h1>
                 <p>Spravujte svůj profil a nastavení.</p>
 
-                <div id="loginRegisterContainer"> <form id="loginForm" class="login-form">
-                        <h2>Přihlásit se</h2>
+                <div id="authFormsContainer"> <form id="loginForm" class="auth-form active-form"> <h2>Přihlásit se</h2>
                         <input type="text" id="usernameInput" class="text-input" placeholder="Uživatelské jméno" required>
                         <input type="password" id="passwordInput" class="text-input" placeholder="Heslo" required>
                         <button type="submit" class="action-button">Přihlásit se</button>
-                        <p id="loginMessage" class="error-message"></p>
+                        <p id="loginMessage" class="message-text error-message"></p>
+                        <p class="small-text">Ještě nemáte účet? <a href="#" id="showRegisterFormLink" class="toggle-form-link">Zaregistrujte se zde</a></p>
                     </form>
 
-                    <p class="small-text">
-                        Ještě nemáte účet? <a href="#" id="showRegisterFormLink">Zaregistrujte se zde</a>
-                    </p>
+                    <form id="registerForm" class="auth-form hidden-form"> <h2>Registrovat se</h2>
+                        <input type="text" id="regUsernameInput" class="text-input" placeholder="Uživatelské jméno" required>
+                        <input type="password" id="regPasswordInput" class="text-input" placeholder="Heslo" required>
+                        <input type="password" id="regConfirmPasswordInput" class="text-input" placeholder="Potvrďte heslo" required>
+                        <button type="submit" class="action-button">Registrovat se</button>
+                        <p id="registerMessage" class="message-text error-message"></p>
+                        <p class="small-text">Už máte účet? <a href="#" id="showLoginFormLink" class="toggle-form-link">Přihlaste se zde</a></p>
+                    </form>
                 </div>
                 
                 <div id="loggedInContent" style="display: none;">
