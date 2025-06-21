@@ -474,3 +474,34 @@ body {
     height: auto;
     border-radius: 10px;
 }
+
+.profile {
+    width: 100%;
+    height: fit-content;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.profile h1 {
+    font-size: 2em;
+    font-weight: 900;
+    color: var(--secondary-color);
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.profile-container {
+    width: 100%;
+    /* Maximální šířka pro lepší vzhled na větších obrazovkách */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+.profile-container img {
+    width: 150px;
+}
