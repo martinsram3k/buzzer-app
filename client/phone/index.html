@@ -10,7 +10,7 @@
 
 <body>
     <div id="loadingScreen" class="loading-screen">
-        <img src="assets/img/logo.png" alt="Logo aplikace" class="loading-logo">
+        <!-- <img src="assets/img/logo.png" alt="Logo aplikace" class="loading-logo"> -->
         <div class="spinner"></div>
     </div>
 
@@ -68,8 +68,20 @@
                     <div id="join" class="game-section">
 
                         <h1>Join game</h1>
-                        <textarea maxlength="5" maxRows="1" minlength="5" inputmode="numeric" id="joinGameCode"
+                        <div class="game-section-container">
+
+                            <textarea maxlength="5" maxRows="1" minlength="5" inputmode="numeric" id="joinGameCode"
                             placeholder="Input game pin"></textarea>
+
+                            <img src="assets/icon/qr-code.png" alt="QR Code" class="qr-code" id="qrCodeScanIcon">
+
+
+                            <div id="qr-reader" class="qr-reader" ></div>
+                            <div id="qr-reader-results" class="qr-reader-results" ></div>
+                        </div>
+
+                      
+
                         <button id="joinGameButton" class="action-button">Join</button>
 
                     </div>
@@ -108,6 +120,8 @@
         </div>
         <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
         <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+        <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+
 
         <script src="js/socketService.js"></script>
         <script src="js/app.js"></script>
