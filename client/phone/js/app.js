@@ -22,6 +22,8 @@ const qrCodeScanIcon = document.getElementById('qrCodeScanIcon');  // Ikona pro 
 const qrReaderDiv = document.getElementById('qr-reader');          // Div, kde se zobrazí video ze skeneru
 const qrReaderResultsDiv = document.getElementById('qr-reader-results'); // Div pro zobrazení naskenovaného výsledku
 const joinGameCodeInput = document.getElementById('joinGameCode'); // Textarea pro vložení herního PINu/QR kódu
+const qrOverlay = document.getElementById('qr-overlay');           // Hlavní overlay element pro skener
+const qrOverlayCloseButton = document.getElementById('qrOverlayCloseButton'); // Tlačítko pro zavření overlaye
 
 // --- Globální proměnné stavu ---
 // Tyto proměnné udržují aktuální stav aplikace nebo animací.
@@ -148,6 +150,26 @@ function startStaggeredNavButtonAnimation(delayBetweenButtons = 200) {
     });
 }
 
+// --- Funkce pro zobrazení/skrytí QR Overlaye ---
+/**
+ * Zobrazí nebo skryje QR skener overlay.
+ * Používá CSS třídu 'active' pro plynulé zobrazení/skrytí.
+ * @param {boolean} show True pro zobrazení overlaye, false pro skrytí.
+ */
+function toggleQrOverlay(show) {
+    if (qrOverlay) {
+        if (show) {
+            qrOverlay.classList.add('active'); // Zobrazí overlay pomocí CSS třídy.
+            // Resetuje výsledky při otevření overlaye
+            if (qrReaderResultsDiv) qrReaderResultsDiv.textContent = '';
+            // Resetuje input
+            if (joinGameCodeInput) joinGameCodeInput.value = '';
+        } else {
+            qrOverlay.classList.remove('active'); // Skryje overlay.
+        }
+    }
+}
+
 // --- Funkce pro skrytí loading screenu a zobrazení obsahu aplikace ---
 /**
  * Skryje úvodní načítací obrazovku a zobrazí hlavní obsah aplikace.
@@ -191,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Tento kód automaticky přepíná stav horní a dolní navigace každou sekundu.
     // Můžeš jej snadno zakomentovat (přidáním // na začátek řádku), pokud jej nechceš.
     // Příklad zakomentování: // let autoAnimateInterval = setInterval(animateTopNav, 1000);
-/*     let autoAnimateInterval = setInterval(animateTopNav, 1000); // Spustí animaci každou 1 sekundu (1000 ms).
+  /*   let autoAnimateInterval = setInterval(animateTopNav, 1000); // Spustí animaci každou 1 sekundu (1000 ms).
     console.log('Interval pro automatickou animaci navigace spuštěn.'); */
     // --- ZDE KONČÍ BLOK PRO AUTOMATICKOU ANIMACI HORNÍ/DOLNÍ NAVIGACE ---
 
@@ -248,60 +270,69 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- POSLUCHAČ PRO QR KÓD IKONU (spuštění/zastavení skeneru) ---
+    // --- POSLUCHAČ PRO QR KÓD IKONU (spuštění skeneru v overlayi) ---
     if (qrCodeScanIcon) {
         qrCodeScanIcon.addEventListener('click', () => {
-            console.log('QR Code ikona kliknuta.');
-            // Zkontrolujeme, zda čtečka již běží.
-            // isScanning je interní stav, který si html5-qrcode udržuje.
+            console.log('QR Code ikona kliknuta. Spouštím QR skener overlay.');
+            toggleQrOverlay(true); // Zobrazíme overlay.
+
+            // Pokud instance čtečky ještě neexistuje, vytvoříme ji.
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("qr-reader");
+            }
+
+            // Spustíme skenování.
+            html5QrCode.start(
+                { facingMode: "environment" }, // Preferuje zadní kameru (pro mobilní zařízení).
+                {
+                    fps: 10,    // Počet snímků za sekundu pro analýzu videa.
+                    qrbox: { width: 250, height: 250 } // Velikost čtecího rámečku.
+                },
+                (decodedText, decodedResult) => {
+                    // Callback pro úspěšné naskenování QR kódu.
+                    console.log(`QR kód naskenován: ${decodedText}`);
+                    qrReaderResultsDiv.textContent = `Naskenováno: ${decodedText}`; // Zobrazí výsledek.
+                    joinGameCodeInput.value = decodedText; // Vloží naskenovaný text do inputu.
+
+                    // Po úspěšném naskenování zastavíme čtečku a zavřeme overlay.
+                    html5QrCode.stop().then(() => {
+                        console.log('QR čtečka zastavena po úspěšném skenování.');
+                        toggleQrOverlay(false); // Skryjeme overlay.
+                    }).catch((err) => {
+                        console.error('Chyba při zastavování QR čtečky po skenování:', err);
+                        toggleQrOverlay(false); // Skryjeme overlay i při chybě zastavení.
+                    });
+                },
+                (errorMessage) => {
+                    // Callback pro chyby během skenování (např. žádný QR kód nenalezen).
+                    // Toto logování může být velmi časté, takže je často zakomentováno
+                    // nebo použito jen pro hlubší ladění.
+                    // console.warn(`Chyba skenování: ${errorMessage}`);
+                }
+            ).catch((err) => {
+                // Zachycení chyb při spouštění samotné čtečky (např. uživatel nepovolil kameru).
+                console.error(`Chyba při spouštění QR čtečky: ${err}`);
+                qrReaderResultsDiv.textContent = `Chyba: ${err.message || err}`; // Informuje uživatele o chybě.
+                toggleQrOverlay(false); // Skryjeme overlay při chybě spuštění.
+            });
+        });
+    }
+
+    // --- POSLUCHAČ PRO ZAVÍRACÍ TLAČÍTKO V OVERLAYI ---
+    if (qrOverlayCloseButton) {
+        qrOverlayCloseButton.addEventListener('click', () => {
+            console.log('Zavírací tlačítko overlaye kliknuto.');
+            // Pokud čtečka běží, zastavíme ji.
             if (html5QrCode && html5QrCode.isScanning) {
                 html5QrCode.stop().then(() => {
-                    console.log('QR čtečka zastavena.');
-                    qrReaderDiv.style.display = 'none'; // Skryjeme element čtečky.
-                    qrReaderResultsDiv.textContent = ''; // Vyčistíme výsledky.
+                    console.log('QR čtečka zastavena ručně.');
+                    toggleQrOverlay(false); // Skryjeme overlay.
                 }).catch((err) => {
-                    console.error('Chyba při zastavování QR čtečky:', err);
+                    console.error('Chyba při zastavování QR čtečky ručně:', err);
+                    toggleQrOverlay(false); // Skryjeme overlay i při chybě zastavení.
                 });
             } else {
-                // Pokud čtečka neběží, zobrazíme ji a spustíme.
-                qrReaderDiv.style.display = 'block'; // Zobrazíme element čtečky.
-                // Pokud instance čtečky ještě neexistuje, vytvoříme ji.
-                if (!html5QrCode) {
-                    html5QrCode = new Html5Qrcode("qr-reader");
-                }
-
-                html5QrCode.start(
-                    { facingMode: "environment" }, // Preferuje zadní kameru (pro mobilní zařízení).
-                    {
-                        fps: 10,    // Počet snímků za sekundu pro analýzu videa.
-                        qrbox: { width: 250, height: 250 } // Velikost čtecího rámečku.
-                    },
-                    (decodedText, decodedResult) => {
-                        // Callback pro úspěšné naskenování QR kódu.
-                        console.log(`QR kód naskenován: ${decodedText}`);
-                        qrReaderResultsDiv.textContent = `Naskenováno: ${decodedText}`; // Zobrazí výsledek.
-                        joinGameCodeInput.value = decodedText; // Vloží naskenovaný text do inputu.
-
-                        // Po úspěšném naskenování zastavíme čtečku a skryjeme ji.
-                        html5QrCode.stop().then(() => {
-                            console.log('QR čtečka zastavena po úspěšném skenování.');
-                            qrReaderDiv.style.display = 'none'; // Skryjeme element čtečky.
-                        }).catch((err) => {
-                            console.error('Chyba při zastavování QR čtečky po skenování:', err);
-                        });
-                    },
-                    (errorMessage) => {
-                        // Callback pro chyby během skenování (např. žádný QR kód nenalezen).
-                        // Toto logování může být velmi časté, takže je často zakomentováno
-                        // nebo použito jen pro hlubší ladění.
-                        // console.warn(`Chyba skenování: ${errorMessage}`);
-                    }
-                ).catch((err) => {
-                    // Zachycení chyb při spouštění samotné čtečky (např. uživatel nepovolil kameru).
-                    console.error(`Chyba při spouštění QR čtečky: ${err}`);
-                    qrReaderResultsDiv.textContent = `Chyba kamery: ${err}`; // Informuje uživatele o chybě.
-                    qrReaderDiv.style.display = 'none'; // Skryjeme element čtečky při chybě.
-                });
+                toggleQrOverlay(false); // Pokud čtečka neběžela, jen skryjeme overlay.
             }
         });
     }

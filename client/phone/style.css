@@ -656,18 +656,79 @@ body {
    border: 1.5px solid var(--primary-color);
 }
 
-/* Styly pro kontejner QR čtečky */
-.qr-reader {
+/* --- Styly pro QR skener Overlay --- */
+#qr-overlay {
+    position: fixed; /* Přes celou obrazovku */
+    top: 0;
+    left: 0;
     width: 100%;
-    max-width: 400px;
-    margin: 20px auto;
-    display: none; /* Standardně je skrytý, JS ho zobrazí */
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* Tmavé průhledné pozadí */
+    display: flex; /* Pro centrování obsahu */
+    justify-content: center; /* Horizontální centrování */
+    align-items: center; /* Vertikální centrování */
+    z-index: 10000; /* Zajistí, že bude nad vším ostatním */
+    backdrop-filter: blur(5px); /* Rozostření pozadí za overlayem (moderní prohlížeče) */
+    -webkit-backdrop-filter: blur(5px); /* Pro Safari */
+    opacity: 0; /* Standardně neviditelný */
+    visibility: hidden; /* Standardně skrytý */
+    transition: opacity 0.3s ease, visibility 0.3s ease; /* Plynulý přechod */
 }
 
-/* Styly pro zobrazení výsledků skenování */
-.qr-reader-results {
-    margin-top: 10px;
+#qr-overlay.active {
+    opacity: 1; /* Zobrazí overlay */
+    visibility: visible;
+}
+
+.qr-overlay-content {
+    background-color: rgba(255, 255, 255, 0.95); /* Světlé, mírně průhledné pozadí obsahu */
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     text-align: center;
-    color: #333; /* Jen příklad barvy textu */
-    font-size: 1.1em; /* Jen příklad velikosti písma */
+    position: relative; /* Pro absolutní pozicování tlačítka zavřít */
+    max-width: 90%; /* Aby se vešel na menší obrazovky */
+    max-height: 90%;
+    overflow: auto; /* Pro případ, že je obsah větší */
+    display: flex; /* Uspořádání vnitřních prvků */
+    flex-direction: column; /* Uspořádání do sloupce */
+    align-items: center; /* Centrování obsahu uvnitř boxu */
+}
+
+.qr-overlay-close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 2em;
+    color: #555;
+    cursor: pointer;
+    line-height: 1; /* Zajistí, že X bude na správné pozici */
+    transition: color 0.2s ease;
+}
+
+.qr-overlay-close:hover {
+    color: #000;
+}
+
+.qr-overlay-instructions {
+    color: #333;
+    font-size: 1.2em;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+/* Styly pro kontejner QR čtečky (přesunuty z HTML) */
+#qr-reader {
+    width: 100%;
+    max-width: 400px; /* Omezíme šířku, aby se vešel do overlaye */
+    /* Uvnitř overlaye nemusí mít margin: auto, flexbox ho vycentruje */
+}
+
+/* Styly pro zobrazení výsledků skenování (přesunuty z HTML) */
+#qr-reader-results {
+    margin-top: 15px;
+    text-align: center;
+    color: #007bff; /* Modrá barva pro naskenovaný text */
+    font-size: 1.2em;
+    font-weight: bold;
 }
