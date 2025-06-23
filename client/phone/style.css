@@ -5,7 +5,7 @@
     --primary-color: #E74C3C;
     /* Buzzer Red */
     --secondary-color: #34495E;
-    --secondary-color-opacity: rgba(52, 73, 94 , 0.8);
+    --secondary-color-opacity: rgba(52, 73, 94, 0.8);
     /* Liquid Glass */
     /* Pokud nechceš Liquid Glass, zvaž odstranění */
     /* Deep Charcoal */
@@ -202,23 +202,30 @@ body {
     user-select: none;
     position: fixed;
     bottom: 10px;
-    left: 20px; /* Zde je 20px, v tvém HTML je left: 10px, right: 10px, tak si to sjednoť */
-    right: 20px; /* Zde je 20px, v tvém HTML je left: 10px, right: 10px, tak si to sjednoť */
+    left: 20px;
+    /* Zde je 20px, v tvém HTML je left: 10px, right: 10px, tak si to sjednoť */
+    right: 20px;
+    /* Zde je 20px, v tvém HTML je left: 10px, right: 10px, tak si to sjednoť */
     height: fit-content;
     border-radius: 25px;
 
     /* --- Liquid Glass Styly --- */
     /* 1. Pozadí s průhledností */
-    background-color: rgba(52, 73, 94, 0.3); /* Používáme RGBA pro explicitní průhlednost, 0.2 je příklad */
+    background-color: rgba(52, 73, 94, 0.3);
+    /* Používáme RGBA pro explicitní průhlednost, 0.2 je příklad */
     /* 2. Rozmazání pozadí za elementem */
-    backdrop-filter: blur(10px); /* Zvýšil jsem blur na 10px pro výraznější efekt */
-    -webkit-backdrop-filter: blur(10px); /* Pro Safari */
+    backdrop-filter: blur(10px);
+    /* Zvýšil jsem blur na 10px pro výraznější efekt */
+    -webkit-backdrop-filter: blur(10px);
+    /* Pro Safari */
 
     /* 3. Jemný průhledný okraj (border) */
-    border: 1px solid rgba(255, 255, 255, 0.1); /* Světlý, téměř průhledný okraj */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    /* Světlý, téměř průhledný okraj */
 
     /* 4. Jemný stín */
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); /* Rozšířený a jemnější stín */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    /* Rozšířený a jemnější stín */
     /* Můžeš experimentovat s více stíny, např. pro zvýraznění "lesku" */
     /* box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), 0 0 10px rgba(255, 255, 255, 0.6) inset; */
 
@@ -230,7 +237,16 @@ body {
     z-index: 1000;
     padding-top: 10px;
     padding-bottom: env(safe-area-inset-bottom, 0);
-    overflow: visible; /* Toto je v pořádku, pokud nechceš scrollování uvnitř nav */
+    overflow: visible;
+    /* Toto je v pořádku, pokud nechceš scrollování uvnitř nav */
+
+    transition: transform 0.3s ease;
+
+
+}
+
+.bottom-nav.shifted {
+    transform: translateY(+150px);
 }
 
 .bottom-nav::before {
@@ -268,7 +284,7 @@ body {
 }
 
 .nav-button-hop {
-    animation: button-hop 1s linear infinite;
+    animation: button-hop 1s linear 1;
 }
 
 @keyframes button-hop {
@@ -318,28 +334,32 @@ body {
 
 .top-nav {
     position: fixed;
-    width: calc(100% - 20px);
     top: 10px;
     border-radius: 10px;
-    left: 10px;
-    right: 10px;
+    left: 15px;
+    right: 15px;
     height: fit-content;
     z-index: 1000;
     /* box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); */
     /* box-shadow: var(--secondary-color-opacity) 0px 0px 10px 1px; */
 
-      /* --- Liquid Glass Styly --- */
+    /* --- Liquid Glass Styly --- */
     /* 1. Pozadí s průhledností */
-    background-color: rgba(52, 73, 94, 0.3); /* Používáme RGBA pro explicitní průhlednost, 0.2 je příklad */
+    background-color: rgba(52, 73, 94, 0.3);
+    /* Používáme RGBA pro explicitní průhlednost, 0.2 je příklad */
     /* 2. Rozmazání pozadí za elementem */
-    backdrop-filter: blur(10px); /* Zvýšil jsem blur na 10px pro výraznější efekt */
-    -webkit-backdrop-filter: blur(10px); /* Pro Safari */
+    backdrop-filter: blur(10px);
+    /* Zvýšil jsem blur na 10px pro výraznější efekt */
+    -webkit-backdrop-filter: blur(10px);
+    /* Pro Safari */
 
     /* 3. Jemný průhledný okraj (border) */
-    border: 1px solid rgba(255, 255, 255, 0.1); /* Světlý, téměř průhledný okraj */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    /* Světlý, téměř průhledný okraj */
 
     /* 4. Jemný stín */
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); /* Rozšířený a jemnější stín */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    /* Rozšířený a jemnější stín */
     /* Můžeš experimentovat s více stíny, např. pro zvýraznění "lesku" */
     /* box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), 0 0 10px rgba(255, 255, 255, 0.6) inset; */
 }
@@ -365,6 +385,31 @@ body {
     font-weight: 900;
     text-align: center;
     margin: auto;
+    transition: transform 0.3s ease;
+}
+
+.top-nav .nav-item .nav-title.shifted {
+    transform: translateX(70px);
+}
+
+.top-nav .nav-item .nav-home {
+    position: fixed;
+    top: 4px;
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    margin-right: 20px;
+    /* Pro oddělení od textu */
+    opacity: 0;
+    /* Začínáme s plně průhledným */
+    transition: opacity 0.3s ease-in-out;
+    /* Přidáme plynulý přechod na opacity */
+}
+
+
+.top-nav .nav-item .nav-home.visible {
+    opacity: 1;
+    /* Plně viditelné */
 }
 
 .content-section h1 {
@@ -504,4 +549,86 @@ body {
 
 .profile-container img {
     width: 150px;
+}
+
+.game-container {
+    width: 100%;
+    height: fit-content;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Aby se obsah zarovnal na střed */
+    box-sizing: border-box;
+    /* Aby se padding počítal do šířky */
+    margin-top: 20px;
+    /* Pro oddělení od ostatních sekcí */
+    gap: 20px;
+}
+
+.game-section {
+    margin-left: auto;
+    margin-right: auto;
+    background-color: var(--background-light);
+    border-radius: 20px;
+    padding: 10px;
+    margin-bottom: 15px;
+    box-shadow: 0 0px 10px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    /* Aby se vešel do paddingu content-section */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.game-section h1 {
+    font-size: 2em;
+    font-weight: 900;
+    color: var(--secondary-color);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.game-section textarea {
+    width: 80%;
+    height: 40px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1.5px solid var(--secondary-color);
+    font-size: 1em;
+    color: var(--text-color);
+    background-color: var(--background-light);
+    box-sizing: border-box;
+    justify-content: center;
+    text-align: center;
+    vertical-align: middle;
+    /* Může pomoci v některých případech */
+    resize: none;
+    margin-bottom: 20px;
+}
+
+.game-section textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.game-section button {
+    background-color: var(--primary-color);
+    color: var(--background-dark);
+    font-size: 1.2em;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    transition: background-color 0.5s ease, transform 0.3s ease;
+    margin-bottom: 10px;
+    /* Pro oddělení od ostatních prvků */
+}
+
+.game-section button:hover {
+    background-color: var(--secondary-color);
+    transform: scale(1.05);
 }
