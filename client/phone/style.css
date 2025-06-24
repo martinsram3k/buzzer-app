@@ -687,8 +687,7 @@ body {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     text-align: center;
     position: relative; /* Pro absolutní pozicování tlačítka zavřít */
-    max-width: 90%; /* Aby se vešel na menší obrazovky */
-    max-height: 90%;
+    width: calc(90% - 40px); /* Šířka s paddingem */
     overflow: auto; /* Pro případ, že je obsah větší */
     display: flex; /* Uspořádání vnitřních prvků */
     flex-direction: column; /* Uspořádání do sloupce */
@@ -722,13 +721,4 @@ body {
     width: 100%;
     max-width: 400px; /* Omezíme šířku, aby se vešel do overlaye */
     /* Uvnitř overlaye nemusí mít margin: auto, flexbox ho vycentruje */
-}
-
-/* Styly pro zobrazení výsledků skenování (přesunuty z HTML) */
-#qr-reader-results {
-    margin-top: 15px;
-    text-align: center;
-    color: #007bff; /* Modrá barva pro naskenovaný text */
-    font-size: 1.2em;
-    font-weight: bold;
 }
