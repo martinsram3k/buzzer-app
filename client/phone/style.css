@@ -722,3 +722,12 @@ body {
     max-width: 400px; /* Omezíme šířku, aby se vešel do overlaye */
     /* Uvnitř overlaye nemusí mít margin: auto, flexbox ho vycentruje */
 }
+
+/* Styly pro zobrazení výsledků skenování (přesunuty z HTML) */
+#qr-reader-results {
+    margin-top: 15px;
+    text-align: center;
+    color: #007bff; /* Modrá barva pro naskenovaný text */
+    font-size: 1.2em;
+    font-weight: bold;
+}
