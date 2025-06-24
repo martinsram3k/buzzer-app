@@ -33,44 +33,44 @@ let html5QrCode = null;            // Instance QR čtečky, inicializována na n
 
 // --- Funkce pro přepínání sekcí ---
 /**
- * Zobrazí konkrétní sekci a skryje všechny ostatní.
- * Používá CSS třídy 'active' pro plynulé přechody.
- * @param {string} newSectionId ID HTML elementu sekce, který se má zobrazit (např. 'homeSection').
+ * Displays a specific section and hides all others.
+ * Uses CSS classes 'active' for smooth transitions.
+ * @param {string} newSectionId ID of the HTML element of the section to display (e.g., 'homeSection').
  */
 function showSection(newSectionId) {
     if (newSectionId === currentActiveSectionId) {
-        console.log(`showSection: Sekce '${newSectionId}' je již aktivní, přeskočím.`);
-        return; // Sekce je již aktivní, nic neděláme.
+        console.log(`showSection: Section '${newSectionId}' is already active, skipping.`);
+        return; // Section is already active, do nothing.
     }
 
-    console.log(`showSection: Přepínám ze sekce '${currentActiveSectionId || 'žádná'}' na '${newSectionId}'.`);
+    console.log(`showSection: Switching from section '${currentActiveSectionId || 'none'}' to '${newSectionId}'.`);
 
     const oldActiveSection = document.getElementById(currentActiveSectionId);
     const newActiveSection = document.getElementById(newSectionId);
 
-    // Skryjeme starou aktivní sekci odebráním třídy 'active'.
+    // Hide the old active section by removing the 'active' class.
     if (oldActiveSection) {
         oldActiveSection.classList.remove('active');
-        console.log(`showSection: Odebrána třída 'active' ze staré sekce '${currentActiveSectionId}'.`);
+        console.log(`showSection: Removed 'active' class from old section '${currentActiveSectionId}'.`);
     }
 
-    // Zobrazíme novou sekci přidáním třídy 'active'.
+    // Display the new section by adding the 'active' class.
     if (newActiveSection) {
         newActiveSection.classList.add('active');
-        currentActiveSectionId = newSectionId; // Aktualizujeme ID aktivní sekce.
-        console.log(`showSection: Sekce '${newSectionId}' zobrazena.`);
+        currentActiveSectionId = newSectionId; // Update the ID of the active section.
+        console.log(`showSection: Section '${newSectionId}' displayed.`);
     } else {
-        console.warn(`showSection: Nová sekce s ID '${newSectionId}' nebyla nalezena v DOMu.`);
+        console.warn(`showSection: New section with ID '${newSectionId}' not found in DOM.`);
     }
 
-    // --- LOGIKA PRO AKTIVNÍ STAV NAVIGAČNÍCH TLAČÍTEK (dolní navigace) ---
-    // Aktualizujeme vizuální stav dolních navigačních tlačítek (text a ikona),
-    // aby odrážely aktuálně zobrazenou sekci.
+    // --- LOGIC FOR ACTIVE STATE OF NAVIGATION BUTTONS (bottom navigation) ---
+    // Update the visual state of the bottom navigation buttons (text and icon),
+    // to reflect the currently displayed section.
     navButtons.forEach(button => {
         const navText = button.querySelector('.nav-text');
         const navIcon = button.querySelector('.nav-icon');
 
-        // Odebereme 'active' stav ze všech tlačítek, ikon a textů.
+        // Remove 'active' state from all buttons, icons, and texts.
         if (navText) {
             navText.classList.remove('active');
         }
@@ -80,7 +80,7 @@ function showSection(newSectionId) {
         button.classList.remove('active');
     });
 
-    // Přidáme 'active' stav na tlačítko, které odpovídá nové aktivní sekci.
+    // Add 'active' state to the button that corresponds to the new active section.
     const activeButton = document.querySelector(`.nav-button[data-section="${newSectionId}"]`);
     if (activeButton) {
         const activeNavText = activeButton.querySelector('.nav-text');
@@ -96,154 +96,154 @@ function showSection(newSectionId) {
     }
 }
 
-// --- Funkce pro animaci horní navigace (lze volat manuálně nebo intervalem) ---
+// --- Function for animating the top navigation (can be called manually or by interval) ---
 /**
- * Přepíná vizuální stav horní navigace (titulek se posune, ikona domů se objeví/zmizí)
- * a zároveň skryje/zobrazí dolní navigaci.
+ * Toggles the visual state of the top navigation (title shifts, home icon appears/disappears)
+ * and simultaneously hides/shows the bottom navigation.
  */
 function animateTopNav() {
-    // Zajištění, že všechny potřebné elementy existují, než s nimi manipulujeme.
+    // Ensure that all necessary elements exist before manipulating them.
     if (navTitle && navHome && bottomNav) {
         if (!isShifted) {
-            // Aktivujeme animaci: posun titulku, zobrazení ikony domů, skrytí dolní navigace.
+            // Activate animation: shift title, show home icon, hide bottom navigation.
             navTitle.classList.add('shifted');
-            navHome.classList.add('visible');      // CSS se postará o animaci opacity.
-            bottomNav.classList.add('shifted');    // CSS se postará o posun dolní navigace.
-            console.log('Navigace: Horní posunuto, Home ikona viditelná, Dolní navigace skryta.');
+            navHome.classList.add('visible');      // CSS handles the opacity animation.
+            bottomNav.classList.add('shifted');    // CSS handles the bottom navigation transform.
+            console.log('Navigation: Top shifted, Home icon visible, Bottom navigation hidden.');
         } else {
-            // Deaktivujeme animaci: vrátí titulek, skryje ikonu domů, zobrazí dolní navigaci.
+            // Deactivate animation: unshift title, hide home icon, show bottom navigation.
             navTitle.classList.remove('shifted');
-            navHome.classList.remove('visible');   // CSS se postará o animaci opacity.
-            bottomNav.classList.remove('shifted'); // CSS se postará o posun dolní navigace.
-            console.log('Navigace: Vráceno do výchozího stavu.');
+            navHome.classList.remove('visible');   // CSS handles the opacity animation.
+            bottomNav.classList.remove('shifted'); // CSS handles the bottom navigation transform.
+            console.log('Navigation: Returned to default state.');
         }
-        isShifted = !isShifted; // Přepne stav pro další iteraci animace.
+        isShifted = !isShifted; // Toggle state for the next animation iteration.
     } else {
-        console.warn('animateTopNav: Některé elementy (navTitle, navHome nebo bottomNav) nebyly nalezeny pro animaci.');
+        console.warn('animateTopNav: Some elements (navTitle, navHome, or bottomNav) were not found for animation.');
     }
 }
 
-// --- Funkce pro spuštění postupné animace dolních navigačních tlačítek ---
+// --- Function to start staggered animation of bottom navigation buttons ---
 /**
- * Spustí animaci "poskakování" pro každé navigační tlačítko v dolní navigaci
- * postupně s malým zpožděním. Animace proběhne jen jednou (dle CSS 'animation-iteration-count: 1').
- * @param {number} delayBetweenButtons Zpoždění (v ms) mezi spuštěním animace pro každé tlačítko (výchozí 200ms).
+ * Starts a "hopping" animation for each bottom navigation button
+ * sequentially with a small delay. The animation runs only once (according to CSS 'animation-iteration-count: 1').
+ * @param {number} delayBetweenButtons Delay (in ms) between starting the animation for each button (default 200ms).
  */
 function startStaggeredNavButtonAnimation(delayBetweenButtons = 200) {
     if (navButtons.length === 0) {
-        console.warn('startStaggeredNavButtonAnimation: Žádná navigační tlačítka nebyla nalezena.');
+        console.warn('startStaggeredNavButtonAnimation: No navigation buttons found.');
         return;
     }
 
     navButtons.forEach((button, index) => {
-        // Použijeme setTimeout k postupnému přidávání animační třídy s delayem.
+        // Use setTimeout to progressively add the animation class with a delay.
         setTimeout(() => {
-            button.classList.add('nav-button-hop'); // Přidá třídu, která spustí animaci.
-            console.log(`Tlačítko ${button.dataset.section || index} začalo poskakovat.`);
+            button.classList.add('nav-button-hop'); // Add the class that starts the animation.
+            console.log(`Button ${button.dataset.section || index} started hopping.`);
 
-            // Po dokončení jednorázové animace (dle CSS) odstraníme třídu,
-            // aby bylo možné animaci v budoucnu spustit znovu, pokud by to bylo potřeba.
+            // After the single-run animation is complete (as per CSS), remove the class,
+            // so the animation can be triggered again in the future if needed.
             button.addEventListener('animationend', () => {
                 button.classList.remove('nav-button-hop');
-            }, { once: true }); // Listener se spustí jen jednou pro danou animaci.
-        }, index * delayBetweenButtons); // Zpoždění se zvyšuje s indexem tlačítka.
+            }, { once: true }); // The listener will run only once for the given animation.
+        }, index * delayBetweenButtons); // The delay increases with the button's index.
     });
 }
 
-// --- Funkce pro zobrazení/skrytí QR Overlaye ---
+// --- Function to show/hide the QR Overlay ---
 /**
- * Zobrazí nebo skryje QR skener overlay.
- * Používá CSS třídu 'active' pro plynulé zobrazení/skrytí.
- * @param {boolean} show True pro zobrazení overlaye, false pro skrytí.
+ * Shows or hides the QR scanner overlay.
+ * Uses the CSS class 'active' for smooth display/hide.
+ * @param {boolean} show True to show the overlay, false to hide.
  */
 function toggleQrOverlay(show) {
     if (qrOverlay) {
         if (show) {
-            qrOverlay.classList.add('active'); // Zobrazí overlay pomocí CSS třídy.
-            // Resetuje výsledky při otevření overlaye
+            qrOverlay.classList.add('active'); // Shows the overlay using CSS class.
+            // Resets results when opening the overlay
             if (qrReaderResultsDiv) qrReaderResultsDiv.textContent = '';
-            // Resetuje input
+            // Resets input
             if (joinGameCodeInput) joinGameCodeInput.value = '';
         } else {
-            qrOverlay.classList.remove('active'); // Skryje overlay.
+            qrOverlay.classList.remove('active'); // Hides the overlay.
         }
     }
 }
 
-// --- Funkce pro skrytí loading screenu a zobrazení obsahu aplikace ---
+// --- Function to hide the loading screen and display the app content ---
 /**
- * Skryje úvodní načítací obrazovku a zobrazí hlavní obsah aplikace.
+ * Hides the initial loading screen and displays the main application content.
  */
 function hideLoadingScreen() {
     if (loadingScreen) {
-        loadingScreen.classList.add('fade-out'); // Spustí CSS fade-out animaci.
-        // Po dokončení animace (transitionend) element skryjeme úplně.
+        loadingScreen.classList.add('fade-out'); // Starts the CSS fade-out animation.
+        // After the animation completes (transitionend), hide the element completely.
         loadingScreen.addEventListener('transitionend', () => {
             loadingScreen.style.display = 'none';
-        }, { once: true }); // Zajistí, že event listener se spustí jen jednou.
+        }, { once: true }); // Ensures that the event listener runs only once.
     }
 
-    // Zobrazíme celý kontejner aplikace odebráním 'hidden-app-content' a přidáním 'visible-app-content'.
+    // Display the entire app container by removing 'hidden-app-content' and adding 'visible-app-content'.
     if (appContainer) {
         appContainer.classList.remove('hidden-app-content');
         appContainer.classList.add('visible-app-content');
-        console.log('appContainer je viditelný.');
+        console.log('appContainer is visible.');
     }
 
-    // Po skrytí loading screenu automaticky zobrazíme Home sekci.
+    // Automatically show the Home section after the loading screen is hidden.
     setTimeout(() => {
         showSection('homeSection');
     }, 100);
 
-    console.log('Aplikace je načtena a připravena.');
+    console.log('Application is loaded and ready.');
 }
 
-// --- Nastavení posluchačů událostí ---
-// Tato sekce se spustí, jakmile je celý DOM dokument načten.
+// --- Event Listeners Setup ---
+// This section runs once the entire DOM document has been loaded.
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOMContentLoaded: DOM je načten.');
+    console.log('DOMContentLoaded: DOM is loaded.');
 
-    // Při načtení DOMu spustíme simulaci loading screenu.
-    // Po krátké prodlevě se zobrazí appContainer a Home sekce.
+    // Starts a simulation of the loading screen when the DOM is loaded.
+    // After a short delay, the appContainer and Home section will be displayed.
     setTimeout(() => {
         hideLoadingScreen();
     }, 200);
 
-    // --- ZDE ZAČÍNÁ BLOK PRO AUTOMATICKOU ANIMACI HORNÍ/DOLNÍ NAVIGACE ---
-    // Tento kód automaticky přepíná stav horní a dolní navigace každou sekundu.
-    // Můžeš jej snadno zakomentovat (přidáním // na začátek řádku), pokud jej nechceš.
-    // Příklad zakomentování: // let autoAnimateInterval = setInterval(animateTopNav, 1000);
-  /*   let autoAnimateInterval = setInterval(animateTopNav, 1000); // Spustí animaci každou 1 sekundu (1000 ms).
-    console.log('Interval pro automatickou animaci navigace spuštěn.'); */
-    // --- ZDE KONČÍ BLOK PRO AUTOMATICKOU ANIMACI HORNÍ/DOLNÍ NAVIGACE ---
+    // --- START OF BLOCK FOR AUTOMATIC TOP/BOTTOM NAVIGATION ANIMATION ---
+    // This code automatically toggles the state of the top and bottom navigation every second.
+    // You can easily comment it out (add // at the beginning of the line) if you don't want it.
+    // Example of commenting out: // let autoAnimateInterval = setInterval(animateTopNav, 1000);
+/*     let autoAnimateInterval = setInterval(animateTopNav, 1000); // Starts the animation every 1 second (1000 ms).
+    console.log('Interval for automatic navigation animation started.'); */
+    // --- END OF BLOCK FOR AUTOMATIC TOP/BOTTOM NAVIGATION ANIMATION ---
 
 
-    // --- ZDE ZAČÍNÁ BLOK PRO POSTUPNOU ANIMACI DOLNÍCH NAVIGAČNÍCH TLAČÍTEK ---
-    // Tento kód spustí jednorázovou, postupnou animaci poskakování dolních navigačních tlačítek.
-    // Můžeš jej snadno zakomentovat (přidáním // na začátek řádku), pokud jej nechceš.
-    // Příklad zakomentování: // startStaggeredNavButtonAnimation(200);
-    startStaggeredNavButtonAnimation(200); // Spustí postupnou animaci tlačítek s 200ms zpožděním mezi každým.
-    console.log('Postupná animace dolních navigačních tlačítek spuštěna.');
-    // --- ZDE KONČÍ BLOK PRO POSTUPNOU ANIMACI DOLNÍCH NAVIGAČNÍCH TLAČÍTEK ---
+    // --- START OF BLOCK FOR STAGGERED ANIMATION OF BOTTOM NAVIGATION BUTTONS ---
+    // This code starts a one-time, staggered hopping animation for the bottom navigation buttons.
+    // You can easily comment it out (add // at the beginning of the line) if you don't want it.
+    // Example of commenting out: // startStaggeredNavButtonAnimation(200);
+    startStaggeredNavButtonAnimation(200); // Starts staggered animation of buttons with a 200ms delay between each.
+    console.log('Staggered animation of bottom navigation buttons started.');
+    // --- END OF BLOCK FOR STAGGERED ANIMATION OF BOTTOM NAVIGATION BUTTONS ---
 
 
-    // Přidání posluchačů pro navigační tlačítka (dolní navigace)
+    // Add listeners for navigation buttons (bottom navigation)
     if (navButtons.length > 0) {
         navButtons.forEach(button => {
             button.addEventListener('click', (event) => {
                 const sectionId = button.dataset.section;
                 if (sectionId) {
                     showSection(sectionId);
-                    // Odebereme animaci "poskakování" ze všech navigačních tlačítek po kliknutí,
-                    // aby se zajistilo, že se animace zastaví po uživatelské interakci.
+                    // Remove the "hopping" animation from all navigation buttons after clicking,
+                    // to ensure the animation stops after user interaction.
                     navButtons.forEach(btn => btn.classList.remove('nav-button-hop'));
-                    console.log('Navigační tlačítko kliknuto: Animace "poskakování" odstraněna ze všech tlačítek.');
+                    console.log('Navigation button clicked: "Hopping" animation removed from all buttons.');
                 }
             });
         });
     }
 
-    // --- Posluchače pro Quick Actions tlačítka (na Home sekci) ---
+    // --- Listeners for Quick Actions buttons (on Home section) ---
     if (quickStartButton) {
         quickStartButton.addEventListener('click', () => {
             const sectionId = quickStartButton.dataset.section;
@@ -262,77 +262,77 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Posluchač pro ikonu domů v horní navigaci (nav-home) ---
+    // --- Listener for the home icon in the top navigation (nav-home) ---
     if (navHome) {
         navHome.addEventListener('click', () => {
-            showSection('homeSection'); // Přepne na domovskou sekci po kliknutí.
-            console.log('NavHome kliknuto: Přepínám na homeSection.');
+            showSection('homeSection'); // Switches to the home section on click.
+            console.log('NavHome clicked: Switching to homeSection.');
         });
     }
 
-    // --- POSLUCHAČ PRO QR KÓD IKONU (spuštění skeneru v overlayi) ---
+    // --- LISTENER FOR QR CODE ICON (start/stop scanner in overlay) ---
     if (qrCodeScanIcon) {
         qrCodeScanIcon.addEventListener('click', () => {
-            console.log('QR Code ikona kliknuta. Spouštím QR skener overlay.');
-            toggleQrOverlay(true); // Zobrazíme overlay.
+            console.log('QR Code icon clicked. Starting QR scanner overlay.');
+            toggleQrOverlay(true); // Show the overlay.
 
-            // Pokud instance čtečky ještě neexistuje, vytvoříme ji.
+            // If the scanner instance does not exist yet, create it.
             if (!html5QrCode) {
                 html5QrCode = new Html5Qrcode("qr-reader");
             }
 
-            // Spustíme skenování.
+            // Start scanning.
             html5QrCode.start(
-                { facingMode: "environment" }, // Preferuje zadní kameru (pro mobilní zařízení).
+                { facingMode: "environment" }, // Prefers the back camera (for mobile devices).
                 {
-                    fps: 10,    // Počet snímků za sekundu pro analýzu videa.
-                    qrbox: { width: 250, height: 250 } // Velikost čtecího rámečku.
+                    fps: 10,    // Frames per second for video analysis.
+                    qrbox: { width: 250, height: 250 } // Size of the scanning box.
                 },
                 (decodedText, decodedResult) => {
-                    // Callback pro úspěšné naskenování QR kódu.
-                    console.log(`QR kód naskenován: ${decodedText}`);
-                    qrReaderResultsDiv.textContent = `Naskenováno: ${decodedText}`; // Zobrazí výsledek.
-                    joinGameCodeInput.value = decodedText; // Vloží naskenovaný text do inputu.
+                    // Callback for successful QR code scanning.
+                    console.log(`QR code scanned: ${decodedText}`);
+                    qrReaderResultsDiv.textContent = `Scanned: ${decodedText}`; // Displays the result.
+                    joinGameCodeInput.value = decodedText; // Inserts the scanned text into the input.
 
-                    // Po úspěšném naskenování zastavíme čtečku a zavřeme overlay.
+                    // After successful scanning, stop the scanner and close the overlay.
                     html5QrCode.stop().then(() => {
-                        console.log('QR čtečka zastavena po úspěšném skenování.');
-                        toggleQrOverlay(false); // Skryjeme overlay.
+                        console.log('QR scanner stopped after successful scan.');
+                        toggleQrOverlay(false); // Hide the overlay.
                     }).catch((err) => {
-                        console.error('Chyba při zastavování QR čtečky po skenování:', err);
-                        toggleQrOverlay(false); // Skryjeme overlay i při chybě zastavení.
+                        console.error('Error stopping QR scanner after scan:', err);
+                        toggleQrOverlay(false); // Hide the overlay even if there's an error stopping.
                     });
                 },
                 (errorMessage) => {
-                    // Callback pro chyby během skenování (např. žádný QR kód nenalezen).
-                    // Toto logování může být velmi časté, takže je často zakomentováno
-                    // nebo použito jen pro hlubší ladění.
-                    // console.warn(`Chyba skenování: ${errorMessage}`);
+                    // Callback for errors during scanning (e.g., no QR code found).
+                    // This logging can be very frequent, so it's often commented out
+                    // or used only for deeper debugging.
+                    // console.warn(`Scanning error: ${errorMessage}`);
                 }
             ).catch((err) => {
-                // Zachycení chyb při spouštění samotné čtečky (např. uživatel nepovolil kameru).
-                console.error(`Chyba při spouštění QR čtečky: ${err}`);
-                qrReaderResultsDiv.textContent = `Chyba: ${err.message || err}`; // Informuje uživatele o chybě.
-                toggleQrOverlay(false); // Skryjeme overlay při chybě spuštění.
+                // Catch errors when starting the scanner itself (e.g., user denied camera access).
+                console.error(`Error starting QR scanner: ${err}`);
+                qrReaderResultsDiv.textContent = `Error: ${err.message || err}`; // Inform the user about the error.
+                toggleQrOverlay(false); // Hide the overlay on startup error.
             });
         });
     }
 
-    // --- POSLUCHAČ PRO ZAVÍRACÍ TLAČÍTKO V OVERLAYI ---
+    // --- LISTENER FOR THE CLOSE BUTTON IN THE OVERLAY ---
     if (qrOverlayCloseButton) {
         qrOverlayCloseButton.addEventListener('click', () => {
-            console.log('Zavírací tlačítko overlaye kliknuto.');
-            // Pokud čtečka běží, zastavíme ji.
+            console.log('Overlay close button clicked.');
+            // If the scanner is running, stop it.
             if (html5QrCode && html5QrCode.isScanning) {
                 html5QrCode.stop().then(() => {
-                    console.log('QR čtečka zastavena ručně.');
-                    toggleQrOverlay(false); // Skryjeme overlay.
+                    console.log('QR scanner stopped manually.');
+                    toggleQrOverlay(false); // Hide the overlay.
                 }).catch((err) => {
-                    console.error('Chyba při zastavování QR čtečky ručně:', err);
-                    toggleQrOverlay(false); // Skryjeme overlay i při chybě zastavení.
+                    console.error('Error stopping QR scanner manually:', err);
+                    toggleQrOverlay(false); // Hide the overlay even if there's an error stopping.
                 });
             } else {
-                toggleQrOverlay(false); // Pokud čtečka neběžela, jen skryjeme overlay.
+                toggleQrOverlay(false); // If the scanner was not running, just hide the overlay.
             }
         });
     }
