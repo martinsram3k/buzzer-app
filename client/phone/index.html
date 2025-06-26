@@ -10,7 +10,6 @@
 
 <body>
     <div id="loadingScreen" class="loading-screen">
-        <!-- <img src="assets/img/logo.png" alt="Logo aplikace" class="loading-logo"> -->
         <div class="spinner"></div>
     </div>
 
@@ -70,8 +69,11 @@
                         <h1>Join game</h1>
                         <div class="game-section-container">
 
-                            <textarea maxlength="5" maxRows="1" minlength="5" inputmode="numeric" id="joinGameCode"
-                            placeholder="Input game pin"></textarea>
+                            <div class="input-with-clear">
+                                <textarea maxlength="5" maxRows="1" minlength="5" inputmode="numeric" id="joinGameCode"
+                                    placeholder="Input game pin"></textarea>
+                                <span id="clearGameCodeButton" class="clear-button">&times;</span>
+                            </div>
 
                             <img src="assets/icon/qr-code.png" alt="QR Code" class="qr-code" id="qrCodeScanIcon">
 
@@ -79,12 +81,12 @@
                                 <div class="qr-overlay-content">
                                     <span class="qr-overlay-close" id="qrOverlayCloseButton">&times;</span>
                                     <p class="qr-overlay-instructions">Naskenuj QR kód</p>
-                                    <div id="qr-reader"></div> <div id="qr-reader-results"></div> </div>
+                                    <div id="qr-reader"></div>
+                                    <div id="qr-reader-results"></div>
+                                </div>
                             </div>
 
                         </div>
-
-                      
 
                         <button id="joinGameButton" class="action-button">Join</button>
 
@@ -92,7 +94,7 @@
 
                     <div id="create" class="game-section">
 
-                        <h1>Create  game</h1>
+                        <h1>Create game</h1>
                         <button id="createGameButton">Create game</button>
 
                     </div>
@@ -101,6 +103,13 @@
 
             </div>
 
+            <div id="nameSection" class="content-section">
+                <div class="name-input-container">
+                    <h1>Name</h1>
+                    <input type="text" id="playerNameInput" placeholder="Name">
+                    <button id="submitNameButton" class="action-button">Continue</button>
+                </div>
+            </div>
             <div id="accountSection" class="content-section">
 
 
@@ -124,7 +133,6 @@
         </div>
 
         <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-                
         <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
         <script src="js/socketService.js"></script>
