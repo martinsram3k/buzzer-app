@@ -223,6 +223,9 @@ document.addEventListener('DOMContentLoaded', () => {
         hideLoadingScreen();
     }, 200);
 
+
+    
+
     // Volitelné automatické animace navigace (zakomentováno)
     /* let autoAnimateInterval = setInterval(animateTopNav, 1000);
     console.log('Interval pro automatickou animaci navigace spuštěn.'); */
@@ -358,5 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    
 
 }); // Konec DOMContentLoaded
