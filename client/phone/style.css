@@ -3,49 +3,38 @@
 /* Základní reset a barvy */
 :root {
     /* DEFAULT COLORS (LIGHT MODE) */
-    --primary-color: #E74C3C;
-    /* Buzzer Red */
-    --secondary-color: #34495E;
-    /* Deep Charcoal */
-    --secondary-color-opacity: rgba(52, 73, 94, 0.8);
-    /* Liquid Glass */
-    --background-light: #FFFBF5;
-    /* Creamy White */
-    --background-dark: #F8F4E3;
-    /* Soft Beige */
-    --text-color: #34495E;
-    --nav-item-inactive: #A0A0A0;
+    --primary-color: hsl(5, 78%, 57%);
+    /* Původně RGB(231, 76, 60) */
+    --secondary-color: hsl(211, 29%, 29%);
+    /* Původně RGB(52, 73, 94) */
+    --secondary-color-opacity: hsla(211, 29%, 29%, 0.8);
+    /* Původně RGBa(52, 73, 94, 0.8) */
+    --background-light: hsl(39, 100%, 98%);
+    /* Původně RGB(255, 251, 245) */
+    --background-dark: hsl(42, 60%, 93%);
+    /* Původně RGB(248, 244, 227) */
+    --text-color: hsl(211, 29%, 29%);
+    /* Původně RGB(52, 73, 94) */
+    --nav-item-inactive: hsl(0, 0%, 63%);
+    /* Původně RGB(160, 160, 160) */
 
-    --sandy-taupe: #B2A28A;
-    --light-grey: #F0F0F0;
+    --sandy-taupe: hsl(36, 18%, 61%);
+    /* Původně RGB(178, 162, 138) */
+    --light-grey: hsl(0, 0%, 94%);
+    /* Původně RGB(240, 240, 240) */
 
-
-    --box-shadow: 0 0px 10px rgba(0, 0, 0, 0.2);
+    --box-shadow: 0 0px 10px hsla(0, 0%, 0%, 0.2);
 
     /* Text input colors */
-    --input-border-color: #ddd;
+    --input-border-color: hsl(0, 0%, 87%);
+    /* Původně RGB(221, 221, 221) */
     --input-background-color: var(--background-light);
     --input-text-color: var(--text-color);
-}
 
-/* --- Dark Mode Colors --- */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --primary-color: #FF6B6B; /* Brighter red for dark mode */
-        --secondary-color: #2C3E50; /* Slightly darker charcoal */
-        --secondary-color-opacity: rgba(44, 62, 80, 0.8);
-        --background-light: #2C3E50; /* Dark background for light areas */
-        --background-dark: #1F2C3D; /* Even darker main background */
-        --text-color: #ECF0F1; /* Light gray text */
-        --nav-item-inactive: #6C7A89; /* Softer inactive color */
-
-        --box-shadow: 0 0px 15px rgba(0, 0, 0, 0.5); /* Stronger shadow for dark mode */
-
-        /* Text input colors for dark mode */
-        --input-border-color: #555;
-        --input-background-color: #3B4B5B;
-        --input-text-color: #ECF0F1;
-    }
+    --gradient-start: hsl(42, 60%, 93%);
+    /* Stejné jako background-dark */
+    --gradient-end: hsl(30, 80%, 85%);
+    /* Lehce teplejší odstín */
 }
 
 
@@ -54,29 +43,22 @@ body {
     margin: 0;
     padding: 0;
     height: 100%;
-    /* Důležité: Tělo i HTML zabírají celou výšku viewportu */
     overflow: hidden;
-    /* <-- TOTO JE KLÍČOVÉ */
-    /* Důležité: Zabrání scrollování na úrovni body/html */
     font-family: 'akzidenz-grotesk-next', sans-serif;
     font-style: normal;
     font-weight: 200;
-    background-color: var(--background-dark);
+    background: linear-gradient(to bottom right, var(--gradient-start), var(--gradient-end));
     color: var(--text-color);
     display: flex;
     flex-direction: column;
-    /* Aby se obsah a nav vyrovnaly svisle */
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
 }
 
 .content-section::-webkit-scrollbar {
     display: none;
-    /* Skryje scrollbar */
     width: 0;
-    /* Pro jistotu nastaví šířku na 0 */
     height: 0;
-    /* Pro jistotu nastaví výšku na 0 (pro horizontální scrollbar) */
 }
 
 /* --- Loading Screen Styly --- */
@@ -109,7 +91,8 @@ body {
 }
 
 .spinner {
-    border: 8px solid rgba(0, 0, 0, 0.1);
+    border: 8px solid hsla(0, 0%, 0%, 0.1);
+    /* Původně RGBa(0, 0, 0, 0.1) */
     border-top: 8px solid var(--primary-color);
     border-radius: 50%;
     width: 60px;
@@ -132,11 +115,9 @@ body {
 /* Kontejner pro celou aplikaci, aby se zobrazil po loading screenu */
 #appContainer {
     display: flex;
-    /* Použij flex pro rozložení obsahu vertikálně */
     flex-direction: column;
     width: 100%;
     height: 100%;
-    /* Aplikace vyplní celý viewport */
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.5s ease, visibility 0.5s ease;
@@ -153,28 +134,18 @@ body {
     max-width: 100%;
     flex-grow: 1;
     position: relative;
-    /* Kontejner pro absolutně pozicované sekce */
     display: flex;
-    /* Použij flex pro zarovnání sekcí */
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
     padding-left: 20px;
-    /* Místo pro levý okraj */
     padding-right: 20px;
-    /* Místo pro pravý okraj */
     margin-top: 80px;
-    /* Místo pro top nav */
     padding-bottom: 80px;
-    /* Místo pro bottom nav */
     width: 100%;
     margin: 0 auto;
     box-sizing: border-box;
-    /* Odebírám overflow-y z main-wrapperu a přesunu ho na content-section */
-    /* overflow-y: auto; */
-    -webkit-overflow-scrolling: touch;
     height: calc(100% - 180px);
-    /* Důležité: Vypočítaná výška, aby se vešel mezi navigační panely */
 }
 
 
@@ -183,14 +154,11 @@ body {
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    /* Skryje scrollbar */
     position: absolute;
-    /* Sekce se budou překrývat */
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    /* Sekce vyplní celý main-wrapper */
     padding: 20px;
     padding-top: 60px;
     padding-bottom: 200px;
@@ -201,18 +169,14 @@ body {
     align-items: center;
     justify-content: flex-start;
     overflow-y: auto;
-    /* Důležité: Scrollování je nyní na úrovni sekce */
     -webkit-overflow-scrolling: touch;
 
     /* VÝCHOZÍ STAV: SKRYTÉ A PRŮHLEDNÉ */
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    /* Důležité: Zakáže klikání na neviditelné sekce */
     transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
-    /* Plynulý fade */
     z-index: 0;
-    /* Neaktivní sekce jsou pod aktivní */
 }
 
 /* Třída pro AKTIVNÍ (zobrazenou) sekci */
@@ -220,9 +184,7 @@ body {
     opacity: 1;
     visibility: visible;
     pointer-events: all;
-    /* Důležité: Povolí klikání na aktivní sekci */
     z-index: 1;
-    /* Aktivní sekce je nahoře */
 }
 
 /* --- Spodní navigační panel --- */
@@ -235,16 +197,11 @@ body {
     height: fit-content;
     border-radius: 25px;
 
-    /* --- Liquid Glass Styly --- */
-    /* 2. Rozmazání pozadí za elementem */
     backdrop-filter: blur(10px);
-    /* Zvýšil jsem blur na 10px pro výraznější efekt */
-    /* -webkit-backdrop-filter: blur(10px); */
-    /* Pro Safari */
+    -webkit-backdrop-filter: blur(10px);
     background-color: var(--secondary-color);
 
 
-    /* --- Původní styly (úprava některých) --- */
     display: flex;
     justify-content: space-around;
     align-items: center;
@@ -252,11 +209,8 @@ body {
     padding-top: 10px;
     padding-bottom: 10px;
     overflow: visible;
-    /* Toto je v pořádku, pokud nechceš scrollování uvnitř nav */
 
     transition: transform 0.3s ease, opacity 0.3s ease;
-
-
 }
 
 .bottom-nav.shifted {
@@ -271,7 +225,8 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+    background: linear-gradient(135deg, hsla(0, 0%, 100%, 0.1), hsla(0, 0%, 100%, 0));
+    /* Původně RGBa(255, 255, 255, 0.1) a RGBa(255, 255, 255, 0) */
     border-radius: inherit;
     z-index: -1;
     pointer-events: none;
@@ -294,8 +249,6 @@ body {
     transition: color 0.3s ease, transform 0.1s ease;
     flex: 1;
     max-width: 120px;
-    /* animation: button-hop 1s linear infinite; */
-
 }
 
 .nav-button-hop {
@@ -355,8 +308,6 @@ body {
     right: 15px;
     height: fit-content;
     z-index: 1000;
-    /* box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); */
-    /* box-shadow: var(--secondary-color-opacity) 0px 0px 10px 1px; */
     background-color: var(--secondary-color);
 }
 
@@ -390,22 +341,21 @@ body {
 
 .top-nav .nav-item .nav-home {
     position: fixed;
-    top: 4px;
+    top: 9px;
     width: 40px;
     height: 50px;
     object-fit: contain;
     margin-right: 10px;
-    /* Pro oddělení od textu */
+    margin-top: auto;
+    margin-bottom: auto;
     opacity: 0;
-    /* Začínáme s plně průhledným */
+    rotate: -140deg;
     transition: opacity 0.3s ease-in-out;
-    /* Přidáme plynulý přechod na opacity */
 }
 
 
 .top-nav .nav-item .nav-home.visible {
     opacity: 1;
-    /* Plně viditelné */
 }
 
 .content-section h1 {
@@ -445,22 +395,13 @@ body {
     justify-content: space-evenly;
     background-color: var(--primary-color);
     box-sizing: border-box;
-    /* Zajistí, že padding je součástí vypočtené šířky */
 
-    /* Tyto vlastnosti roztáhnou element přes paddingy rodičovského .content-section */
     margin-left: -20px;
     margin-right: -20px;
     margin-top: 20px;
-    /* Mezery od ostatních sekcí */
     margin-bottom: 20px;
-    /* Mezery od ostatních sekcí */
     width: calc(100% + 40px);
-    /* 100% šířky rodiče + 2x 20px pro záporné marginy */
     padding: 20px;
-    /* Vnitřní padding pro obsah tlačítek */
-
-    /* Volitelně, pro zaoblené rohy */
-    /* border-radius: 8px; */
 }
 
 .quick-actions button {
@@ -475,8 +416,6 @@ body {
     padding: 10px 20px;
     border-radius: 8px;
     transition: background-color 0.3s ease, transform 0.1s ease;
-
-    /* Přechod pro hover efekt */
 }
 
 .continer {
@@ -506,7 +445,6 @@ body {
     margin-bottom: 15px;
     box-shadow: var(--box-shadow);
     width: 100%;
-    /* Aby se vešel do paddingu content-section */
     box-sizing: border-box;
 }
 
@@ -534,7 +472,6 @@ body {
 
 .profile-container {
     width: 100%;
-    /* Maximální šířka pro lepší vzhled na větších obrazovkách */
     box-sizing: border-box;
     display: flex;
     flex-direction: row;
@@ -554,11 +491,8 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* Aby se obsah zarovnal na střed */
     box-sizing: border-box;
-    /* Aby se padding počítal do šířky */
     margin-top: 20px;
-    /* Pro oddělení od ostatních sekcí */
     gap: 20px;
 }
 
@@ -571,7 +505,6 @@ body {
     margin-bottom: 15px;
     box-shadow: var(--box-shadow);
     width: 100%;
-    /* Aby se vešel do paddingu content-section */
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -592,15 +525,14 @@ body {
     height: 40px;
     padding: 10px;
     border-radius: 10px;
-    border: 1.5px solid var(--input-border-color); /* Použij novou proměnnou */
+    border: 1.5px solid var(--input-border-color);
     font-size: 1em;
-    color: var(--input-text-color); /* Použij novou proměnnou */
-    background-color: var(--input-background-color); /* Použij novou proměnnou */
+    color: var(--input-text-color);
+    background-color: var(--input-background-color);
     box-sizing: border-box;
     justify-content: center;
     text-align: center;
     vertical-align: middle;
-    /* Může pomoci v některých případech */
     resize: none;
     margin-bottom: 0px;
     transition: border-color 0.3s ease;
@@ -619,46 +551,32 @@ body {
 /* Styly pro kontejner inputu s tlačítkem pro vymazání */
 .input-with-clear {
     position: relative;
-    /* Důležité pro absolutní pozicování tlačítka */
     width: 60%;
-    /* Vezme celou dostupnou šířku */
     display: flex;
-    /* Zajistí, že textarea a tlačítko jsou na jednom řádku */
     align-items: center;
-    /* Vycentruje je vertikálně */
 }
 
 .input-with-clear textarea {
     flex-grow: 1;
-    /* Nechá textarea zabrat co nejvíce místa */
     padding-right: 30px;
-    /* Vytvoří prostor pro tlačítko X */
     box-sizing: border-box;
-    /* Zahrne padding do celkové šířky/výšky */
 }
 
 /* Styly pro tlačítko "X" */
 .clear-button {
     position: absolute;
     right: 10px;
-    /* Odsazení od pravého okraje */
     cursor: pointer;
     color: var(--secondary-color);
-    /* Šedá barva */
     font-size: 1.5em;
-    /* Větší velikost pro lepší viditelnost */
     font-weight: bold;
     line-height: 1;
-    /* Zajistí, že X je vertikálně vycentrované */
     user-select: none;
-    /* Zabrání výběru textu */
     transition: color 0.2s ease;
-    /* Plynulý přechod barvy */
 }
 
 .clear-button:hover {
     color: var(--primary-color);
-    /* Změní barvu na červenou při najetí myši */
 }
 
 .game-section button {
@@ -672,7 +590,6 @@ body {
     border: none;
     transition: background-color 0.5s ease, transform 0.3s ease;
     margin-bottom: 10px;
-    /* Pro oddělení od ostatních prvků */
 }
 
 .game-section button:hover {
@@ -682,7 +599,6 @@ body {
 
 .game-section-container {
     width: 100%;
-    /* Maximální šířka pro lepší vzhled na větších obrazovkách */
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -695,10 +611,9 @@ body {
     height: 30px;
     padding: 2px;
     border-radius: 8px;
-    border: 1.5px solid var(--input-border-color); /* Použij novou proměnnou */
-    background-color: var(--input-background-color); /* Použij novou proměnnou */
+    border: 1.5px solid var(--input-border-color);
+    background-color: var(--input-background-color);
     transition: border-color 0.3s ease;
-
 }
 
 .game-section-container .qr-code:hover {
@@ -708,57 +623,40 @@ body {
 /* --- Styly pro QR skener Overlay --- */
 #qr-overlay {
     position: fixed;
-    /* Přes celou obrazovku */
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    /* Tmavé průhledné pozadí */
+    background-color: hsla(0, 0%, 0%, 0.7);
+    /* Původně RGBa(0, 0, 0, 0.7) */
     display: flex;
-    /* Pro centrování obsahu */
     justify-content: center;
-    /* Horizontální centrování */
     align-items: center;
-    /* Vertikální centrování */
     z-index: 10000;
-    /* Zajistí, že bude nad vším ostatním */
     backdrop-filter: blur(5px);
-    /* Rozostření pozadí za overlayem (moderní prohlížeče) */
     -webkit-backdrop-filter: blur(5px);
-    /* Pro Safari */
     opacity: 0;
-    /* Standardně neviditelný */
     visibility: hidden;
-    /* Standardně skrytý */
     transition: opacity 0.3s ease, visibility 0.3s ease;
-    /* Plynulý přechod */
 }
 
 #qr-overlay.active {
     opacity: 1;
-    /* Zobrazí overlay */
     visibility: visible;
 }
 
 .qr-overlay-content {
-    background-color: var(--background-light); /* Použij proměnnou pro pozadí */
+    background-color: var(--background-light);
     padding: 20px;
     border-radius: 15px;
     box-shadow: var(--box-shadow);
     text-align: center;
     position: relative;
-    /* Pro absolutní pozicování tlačítka zavřít */
     width: calc(90% - 40px);
-    /* Šířka s paddingem */
     overflow: auto;
-    /* Pro případ, že je obsah větší */
     display: flex;
-    /* Uspořádání vnitřních prvků */
     flex-direction: column;
-    /* Uspořádání do sloupce */
     align-items: center;
-    /* Centrování obsahu uvnitř boxu */
 }
 
 .qr-overlay-close {
@@ -766,10 +664,9 @@ body {
     top: 10px;
     right: 15px;
     font-size: 2em;
-    color: var(--secondary-color); /* Použij proměnnou pro barvu */
+    color: var(--secondary-color);
     cursor: pointer;
     line-height: 1;
-    /* Zajistí, že X bude na správné pozici */
     transition: color 0.2s ease;
 }
 
@@ -778,7 +675,7 @@ body {
 }
 
 .qr-overlay-instructions {
-    color: var(--text-color); /* Použij proměnnou pro barvu textu */
+    color: var(--text-color);
     font-size: 1.2em;
     margin-bottom: 15px;
     font-weight: bold;
@@ -788,15 +685,13 @@ body {
 #qr-reader {
     width: 100%;
     max-width: 400px;
-    /* Omezíme šířku, aby se vešel do overlaye */
-    /* Uvnitř overlaye nemusí mít margin: auto, flexbox ho vycentruje */
 }
 
 /* Styly pro zobrazení výsledků skenování (přesunuty z HTML) */
 #qr-reader-results {
     margin-top: 15px;
     text-align: center;
-    color: var(--primary-color); /* Použij proměnnou pro barvu */
+    color: var(--primary-color);
     font-size: 1.2em;
     font-weight: bold;
 }
@@ -835,14 +730,14 @@ body {
 
 #playerNameInput {
     padding: 12px 15px;
-    border: 2px solid var(--input-border-color); /* Použij novou proměnnou */
+    border: 2px solid var(--input-border-color);
     border-radius: 8px;
     font-size: 1.1em;
     width: 100%;
     box-sizing: border-box;
     transition: border-color 0.3s ease;
-    background-color: var(--input-background-color); /* Použij novou proměnnou */
-    color: var(--input-text-color); /* Použij novou proměnnou */
+    background-color: var(--input-background-color);
+    color: var(--input-text-color);
 }
 
 #playerNameInput:focus {
