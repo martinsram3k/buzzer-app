@@ -1,6 +1,6 @@
 // client-web/js/app.js
 
-// --- Reference na HTML elementy ---
+// --- Reference to HTML elements ---
 const homeSection = document.getElementById('homeSection');
 const gameSection = document.getElementById('gameSection');
 const accountSection = document.getElementById('accountSection');
@@ -15,7 +15,7 @@ const navTitle = document.querySelector('.top-nav .nav-title');
 const navHome = document.querySelector('.top-nav .nav-home');
 const bottomNav = document.querySelector('.bottom-nav');
 
-// NOVÁ REFERENCE PRO TLAČÍTKO VYMAZÁNÍ PINU
+// NEW REFERENCE FOR PIN CLEAR BUTTON
 const clearGameCodeButton = document.getElementById('clearGameCodeButton');
 
 const qrCodeScanIcon = document.getElementById('qrCodeScanIcon');
@@ -30,78 +30,77 @@ const playerNameInput = document.getElementById('playerNameInput');
 const submitNameButton = document.getElementById('submitNameButton');
 
 
-// --- Globální proměnné stavu ---
+// --- Global state variables ---
 let currentActiveSectionId = null;
 let isShifted = false;
 let html5QrCode = null;
 
-// Pole pro ukládání historie navštívených sekcí
+// Array to store history of visited sections
 const sectionHistory = [];
 
 
-// --- Funkce pro přepínání sekcí ---
+// --- Function to switch sections ---
 /**
- * Zobrazí konkrétní sekci a skryje všechny ostatní.
- * Používá CSS třídy 'active' pro plynulé přechody.
- * @param {string} newSectionId ID HTML elementu sekce, který se má zobrazit (např. 'homeSection').
- * @param {boolean} isBackNavigation Indikuje, zda se jedná o navigaci zpět (default false).
+ * Displays a specific section and hides all others.
+ * Uses CSS 'active' classes for smooth transitions.
+ * @param {string} newSectionId ID of the HTML element of the section to display (e.g., 'homeSection').
+ * @param {boolean} isBackNavigation Indicates whether it's a back navigation (default false).
  */
 function showSection(newSectionId, isBackNavigation = false) {
     if (newSectionId === currentActiveSectionId) {
-        console.log(`showSection: Sekce '${newSectionId}' je již aktivní, přeskočím.`);
+        console.log(`showSection: Section '${newSectionId}' is already active, skipping.`);
         return;
     }
 
-    console.log(`showSection: Přepínám ze sekce '${currentActiveSectionId || 'žádná'}' na '${newSectionId}'. Je to návrat: ${isBackNavigation}`);
+    console.log(`showSection: Switching from section '${currentActiveSectionId || 'none'}' to '${newSectionId}'. Is it a return: ${isBackNavigation}`);
 
-    // --- Správa historie sekcí ---
+    // --- Section history management ---
     if (!isBackNavigation) {
-        // Přidáme aktuální sekci do historie POUZE pokud to není ta samá sekce, na které už jsme
-        // a pokud to není ta samá sekce jako poslední v historii (aby se zabránilo duplicitám při opakovaném klikání).
+        // Add the current section to history ONLY if it's not the same section we are already on
+        // and if it's not the same section as the last one in history (to prevent duplicates on repeated clicks).
         if (currentActiveSectionId && (sectionHistory.length === 0 || sectionHistory[sectionHistory.length - 1] !== currentActiveSectionId)) {
             sectionHistory.push(currentActiveSectionId);
         }
     }
-    // Pokud je isBackNavigation true, historie je již upravena funkcí goBack().
+    // If isBackNavigation is true, history is already modified by goBack() function.
 
-    console.log(`showSection: Aktuální historie před nastavením nové sekce: ${sectionHistory.join(' -> ')}`);
+    console.log(`showSection: Current history before setting new section: ${sectionHistory.join(' -> ')}`);
 
 
     const oldActiveSection = document.getElementById(currentActiveSectionId);
     const newActiveSection = document.getElementById(newSectionId);
 
-    // Skryj starou aktivní sekci
+    // Hide the old active section
     if (oldActiveSection) {
         oldActiveSection.classList.remove('active');
-        console.log(`showSection: Odebrána třída 'active' ze staré sekce '${currentActiveSectionId}'.`);
+        console.log(`showSection: Removed 'active' class from old section '${currentActiveSectionId}'.`);
     }
 
-    // Zobraz novou sekci
+    // Show the new section
     if (newActiveSection) {
         newActiveSection.classList.add('active');
-        currentActiveSectionId = newSectionId; // Aktualizuj ID aktivní sekce.
-        console.log(`showSection: Sekce '${newSectionId}' zobrazena. Nová currentActiveSectionId: ${currentActiveSectionId}`);
+        currentActiveSectionId = newSectionId; // Update the active section ID.
+        console.log(`showSection: Section '${newSectionId}' displayed. New currentActiveSectionId: ${currentActiveSectionId}`);
     } else {
-        console.warn(`showSection: Nová sekce s ID '${newSectionId}' nebyla nalezena v DOMu.`);
+        console.warn(`showSection: New section with ID '${newSectionId}' was not found in the DOM.`);
     }
 
-    // --- LOGIKA PRO NAVIGAČNÍ ANIMACE (Horní a Dolní navigace) ---
-    // Definuje, pro které sekce má být horní navigace posunuta a dolní skryta.
-    // Přidali jsme 'accountSection', aby se navigace posunula i tam, pokud to tak chceš.
-    const shouldNavBeShifted = (newSectionId === 'nameSection' || newSectionId === 'accountSection');
+    // --- LOGIC FOR NAVIGATION ANIMATIONS (Top and Bottom navigation) ---
+    // Change: Navigation will only shift for 'nameSection'.
+    const shouldNavBeShifted = (newSectionId === 'nameSection');
 
     if (shouldNavBeShifted && !isShifted) {
         animateTopNav();
         if (bottomNav) bottomNav.classList.add('shifted');
-        console.log('showSection: Přejito do sekce vyžadující posun, navigace posunuta.');
+        console.log('showSection: Switched to section requiring shift (nameSection), navigation shifted.');
     } else if (!shouldNavBeShifted && isShifted) {
         animateTopNav();
         if (bottomNav) bottomNav.classList.remove('shifted');
-        console.log('showSection: Přejito do sekce nevyžadující posun, navigace vrácena.');
+        console.log('showSection: Switched to section not requiring shift, navigation returned.');
     }
-    // Pokud je stav už správný, nic neděláme.
+    // If the state is already correct, do nothing.
 
-    // --- LOGIKA PRO AKTIVNÍ STAV NAVIGAČNÍCH TLAČÍTEK (dolní navigace) ---
+    // --- LOGIC FOR ACTIVE STATE OF NAVIGATION BUTTONS (bottom navigation) ---
     navButtons.forEach(button => {
         const navText = button.querySelector('.nav-text');
         const navIcon = button.querySelector('.nav-icon');
@@ -122,35 +121,35 @@ function showSection(newSectionId, isBackNavigation = false) {
     }
 }
 
-// --- Funkce pro animaci horní navigace ---
+// --- Function for animating the top navigation ---
 function animateTopNav() {
     if (navTitle && navHome) {
         if (!isShifted) {
             navTitle.classList.add('shifted');
             navHome.classList.add('visible');
-            console.log('Navigace: Horní posunuto, Home ikona viditelná.');
+            // console.log('Navigation: Top shifted, Home icon visible.'); // Commented for less log
         } else {
             navTitle.classList.remove('shifted');
             navHome.classList.remove('visible');
-            console.log('Navigace: Vráceno do výchozího stavu.');
+            // console.log('Navigation: Returned to default state.'); // Commented for less log
         }
         isShifted = !isShifted;
     } else {
-        console.warn('animateTopNav: Některé elementy (navTitle nebo navHome) nebyly nalezeny pro animaci.');
+        console.warn('animateTopNav: Some elements (navTitle or navHome) were not found for animation.');
     }
 }
 
-// --- Funkce pro spuštění postupné animace dolních navigačních tlačítek ---
+// --- Function to start staggered animation of bottom navigation buttons ---
 function startStaggeredNavButtonAnimation(delayBetweenButtons = 200) {
     if (navButtons.length === 0) {
-        console.warn('startStaggeredNavButtonAnimation: Žádná navigační tlačítka nebyla nalezena.');
+        console.warn('startStaggeredNavButtonAnimation: No navigation buttons found.');
         return;
     }
 
     navButtons.forEach((button, index) => {
         setTimeout(() => {
             button.classList.add('nav-button-hop');
-            console.log(`Tlačítko ${button.dataset.section || index} začalo poskakovat.`);
+            // console.log(`Button ${button.dataset.section || index} started hopping.`); // Commented for less log
             button.addEventListener('animationend', () => {
                 button.classList.remove('nav-button-hop');
             }, { once: true });
@@ -158,27 +157,27 @@ function startStaggeredNavButtonAnimation(delayBetweenButtons = 200) {
     });
 }
 
-// --- Funkce pro navigaci zpět ---
+// --- Function to navigate back ---
 /**
- * Naviguje na předchozí sekci v historii.
- * Pokud není žádná předchozí sekce (nebo jen homeSection), zůstane na homeSection.
+ * Navigates to the previous section in history.
+ * If there is no previous section (or only homeSection), it stays on homeSection.
  */
 function goBack() {
-    // Pokud je v historii více než jedna položka (tj. můžeme jít zpět)
+    // If there is more than one item in history (i.e., we can go back)
     if (sectionHistory.length > 0) {
-        const previousSectionId = sectionHistory.pop(); // Odebereme poslední (předchozí) sekci z historie
-        console.log(`goBack: Naviguji zpět na '${previousSectionId}'. Aktuální historie: ${sectionHistory.join(' -> ')}`);
-        showSection(previousSectionId, true); // Zobrazíme předchozí sekci a označíme to jako "návrat"
+        const previousSectionId = sectionHistory.pop(); // Remove the last (previous) section from history
+        console.log(`goBack: Navigating back to '${previousSectionId}'. Current history: ${sectionHistory.join(' -> ')}`);
+        showSection(previousSectionId, true); // Display the previous section and mark it as "return"
     } else {
-        // Pokud je historie prázdná, nebo obsahuje jen jednu položku (home),
-        // zůstaneme na homeSection.
-        console.log('goBack: Historie je prázdná nebo na začátku. Zůstávám na homeSection.');
+        // If history is empty, or contains only one item (home),
+        // we stay on homeSection.
+        console.log('goBack: History is empty or at the beginning. Staying on homeSection.');
         showSection('homeSection', true);
     }
 }
 
 
-// --- Funkce pro zobrazení/skrytí QR Overlaye ---
+// --- Function to show/hide QR Overlay ---
 function toggleQrOverlay(show) {
     if (qrOverlay) {
         if (show) {
@@ -191,7 +190,7 @@ function toggleQrOverlay(show) {
     }
 }
 
-// --- Funkce pro skrytí loading screenu a zobrazení obsahu aplikace ---
+// --- Function to hide loading screen and show app content ---
 function hideLoadingScreen() {
     if (loadingScreen) {
         loadingScreen.classList.add('fade-out');
@@ -206,35 +205,29 @@ function hideLoadingScreen() {
         console.log('appContainer is visible.');
     }
 
-    // Automaticky zobrazíme Home sekci po skrytí loading screenu.
-    // Tato první sekce se automaticky přidá do historie uvnitř showSection.
+    // Automatically display the Home section after hiding the loading screen.
+    // This first section will be automatically added to history within showSection.
     setTimeout(() => {
         showSection('homeSection');
     }, 100);
 
-    console.log('Aplikace je načtena a připravena.');
+    console.log('Application is loaded and ready.');
 }
 
-// --- Nastavení posluchačů událostí ---
+// --- Event listener setup ---
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOMContentLoaded: DOM je načten.');
+    console.log('DOMContentLoaded: DOM is loaded.');
 
     setTimeout(() => {
         hideLoadingScreen();
     }, 200);
 
 
-    
-
-    // Volitelné automatické animace navigace (zakomentováno)
-    /* let autoAnimateInterval = setInterval(animateTopNav, 1000);
-    console.log('Interval pro automatickou animaci navigace spuštěn.'); */
-
-    // Volitelná animace poskakování tlačítek (spuštěno)
+    // Optional staggered button animation (running)
     startStaggeredNavButtonAnimation(200);
-    console.log('Postupná animace dolních navigačních tlačítek spuštěna.');
+    console.log('Staggered animation of bottom navigation buttons started.');
 
-    // Posluchače pro navigační tlačítka (dolní navigace)
+    // Listeners for navigation buttons (bottom navigation)
     if (navButtons.length > 0) {
         navButtons.forEach(button => {
             button.addEventListener('click', (event) => {
@@ -242,23 +235,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (sectionId) {
                     showSection(sectionId);
                     navButtons.forEach(btn => btn.classList.remove('nav-button-hop'));
-                    console.log('Navigační tlačítko kliknuto: "Hopping" animace odstraněna.');
+                    // console.log('Navigation button clicked: "Hopping" animation removed.'); // Commented for less log
                 }
             });
         });
     }
 
-        // --- LISTENER PRO TLAČÍTKO VYMAZÁNÍ TEXTAREA ---
+        // --- LISTENER FOR TEXTAREA CLEAR BUTTON ---
         if (clearGameCodeButton) {
             clearGameCodeButton.addEventListener('click', () => {
                 if (joinGameCodeInput) {
-                    joinGameCodeInput.value = ''; // Vyprázdní textarea
-                    console.log('Textarea joinGameCodeInput vyprázdněna.');
+                    joinGameCodeInput.value = ''; // Clear the textarea
+                    console.log('joinGameCodeInput textarea cleared.');
                 }
             });
         }
 
-    // Posluchače pro Quick Actions tlačítka (na Home sekci)
+    // Listeners for Quick Actions buttons (on Home section)
     if (quickStartButton) {
         quickStartButton.addEventListener('click', () => {
             const sectionId = quickStartButton.dataset.section;
@@ -277,18 +270,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Listener pro ikonu domů v horní navigaci (nyní jako tlačítko zpět)
+    // Listener for the home icon in the top navigation (now acting as a back button)
     if (navHome) {
         navHome.addEventListener('click', () => {
             goBack();
-            console.log('NavHome kliknuto: Pokus o návrat zpět.');
+            console.log('NavHome clicked: Attempting to go back.');
         });
     }
 
-    // LISTENER PRO QR KÓD IKONU
+    // LISTENER FOR QR CODE ICON
     if (qrCodeScanIcon) {
         qrCodeScanIcon.addEventListener('click', () => {
-            console.log('QR Code ikona kliknuta. Spouštím QR skener overlay.');
+            console.log('QR Code icon clicked. Launching QR scanner overlay.');
             toggleQrOverlay(true);
 
             if (!html5QrCode) {
@@ -299,39 +292,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 { facingMode: "environment" },
                 { fps: 10, qrbox: { width: 250, height: 250 } },
                 (decodedText, decodedResult) => {
-                    console.log(`QR kód naskenován: ${decodedText}`);
-                    qrReaderResultsDiv.textContent = `Naskenováno: ${decodedText}`;
+                    console.log(`QR code scanned: ${decodedText}`);
+                    qrReaderResultsDiv.textContent = `Scanned: ${decodedText}`;
                     joinGameCodeInput.value = decodedText;
 
                     html5QrCode.stop().then(() => {
-                        console.log('QR čtečka zastavena po úspěšném skenování.');
+                        console.log('QR reader stopped after successful scan.');
                         toggleQrOverlay(false);
                     }).catch((err) => {
-                        console.error('Chyba při zastavování QR čtečky po skenování:', err);
+                        console.error('Error stopping QR reader after scan:', err);
                         toggleQrOverlay(false);
                     });
                 },
                 (errorMessage) => {
-                    // console.warn(`Chyba skenování: ${errorMessage}`);
+                    // console.warn(`Scan error: ${errorMessage}`);
                 }
             ).catch((err) => {
-                console.error(`Chyba při spouštění QR čtečky: ${err}`);
-                qrReaderResultsDiv.textContent = `Chyba: ${err.message || err}`;
+                console.error(`Error starting QR reader: ${err}`);
+                qrReaderResultsDiv.textContent = `Error: ${err.message || err}`;
                 toggleQrOverlay(false);
             });
         });
     }
 
-    // LISTENER PRO TLAČÍTKO ZAVŘÍT V OVERLAYI
+    // LISTENER FOR CLOSE BUTTON IN OVERLAY
     if (qrOverlayCloseButton) {
         qrOverlayCloseButton.addEventListener('click', () => {
-            console.log('Tlačítko zavřít overlay kliknuto.');
+            console.log('Overlay close button clicked.');
             if (html5QrCode && html5QrCode.isScanning) {
                 html5QrCode.stop().then(() => {
-                    console.log('QR čtečka zastavena ručně.');
+                    console.log('QR reader stopped manually.');
                     toggleQrOverlay(false);
                 }).catch((err) => {
-                    console.error('Chyba při zastavování QR čtečky ručně:', err);
+                    console.error('Error stopping QR reader manually:', err);
                     toggleQrOverlay(false);
                 });
             } else {
@@ -340,28 +333,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // LISTENER PRO TLAČÍTKO "Join" (na gameSection)
+    // LISTENER FOR "Join" BUTTON (on gameSection)
     if (joinGameButton) {
         joinGameButton.addEventListener('click', () => {
-            console.log('Tlačítko Join Game kliknuto. Přepínám na nameSection.');
+            console.log('Join Game button clicked. Switching to nameSection.');
             showSection('nameSection');
         });
     }
 
-    // LISTENER PRO TLAČÍTKO "Pokračovat" (na nameSection)
+    // LISTENER FOR "Continue" BUTTON (on nameSection)
     if (submitNameButton) {
         submitNameButton.addEventListener('click', () => {
             const playerName = playerNameInput.value.trim();
             if (playerName) {
-                console.log(`Jméno hráče zadáno: ${playerName}.`);
-                // Po zadání jména se vrátíme zpět na herní sekci (příklad).
-                goBack(); // Toto by mělo uživatele vrátit na gameSection, odkud přišel.
+                console.log(`Player name entered: ${playerName}.`);
+                // After entering the name, we return to the game section (example).
+                goBack(); // This should return the user to the gameSection they came from.
             } else {
-                alert('Prosím, zadej své jméno!');
+                alert('Please enter your name!');
             }
         });
     }
 
-    
-
-}); // Konec DOMContentLoaded
+}); // End of DOMContentLoaded
