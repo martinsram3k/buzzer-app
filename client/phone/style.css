@@ -1068,3 +1068,23 @@ input:checked+.slider:before {
     padding: 10px 25px;
     margin-top: 10px;
 }
+
+.qr-code-container {
+    margin: 20px auto;
+    width: 200px; /* Nastav šířku QR kódu */
+    height: 200px; /* Nastav výšku QR kódu */
+    border: 1px solid #ccc;
+    padding: 10px;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    display: flex; /* Pro vycentrování canvasu uvnitř, pokud je potřeba */
+    justify-content: center;
+    align-items: center;
+}
+
+.qr-code-container canvas {
+    /* Můžeš zde stylovat samotný canvas, pokud qrcode.js generuje canvas */
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
