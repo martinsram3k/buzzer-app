@@ -29,6 +29,9 @@ const joinGameButton = document.getElementById('joinGameButton');
 const playerNameInput = document.getElementById('playerNameInput');
 const submitNameButton = document.getElementById('submitNameButton');
 
+// --- DARK MODE LOGIC: Reference na Dark Mode přepínač ---
+const darkModeToggle = document.getElementById('darkModeToggle');
+
 
 // --- Global state variables ---
 let currentActiveSectionId = null;
@@ -241,15 +244,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-        // --- LISTENER FOR TEXTAREA CLEAR BUTTON ---
-        if (clearGameCodeButton) {
-            clearGameCodeButton.addEventListener('click', () => {
-                if (joinGameCodeInput) {
-                    joinGameCodeInput.value = ''; // Clear the textarea
-                    console.log('joinGameCodeInput textarea cleared.');
-                }
-            });
-        }
+    // --- LISTENER FOR TEXTAREA CLEAR BUTTON ---
+    if (clearGameCodeButton) {
+        clearGameCodeButton.addEventListener('click', () => {
+            if (joinGameCodeInput) {
+                joinGameCodeInput.value = ''; // Clear the textarea
+                console.log('joinGameCodeInput textarea cleared.');
+            }
+        });
+    }
 
     // Listeners for Quick Actions buttons (on Home section)
     if (quickStartButton) {
@@ -354,5 +357,47 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // --- DARK MODE LOGIC: Funkce a event listener ---
+
+    /**
+     * Nastaví nebo odebere třídu 'dark-mode' z <body> elementu
+     * a uloží preference do localStorage.
+     * @param {boolean} isDark True pro aktivaci Dark Mode, false pro Light Mode.
+     */
+    function setDarkMode(isDark) {
+        if (isDark) {
+            document.body.classList.add('dark-mode'); // Přidá třídu dark-mode
+            console.log('Dark Mode activated.');
+        } else {
+            document.body.classList.remove('dark-mode'); // Odebere třídu dark-mode
+            console.log('Light Mode activated.');
+        }
+        // Ulož preference uživatele do Local Storage
+        localStorage.setItem('darkMode', isDark);
+    }
+
+    // Načti preference z Local Storage při načtení stránky
+    // Pokud je 'darkMode' nastaveno na 'true' (jako string), aktivuj Dark Mode
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    if (darkModeToggle) { // Zajištění, že element existuje před manipulací
+        if (savedDarkMode) {
+            setDarkMode(true);
+            darkModeToggle.checked = true; // Nastav přepínač do správné pozice
+        } else {
+            setDarkMode(false);
+            darkModeToggle.checked = false; // Nastav přepínač do správné pozice
+        }
+
+        // Přidej posluchač události pro změnu přepínače Dark Mode
+        darkModeToggle.addEventListener('change', () => {
+            setDarkMode(darkModeToggle.checked);
+        });
+        console.log('Dark Mode toggle listener set up.');
+    } else {
+        console.warn('Dark Mode toggle element (darkModeToggle) not found.');
+    }
+
+    // --- Konec DARK MODE LOGIC ---
 
 }); // End of DOMContentLoaded
