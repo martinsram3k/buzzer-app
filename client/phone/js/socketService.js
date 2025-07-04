@@ -1,127 +1,138 @@
 // client-web/js/socketService.js
 
-// Konstanta pro URL Socket.IO serveru. ZKONTROLUJ A POUŽIJ SVOU SKUTEČNOU URL!
-const SOCKET_SERVER_URL = 'https://buzzer-app-t20g.onrender.com';
+// Inicializace Socket.IO připojení
+// Zde je důležité, aby URL odpovídala adrese, na které poslouchá váš Socket.IO server.
+// Pokud váš server běží lokálně na portu 3001, pak 'http://localhost:3001' je správně.
+// Pokud ho nasazujete jinam, budete muset URL aktualizovat.
+const socket = io('https://buzzer-app-t20g.onrender.com');
 
-// Inicializace Socket.IO klienta a připojení k serveru.
-const socket = io(SOCKET_SERVER_URL);
-// Zpřístupníme socket objekt globálně pro snadný přístup z `app.js`.
-window.socket = socket; 
+// --- Události Socket.IO připojení a odpojení ---
 
-// --- Obecné události socketu (pro debugování a informování uživatele) ---
+// Event listener pro úspěšné připojení k serveru
 socket.on('connect', () => {
-  console.log('socketService: Připojeno k serveru Socket.IO! ID:', socket.id);
+    console.log('socketService: Připojeno k Socket.IO serveru!');
+    // Můžete zde provést akce, které závisí na úspěšném připojení
 });
 
-socket.on('disconnect', () => {
-  console.log('socketService: Odpojeno od serveru Socket.IO.');
-});
-
+// Event listener pro chybu připojení
 socket.on('connect_error', (err) => {
-  console.error('socketService: Chyba připojení Socket.IO:', err.message);
+    console.error('socketService: Chyba připojení Socket.IO:', err.message);
+    // Zde můžete zobrazit zprávu uživateli nebo zkusit se znovu připojit
 });
+
+// Event listener pro odpojení od serveru
+socket.on('disconnect', (reason) => {
+    console.log('socketService: Odpojeno od Socket.IO serveru. Důvod:', reason);
+    // Zde můžete informovat uživatele o odpojení
+});
+
 
 // --- Funkce pro odesílání událostí na server ---
+// Tyto funkce budou volány z app.js, aby se zjednodušila komunikace se serverem
 
 /**
- * Pošle událost 'createRoom' na server. Používá se pro vytvoření nové herní místnosti.
- * @param {string} username Jméno uživatele, který místnost vytváří (bude hostitelem).
+ * Pošle požadavek na server pro vytvoření nové místnosti.
+ * @param {string} username Jméno uživatele, který vytváří místnost (bude hostitelem).
  */
-window.createRoom = (username) => {
-  console.log('socketService: Emituji createRoom s jménem:', username);
-  socket.emit('createRoom', username);
-};
+function createRoom(username) {
+    console.log('socketService: Emituji createRoom s jménem:', username);
+    socket.emit('createRoom', username);
+}
 
 /**
- * Pošle událost 'joinRoom' na server. Používá se pro připojení do existující herní místnosti.
- * @param {string} roomId Kód místnosti, ke které se uživatel chce připojit.
+ * Pošle požadavek na server pro připojení do existující místnosti.
+ * @param {string} roomId Kód místnosti, do které se uživatel chce připojit.
  * @param {string} username Jméno uživatele, který se připojuje.
  */
-window.joinRoom = (roomId, username) => {
-  console.log('socketService: Emituji joinRoom s kódem:', roomId, 'a jménem:', username);
-  socket.emit('joinRoom', roomId, username);
-};
+function joinRoom(roomId, username) {
+    console.log('socketService: Emituji joinRoom - Kód:', roomId, 'Jméno:', username);
+    socket.emit('joinRoom', roomId, username);
+}
 
 /**
- * Pošle událost 'updateGameSettings' na server. Používá hostitel pro změnu nastavení hry.
- * @param {string} roomId Kód místnosti.
- * @param {object} settings Objekt s herními nastaveními (např. { roundDuration: 30, numRounds: 3, hostPlays: true, buzzerDelay: 0 }).
+ * Pošle požadavek na server pro aktualizaci nastavení hry (pouze pro hostitele).
+ * @param {string} roomId ID místnosti.
+ * @param {object} settings Objekt s nastavením hry (např. { roundDuration: 30, numRounds: 3, hostPlays: true, buzzerDelay: 0 }).
  */
-window.updateGameSettings = (roomId, settings) => {
-    console.log('socketService: Emituji updateGameSettings pro místnost:', roomId, 'nastavení:', settings);
+function updateGameSettings(roomId, settings) {
+    console.log('socketService: Emituji updateGameSettings - Místnost:', roomId, 'Nastavení:', settings);
     socket.emit('updateGameSettings', roomId, settings);
-};
+}
 
 /**
- * Pošle událost 'kickPlayer' na server. Používá hostitel pro vykopnutí hráče z místnosti.
- * @param {string} playerId ID hráče (socket.id), který má být vykopnut.
+ * Pošle požadavek na server pro vykopnutí hráče z místnosti (pouze pro hostitele).
+ * @param {string} playerIdToKick ID hráče, který má být vykopnut.
  */
-window.kickPlayer = (playerId) => {
-    console.log('socketService: Emituji kickPlayer pro ID:', playerId);
-    socket.emit('kickPlayer', playerId);
-};
+function kickPlayer(playerIdToKick) {
+    console.log('socketService: Emituji kickPlayer - ID hráče:', playerIdToKick);
+    socket.emit('kickPlayer', playerIdToKick);
+}
 
 /**
- * Pošle událost 'startGame' na server. Používá hostitel pro spuštění hry z lobby.
- * Nastavení hry by měla být již předtím nastavena pomocí `updateGameSettings`.
- * @param {string} roomId Kód místnosti, ve které se hra spouští.
+ * Pošle požadavek na server pro spuštění hry (pouze pro hostitele).
+ * @param {string} roomId ID místnosti.
  */
-window.startGame = (roomId) => {
-    console.log('socketService: Emituji startGame pro místnost:', roomId);
+function startGame(roomId) {
+    console.log('socketService: Emituji startGame - Místnost:', roomId);
     socket.emit('startGame', roomId);
-};
+}
 
 /**
- * Pošle událost 'startNextRound' na server. Používá hostitel pro spuštění dalšího kola.
- * @param {string} roomId Kód místnosti.
+ * Pošle požadavek na server pro spuštění dalšího kola (pouze pro hostitele).
+ * @param {string} roomId ID místnosti.
  */
-window.startNextRound = (roomId) => {
-    console.log('socketService: Emituji startNextRound pro místnost:', roomId);
+function startNextRound(roomId) {
+    console.log('socketService: Emituji startNextRound - Místnost:', roomId);
     socket.emit('startNextRound', roomId);
-};
+}
 
 /**
- * Pošle událost 'endGame' na server. Používá hostitel pro předčasné ukončení hry.
- * @param {string} roomId Kód místnosti.
+ * Pošle požadavek na server pro ukončení hry (pouze pro hostitele).
+ * @param {string} roomId ID místnosti.
  */
-window.endGame = (roomId) => {
-    console.log('socketService: Emituji endGame pro místnost:', roomId);
+function endGame(roomId) {
+    console.log('socketService: Emituji endGame - Místnost:', roomId);
     socket.emit('endGame', roomId);
-};
+}
 
 /**
- * Pošle událost 'resetGame' na server. Používá hostitel pro resetování hry do stavu lobby po 'GAME_OVER'.
- * @param {string} roomId Kód místnosti.
+ * Pošle požadavek na server pro resetování hry do stavu lobby (pouze pro hostitele po GAME_OVER).
+ * @param {string} roomId ID místnosti.
  */
-window.resetGame = (roomId) => {
-    console.log('socketService: Emituji resetGame pro místnost:', roomId);
+function resetGame(roomId) {
+    console.log('socketService: Emituji resetGame - Místnost:', roomId);
     socket.emit('resetGame', roomId);
-};
+}
 
 /**
- * Pošle událost 'buzz' na server. Používá hráč, když chce "bzučet".
+ * Pošle požadavek na server pro bzučení hráče.
  */
-window.buzz = () => {
-  socket.emit('buzz');
-  console.log('socketService: Odeslána událost: buzz');
-};
+function buzz() {
+    console.log('socketService: Emituji buzz.');
+    socket.emit('buzz');
+}
 
 /**
- * Pošle událost 'resetBuzzer' na server. Původně pro reset bzučáku, nyní spíše pro "Nová hra" od hostitele.
- * Může být voláno i serverem.
+ * Pošle požadavek na server pro opuštění místnosti.
+ * @param {string} roomId ID místnosti, kterou uživatel opouští.
  */
-window.resetBuzzer = () => {
-  socket.emit('resetBuzzer');
-  console.log('socketService: Odeslána událost: resetBuzzer');
-};
-
-/**
- * Pošle událost 'leaveRoom' na server. Uživatel explicitně opouští místnost.
- * @param {string} roomId Kód místnosti, kterou uživatel opouští.
- */
-window.leaveRoom = (roomId) => {
-    console.log('socketService: Emituji leaveRoom pro místnost:', roomId);
+function leaveRoom(roomId) {
+    console.log('socketService: Emituji leaveRoom - Místnost:', roomId);
     socket.emit('leaveRoom', roomId);
-    // Většinou není potřeba disconnect/connect, pokud se uživatel má hned připojit jinam.
-    // Ponecháme spojení aktivní pro plynulejší přechody.
-};
+}
+
+
+// Exportování socket objektu a funkcí, aby byly dostupné v jiných souborech (např. app.js)
+// window je zde použito pro globální dostupnost ve webovém prohlížeči.
+// V moderních JS projektech byste spíše použili ES moduly (export/import).
+window.socket = socket;
+window.createRoom = createRoom;
+window.joinRoom = joinRoom;
+window.updateGameSettings = updateGameSettings;
+window.kickPlayer = kickPlayer;
+window.startGame = startGame;
+window.startNextRound = startNextRound;
+window.endGame = endGame;
+window.resetGame = resetGame;
+window.buzz = buzz;
+window.leaveRoom = leaveRoom;

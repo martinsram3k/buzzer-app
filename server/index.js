@@ -547,6 +547,7 @@ io.on('connection', (socket) => {
   });
 });
 
+
 // Spuštění HTTP serveru na definovaném portu
 server.listen(PORT, () => {
   console.log(`Buzzer server listening on port ${PORT}`);
