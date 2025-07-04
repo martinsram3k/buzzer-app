@@ -13,7 +13,7 @@
         <div class="spinner"></div>
     </div>
 
-    <div id="appContainer">
+    <div id="appContainer" class="hidden-app-content">
         <div class="top-nav">
             <ul>
                 <li class="nav-item">
@@ -109,6 +109,49 @@
                     <button id="submitNameButton" class="action-button">Continue</button>
                 </div>
             </div>
+
+            <div id="lobbySection" class="content-section">
+                <div class="lobby-container">
+                    <h1>Waiting for Host...</h1>
+                    <p>Room Code: <span id="lobbyRoomCode">XXXXX</span></p>
+                    <div class="player-list">
+                        <h2>Players:</h2>
+                        <ul id="lobbyPlayerList">
+                            </ul>
+                    </div>
+                    <button id="leaveLobbyButton" class="action-button">Leave Room</button>
+                </div>
+            </div>
+
+            <div id="roomSettingsSection" class="content-section">
+                <div class="room-settings-container">
+                    <h1>Room Settings</h1>
+                    <p>Your Room Code: <span id="settingsRoomCode">XXXXX</span></p>
+                    <div class="setting-item">
+                        <label for="maxPlayers">Max Players:</label>
+                        <input type="number" id="maxPlayers" value="4" min="2" max="10">
+                    </div>
+                    <div class="setting-item">
+                        <label for="roundTime">Round Time (seconds):</label>
+                        <input type="number" id="roundTime" value="30" min="10" max="120">
+                    </div>
+                    <div class="setting-item">
+                        <label for="buzzerDelay">Buzzer Delay (ms):</label>
+                        <input type="number" id="buzzerDelay" value="0" min="0" max="1000">
+                    </div>
+                    <div class="setting-item">
+                        <label for="hostPlays">Host Plays:</label>
+                        <label class="switch">
+                            <input type="checkbox" id="hostPlays" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
+                    <button id="updateSettingsButton" class="action-button">Update Settings</button> <button id="startGameButton" class="action-button">Start Game</button>
+                    <button id="closeRoomButton" class="action-button">Close Room</button>
+                </div>
+            </div>
+
             <div id="accountSection" class="content-section">
 
                 <div class="account">

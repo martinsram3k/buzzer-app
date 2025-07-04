@@ -1,10 +1,13 @@
 // client-web/js/app.js
 
-// --- Reference to HTML elements ---
+// --- Reference na HTML elementy (Zajišťujeme, že elementy existují) ---
 const homeSection = document.getElementById('homeSection');
 const gameSection = document.getElementById('gameSection');
 const accountSection = document.getElementById('accountSection');
 const nameSection = document.getElementById('nameSection');
+const lobbySection = document.getElementById('lobbySection');
+const roomSettingsSection = document.getElementById('roomSettingsSection');
+
 const loadingScreen = document.getElementById('loadingScreen');
 const appContainer = document.getElementById('appContainer');
 const navButtons = document.querySelectorAll('.nav-button');
@@ -15,7 +18,6 @@ const navTitle = document.querySelector('.top-nav .nav-title');
 const navHome = document.querySelector('.top-nav .nav-home');
 const bottomNav = document.querySelector('.bottom-nav');
 
-// NEW REFERENCE FOR PIN CLEAR BUTTON
 const clearGameCodeButton = document.getElementById('clearGameCodeButton');
 
 const qrCodeScanIcon = document.getElementById('qrCodeScanIcon');
@@ -28,82 +30,101 @@ const qrOverlayCloseButton = document.getElementById('qrOverlayCloseButton');
 const joinGameButton = document.getElementById('joinGameButton');
 const playerNameInput = document.getElementById('playerNameInput');
 const submitNameButton = document.getElementById('submitNameButton');
+const createGameButton = document.getElementById('createGameButton');
 
-// --- DARK MODE LOGIC: Reference na Dark Mode přepínač ---
+// Reference pro elementy v lobbySection
+const lobbyRoomCode = document.getElementById('lobbyRoomCode');
+const lobbyPlayerList = document.getElementById('lobbyPlayerList');
+const leaveLobbyButton = document.getElementById('leaveLobbyButton');
+
+// Reference pro elementy v roomSettingsSection
+const settingsRoomCode = document.getElementById('settingsRoomCode');
+const maxPlayersInput = document.getElementById('maxPlayers');
+const roundTimeInput = document.getElementById('roundTime');
+const buzzerDelayInput = document.getElementById('buzzerDelay');
+const hostPlaysToggle = document.getElementById('hostPlays'); // Přidáno pro hostPlays
+const updateSettingsButton = document.getElementById('updateSettingsButton'); // Přidáno
+const startGameButton = document.getElementById('startGameButton');
+const closeRoomButton = document.getElementById('closeRoomButton');
+
+
 const darkModeToggle = document.getElementById('darkModeToggle');
 
 
-// --- Global state variables ---
-let currentActiveSectionId = null;
-let isShifted = false;
-let html5QrCode = null;
+// --- Globální stavové proměnné ---
+let currentActiveSectionId = null; // ID aktuálně aktivní sekce
+let isShifted = false; // Stav pro posun horní a dolní navigace
+let html5QrCode = null; // Instance HTML5-QR kód čtečky
+let gameMode = null; // Ukládá herní režim ('join' nebo 'create')
+let currentRoomCode = null; // Pro uložení kódu místnosti (získaného ze serveru)
 
-// Array to store history of visited sections
-const sectionHistory = [];
+const sectionHistory = []; // Historie navštívených sekcí pro funkci zpět
 
 
-// --- Function to switch sections ---
+// --- Funkce pro přepínání sekcí ---
 /**
- * Displays a specific section and hides all others.
- * Uses CSS 'active' classes for smooth transitions.
- * @param {string} newSectionId ID of the HTML element of the section to display (e.g., 'homeSection').
- * @param {boolean} isBackNavigation Indicates whether it's a back navigation (default false).
+ * Zobrazí konkrétní sekci a skryje všechny ostatní.
+ * Používá CSS třídy 'active' pro plynulé přechody.
+ * @param {string} newSectionId ID HTML elementu sekce, která se má zobrazit (např. 'homeSection').
+ * @param {boolean} isBackNavigation Indikuje, zda jde o navigaci zpět (výchozí hodnota false).
  */
 function showSection(newSectionId, isBackNavigation = false) {
+    // Pokud je sekce již aktivní, nic neděláme
     if (newSectionId === currentActiveSectionId) {
-        console.log(`showSection: Section '${newSectionId}' is already active, skipping.`);
+        console.log(`showSection: Sekce '${newSectionId}' je již aktivní, přeskočeno.`);
         return;
     }
 
-    console.log(`showSection: Switching from section '${currentActiveSectionId || 'none'}' to '${newSectionId}'. Is it a return: ${isBackNavigation}`);
+    console.log(`showSection: Přepínání ze sekce '${currentActiveSectionId || 'žádná'}' na '${newSectionId}'. Je to návrat: ${isBackNavigation}`);
 
-    // --- Section history management ---
+    // --- Správa historie sekcí ---
     if (!isBackNavigation) {
-        // Add the current section to history ONLY if it's not the same section we are already on
-        // and if it's not the same section as the last one in history (to prevent duplicates on repeated clicks).
+        // Přidáme aktuální sekci do historie POUZE, pokud to není stejná sekce, na které již jsme
+        // a pokud to není stejná sekce jako ta poslední v historii (aby se zabránilo duplikátům při opakovaných kliknutích).
         if (currentActiveSectionId && (sectionHistory.length === 0 || sectionHistory[sectionHistory.length - 1] !== currentActiveSectionId)) {
             sectionHistory.push(currentActiveSectionId);
         }
     }
-    // If isBackNavigation is true, history is already modified by goBack() function.
 
-    console.log(`showSection: Current history before setting new section: ${sectionHistory.join(' -> ')}`);
+    console.log(`showSection: Aktuální historie před nastavením nové sekce: ${sectionHistory.join(' -> ')}`);
 
-
+    // Získání referencí na starou a novou aktivní sekci
     const oldActiveSection = document.getElementById(currentActiveSectionId);
     const newActiveSection = document.getElementById(newSectionId);
 
-    // Hide the old active section
+    // Skrýt starou aktivní sekci
     if (oldActiveSection) {
         oldActiveSection.classList.remove('active');
-        console.log(`showSection: Removed 'active' class from old section '${currentActiveSectionId}'.`);
+        console.log(`showSection: Odebrána třída 'active' ze staré sekce '${currentActiveSectionId}'.`);
     }
 
-    // Show the new section
+    // Zobrazit novou sekci
     if (newActiveSection) {
         newActiveSection.classList.add('active');
-        currentActiveSectionId = newSectionId; // Update the active section ID.
-        console.log(`showSection: Section '${newSectionId}' displayed. New currentActiveSectionId: ${currentActiveSectionId}`);
+        currentActiveSectionId = newSectionId; // Aktualizovat ID aktivní sekce.
+        console.log(`showSection: Sekce '${newSectionId}' zobrazena. Nové currentActiveSectionId: ${currentActiveSectionId}`);
     } else {
-        console.warn(`showSection: New section with ID '${newSectionId}' was not found in the DOM.`);
+        console.warn(`showSection: Nová sekce s ID '${newSectionId}' nebyla nalezena v DOM.`);
     }
 
-    // --- LOGIC FOR NAVIGATION ANIMATIONS (Top and Bottom navigation) ---
-    // Change: Navigation will only shift for 'nameSection'.
-    const shouldNavBeShifted = (newSectionId === 'nameSection');
+    // --- LOGIKA PRO ANIMACE NAVIGACE (Horní a spodní navigace) ---
+    // Sekce, které vyžadují posunutou navigaci (pro zobrazení tlačítka zpět a menšího titulu)
+    const shouldNavBeShifted = (newSectionId === 'nameSection' || newSectionId === 'lobbySection' || newSectionId === 'roomSettingsSection');
 
+    // Animace posunu navigace, pokud je potřeba změnit stav
     if (shouldNavBeShifted && !isShifted) {
         animateTopNav();
         if (bottomNav) bottomNav.classList.add('shifted');
-        console.log('showSection: Switched to section requiring shift (nameSection), navigation shifted.');
+        console.log(`showSection: Přepnuto na sekci vyžadující posun (${newSectionId}), navigace posunuta.`);
     } else if (!shouldNavBeShifted && isShifted) {
         animateTopNav();
         if (bottomNav) bottomNav.classList.remove('shifted');
-        console.log('showSection: Switched to section not requiring shift, navigation returned.');
+        console.log('showSection: Přepnuto na sekci nevyžadující posun, navigace vrácena.');
     }
-    // If the state is already correct, do nothing.
+    // Pokud je stav již správný, nedělej nic.
 
-    // --- LOGIC FOR ACTIVE STATE OF NAVIGATION BUTTONS (bottom navigation) ---
+    // --- LOGIKA PRO AKTIVNÍ STAV NAVIGAČNÍCH TLAČÍTEK (spodní navigace) ---
+    // Deaktivujeme všechna navigační tlačítka
     navButtons.forEach(button => {
         const navText = button.querySelector('.nav-text');
         const navIcon = button.querySelector('.nav-icon');
@@ -113,6 +134,7 @@ function showSection(newSectionId, isBackNavigation = false) {
         button.classList.remove('active');
     });
 
+    // Aktivujeme správné navigační tlačítko, pokud se nová sekce shoduje s datovou sekcí tlačítka
     const activeButton = document.querySelector(`.nav-button[data-section="${newSectionId}"]`);
     if (activeButton) {
         const activeNavText = activeButton.querySelector('.nav-text');
@@ -124,67 +146,62 @@ function showSection(newSectionId, isBackNavigation = false) {
     }
 }
 
-// --- Function for animating the top navigation ---
+// --- Funkce pro animaci horní navigace ---
 function animateTopNav() {
     if (navTitle && navHome) {
-        if (!isShifted) {
+        if (!isShifted) { // Pokud není posunuto, posuneme
             navTitle.classList.add('shifted');
             navHome.classList.add('visible');
-            // console.log('Navigation: Top shifted, Home icon visible.'); // Commented for less log
-        } else {
+        } else { // Pokud je posunuto, vrátíme
             navTitle.classList.remove('shifted');
             navHome.classList.remove('visible');
-            // console.log('Navigation: Returned to default state.'); // Commented for less log
         }
-        isShifted = !isShifted;
+        isShifted = !isShifted; // Přepnutí stavu posunu
     } else {
-        console.warn('animateTopNav: Some elements (navTitle or navHome) were not found for animation.');
+        console.warn('animateTopNav: Některé elementy (navTitle nebo navHome) nebyly nalezeny pro animaci.');
     }
 }
 
-// --- Function to start staggered animation of bottom navigation buttons ---
+// --- Funkce pro spuštění postupné animace tlačítek spodní navigace ---
 function startStaggeredNavButtonAnimation(delayBetweenButtons = 200) {
     if (navButtons.length === 0) {
-        console.warn('startStaggeredNavButtonAnimation: No navigation buttons found.');
+        console.warn('startStaggeredNavButtonAnimation: Nebyla nalezena žádná navigační tlačítka.');
         return;
     }
 
     navButtons.forEach((button, index) => {
         setTimeout(() => {
             button.classList.add('nav-button-hop');
-            // console.log(`Button ${button.dataset.section || index} started hopping.`); // Commented for less log
             button.addEventListener('animationend', () => {
                 button.classList.remove('nav-button-hop');
-            }, { once: true });
+            }, { once: true }); // Odebere posluchače po první animaci
         }, index * delayBetweenButtons);
     });
 }
 
-// --- Function to navigate back ---
+// --- Funkce pro navigaci zpět ---
 /**
- * Navigates to the previous section in history.
- * If there is no previous section (or only homeSection), it stays on homeSection.
+ * Naviguje na předchozí sekci v historii.
+ * Pokud není žádná předchozí sekce (nebo jen homeSection), zůstane na homeSection.
  */
 function goBack() {
-    // If there is more than one item in history (i.e., we can go back)
     if (sectionHistory.length > 0) {
-        const previousSectionId = sectionHistory.pop(); // Remove the last (previous) section from history
-        console.log(`goBack: Navigating back to '${previousSectionId}'. Current history: ${sectionHistory.join(' -> ')}`);
-        showSection(previousSectionId, true); // Display the previous section and mark it as "return"
+        const previousSectionId = sectionHistory.pop(); // Vezme poslední sekci z historie
+        console.log(`goBack: Naviguji zpět na '${previousSectionId}'. Aktuální historie: ${sectionHistory.join(' -> ')}`);
+        showSection(previousSectionId, true); // Zobrazí předchozí sekci, označeno jako návrat
     } else {
-        // If history is empty, or contains only one item (home),
-        // we stay on homeSection.
-        console.log('goBack: History is empty or at the beginning. Staying on homeSection.');
-        showSection('homeSection', true);
+        console.log('goBack: Historie je prázdná nebo na začátku. Zůstávám na homeSection.');
+        showSection('homeSection', true); // Pokud není kam jít zpět, jdi na home
     }
 }
 
 
-// --- Function to show/hide QR Overlay ---
+// --- Funkce pro zobrazení/skrytí QR překrytí ---
 function toggleQrOverlay(show) {
     if (qrOverlay) {
         if (show) {
             qrOverlay.classList.add('active');
+            // Vyčistíme výsledky a vstupní pole, když se překrytí otevře
             if (qrReaderResultsDiv) qrReaderResultsDiv.textContent = '';
             if (joinGameCodeInput) joinGameCodeInput.value = '';
         } else {
@@ -193,68 +210,80 @@ function toggleQrOverlay(show) {
     }
 }
 
-// --- Function to hide loading screen and show app content ---
+// --- Funkce pro skrytí loading screenu a zobrazení obsahu aplikace ---
 function hideLoadingScreen() {
     if (loadingScreen) {
-        loadingScreen.classList.add('fade-out');
+        loadingScreen.classList.add('fade-out'); // Spustí fade-out animaci
+        // Po skončení animace skryje element
         loadingScreen.addEventListener('transitionend', () => {
             loadingScreen.style.display = 'none';
-        }, { once: true });
+        }, { once: true }); // Posluchač se spustí jen jednou
     }
 
     if (appContainer) {
         appContainer.classList.remove('hidden-app-content');
         appContainer.classList.add('visible-app-content');
-        console.log('appContainer is visible.');
+        console.log('appContainer je viditelný.');
     }
 
-    // Automatically display the Home section after hiding the loading screen.
-    // This first section will be automatically added to history within showSection.
+    // Zpožděné zobrazení první sekce pro plynulejší start
     setTimeout(() => {
         showSection('homeSection');
     }, 100);
 
-    console.log('Application is loaded and ready.');
+    console.log('Aplikace je načtena a připravena.');
 }
 
-// --- Event listener setup ---
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOMContentLoaded: DOM is loaded.');
+// --- Centralizovaná logika pro vstup do nameSection ---
+/**
+ * Zpracuje vstup do nameSection, nastaví gameMode a přepne sekci.
+ * @param {string} mode Režim hry ('join' nebo 'create').
+ */
+function handleGameModeEntry(mode) {
+    gameMode = mode; // Uložíme režim hry
+    console.log(`handleGameModeEntry: Režim hry nastaven na '${gameMode}'. Přepínám na nameSection.`);
+    playerNameInput.value = ''; // Vyčisti pole jména při vstupu do nameSection
+    showSection('nameSection');
+}
 
+
+// --- DOMContentLoaded Event Listener ---
+// Zajišťuje, že kód se spustí až po načtení celého DOM.
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOMContentLoaded: DOM je načten.');
+
+    // Zobrazení/skrytí loading screenu po krátké prodlevě
     setTimeout(() => {
         hideLoadingScreen();
     }, 200);
 
-
-    // Optional staggered button animation (running)
+    // Spuštění postupné animace tlačítek spodní navigace
     startStaggeredNavButtonAnimation(200);
-    console.log('Staggered animation of bottom navigation buttons started.');
 
-    // Listeners for navigation buttons (bottom navigation)
+    // Posluchače pro navigační tlačítka (spodní navigace)
     if (navButtons.length > 0) {
         navButtons.forEach(button => {
-            button.addEventListener('click', (event) => {
-                const sectionId = button.dataset.section;
+            button.addEventListener('click', () => {
+                const sectionId = button.dataset.section; // Získá ID sekce z data-section atributu
                 if (sectionId) {
                     showSection(sectionId);
+                    // Odstraní "hop" animaci, pokud klikneš na již animované tlačítko
                     navButtons.forEach(btn => btn.classList.remove('nav-button-hop'));
-                    // console.log('Navigation button clicked: "Hopping" animation removed.'); // Commented for less log
                 }
             });
         });
     }
 
-    // --- LISTENER FOR TEXTAREA CLEAR BUTTON ---
+    // Posluchač pro tlačítko vymazání textarea (pro Game Code input)
     if (clearGameCodeButton) {
         clearGameCodeButton.addEventListener('click', () => {
             if (joinGameCodeInput) {
-                joinGameCodeInput.value = ''; // Clear the textarea
-                console.log('joinGameCodeInput textarea cleared.');
+                joinGameCodeInput.value = '';
             }
         });
     }
 
-    // Listeners for Quick Actions buttons (on Home section)
+    // Posluchače pro Quick Actions tlačítka (na Home sekci)
     if (quickStartButton) {
         quickStartButton.addEventListener('click', () => {
             const sectionId = quickStartButton.dataset.section;
@@ -273,61 +302,64 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Listener for the home icon in the top navigation (now acting as a back button)
+    // Posluchač pro ikonu domů v horní navigaci (nyní funguje jako tlačítko zpět)
     if (navHome) {
         navHome.addEventListener('click', () => {
             goBack();
-            console.log('NavHome clicked: Attempting to go back.');
         });
     }
 
-    // LISTENER FOR QR CODE ICON
+    // POSLUCHAČ PRO IKONU QR KÓDU (pro spuštění skeneru)
     if (qrCodeScanIcon) {
         qrCodeScanIcon.addEventListener('click', () => {
-            console.log('QR Code icon clicked. Launching QR scanner overlay.');
-            toggleQrOverlay(true);
+            console.log('Ikona QR kódu kliknuta. Spouštím překrytí QR skeneru.');
+            toggleQrOverlay(true); // Zobrazí QR překrytí
 
+            // Inicializuje HTML5 QR kód čtečku, pokud ještě nebyla
             if (!html5QrCode) {
                 html5QrCode = new Html5Qrcode("qr-reader");
             }
 
+            // Spustí QR kód čtečku
             html5QrCode.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 250, height: 250 } },
-                (decodedText, decodedResult) => {
-                    console.log(`QR code scanned: ${decodedText}`);
-                    qrReaderResultsDiv.textContent = `Scanned: ${decodedText}`;
-                    joinGameCodeInput.value = decodedText;
+                { facingMode: "environment" }, // Preferuje zadní kameru
+                { fps: 10, qrbox: { width: 250, height: 250 } }, // Nastavení skenování
+                (decodedText, decodedResult) => { // Callback při úspěšném naskenování
+                    console.log(`QR kód naskenován: ${decodedText}`);
+                    if (qrReaderResultsDiv) qrReaderResultsDiv.textContent = `Naskenováno: ${decodedText}`;
+                    if (joinGameCodeInput) joinGameCodeInput.value = decodedText; // Vloží kód do inputu
 
+                    // Zastaví čtečku a skryje překrytí po úspěšném skenování
                     html5QrCode.stop().then(() => {
-                        console.log('QR reader stopped after successful scan.');
+                        console.log('QR čtečka zastavena po úspěšném skenování.');
                         toggleQrOverlay(false);
                     }).catch((err) => {
-                        console.error('Error stopping QR reader after scan:', err);
+                        console.error('Chyba při zastavování QR čtečky po skenování:', err);
                         toggleQrOverlay(false);
                     });
                 },
-                (errorMessage) => {
-                    // console.warn(`Scan error: ${errorMessage}`);
+                (errorMessage) => { // Callback pro chyby skenování (často se opakuje)
+                    // console.warn(`Chyba skenování: ${errorMessage}`); // Vypnuto pro menší spam v konzoli
                 }
-            ).catch((err) => {
-                console.error(`Error starting QR reader: ${err}`);
-                qrReaderResultsDiv.textContent = `Error: ${err.message || err}`;
-                toggleQrOverlay(false);
+            ).catch((err) => { // Chyba při spouštění kamery
+                console.error(`Chyba při spouštění QR čtečky: ${err}`);
+                if (qrReaderResultsDiv) qrReaderResultsDiv.textContent = `Chyba: ${err.message || err}`;
+                toggleQrOverlay(false); // Zavře překrytí i při chybě
             });
         });
     }
 
-    // LISTENER FOR CLOSE BUTTON IN OVERLAY
+    // POSLUCHAČ PRO TLAČÍTKO ZAVŘÍT V QR PŘEKRYTÍ
     if (qrOverlayCloseButton) {
         qrOverlayCloseButton.addEventListener('click', () => {
-            console.log('Overlay close button clicked.');
+            console.log('Tlačítko zavřít překrytí kliknuto.');
+            // Zastaví QR čtečku, pokud je aktivní
             if (html5QrCode && html5QrCode.isScanning) {
                 html5QrCode.stop().then(() => {
-                    console.log('QR reader stopped manually.');
+                    console.log('QR čtečka zastavena ručně.');
                     toggleQrOverlay(false);
                 }).catch((err) => {
-                    console.error('Error stopping QR reader manually:', err);
+                    console.error('Chyba při ručním zastavování QR čtečky:', err);
                     toggleQrOverlay(false);
                 });
             } else {
@@ -336,68 +368,251 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // LISTENER FOR "Join" BUTTON (on gameSection)
+    // LISTENER PRO "Join Game" TLAČÍTKO (na gameSection)
     if (joinGameButton) {
         joinGameButton.addEventListener('click', () => {
-            console.log('Join Game button clicked. Switching to nameSection.');
-            showSection('nameSection');
+            handleGameModeEntry('join');
         });
     }
 
-    // LISTENER FOR "Continue" BUTTON (on nameSection)
+    // LISTENER PRO "Create Game" TLAČÍTKO (na gameSection)
+    if (createGameButton) {
+        createGameButton.addEventListener('click', () => {
+            handleGameModeEntry('create');
+        });
+    }
+
+
+    // LISTENER PRO TLAČÍTKO "Continue" (na nameSection)
     if (submitNameButton) {
         submitNameButton.addEventListener('click', () => {
-            const playerName = playerNameInput.value.trim();
-            if (playerName) {
-                console.log(`Player name entered: ${playerName}.`);
-                // After entering the name, we return to the game section (example).
-                goBack(); // This should return the user to the gameSection they came from.
+            const playerName = playerNameInput.value.trim(); // Získá a ořeže jméno hráče
+            if (playerName) { // Kontrola, zda jméno není prázdné
+                console.log(`Zadáno jméno hráče: ${playerName}. Režim hry: ${gameMode}`);
+
+                // --- INTEGRACE SOCKET.IO pro vytvoření/připojení k místnosti ---
+                if (gameMode === 'join') {
+                    const gameCode = joinGameCodeInput.value.trim(); // Získá kód místnosti pro připojení
+                    if (!gameCode) {
+                        alert('Prosím, zadejte kód místnosti!');
+                        return;
+                    }
+                    console.log(`app.js: Pokus o připojení k místnosti ${gameCode} s jménem: ${playerName}`);
+                    // Voláme funkci z socketService.js k odeslání události na server
+                    window.joinRoom(gameCode, playerName);
+
+                } else if (gameMode === 'create') {
+                    console.log(`app.js: Pokus o vytvoření místnosti s jménem: ${playerName}`);
+                    // Voláme funkci z socketService.js k odeslání události na server
+                    window.createRoom(playerName);
+                }
+
+                // Jméno se vymaže až po úspěšném připojení/vytvoření, nebo po chybě
+                // playerNameInput.value = ''; // Vymažeme až po úspěšném zpracování serverem
             } else {
-                alert('Please enter your name!');
+                alert('Prosím, zadejte své jméno!');
+            }
+        });
+    }
+
+    // --- POSLUCHAČ PRO TLAČÍTKO "Update Settings" v roomSettingsSection ---
+    if (updateSettingsButton) {
+        updateSettingsButton.addEventListener('click', () => {
+            console.log('app.js: Tlačítko "Update Settings" kliknuto.');
+            // Získání aktuálních hodnot z inputů
+            const settings = {
+                roundDuration: parseInt(roundTimeInput.value) || 30, // Výchozí 30s
+                numRounds: parseInt(maxPlayersInput.value) || 3, // Používáme maxPlayersInput pro numRounds (možná přejmenovat v HTML?)
+                hostPlays: hostPlaysToggle.checked,
+                buzzerDelay: parseInt(buzzerDelayInput.value) || 0 // Výchozí 0ms
+            };
+            // Základní validace
+            if (settings.roundDuration < 0 || settings.numRounds < 1 || settings.buzzerDelay < 0) {
+                alert('Prosím, zadejte platné hodnoty pro nastavení.');
+                return;
+            }
+            if (currentRoomCode) {
+                window.updateGameSettings(currentRoomCode, settings);
+            }
+        });
+    }
+
+    // --- POSLUCHAČ PRO TLAČÍTKO "Start Game" v roomSettingsSection ---
+    if (startGameButton) {
+        startGameButton.addEventListener('click', () => {
+            console.log('app.js: Tlačítko "Start Game" kliknuto.');
+            if (currentRoomCode) {
+                // Pošleme serveru, že hostitel chce spustit hru.
+                // Nastavení hry se již předpokládá aktualizované přes updateGameSettings.
+                window.startGame(currentRoomCode); 
+            }
+        });
+    }
+
+    // --- POSLUCHAČ PRO TLAČÍTKO "Leave Room" v lobbySection ---
+    if (leaveLobbyButton) {
+        leaveLobbyButton.addEventListener('click', () => {
+            console.log('app.js: Tlačítko "Leave Room" kliknuto.');
+            if (currentRoomCode) {
+                window.leaveRoom(currentRoomCode); // Informujeme server, že opouštíme místnost
+                currentRoomCode = null; // Vyčistíme lokální kód místnosti
+                showSection('gameSection'); // Vrátíme se na herní sekci (výběr join/create)
+            }
+        });
+    }
+
+    // --- POSLUCHAČ PRO TLAČÍTKO "Close Room" v roomSettingsSection (pro hostitele) ---
+    if (closeRoomButton) {
+        closeRoomButton.addEventListener('click', () => {
+            console.log('app.js: Tlačítko "Close Room" kliknuto.');
+            if (currentRoomCode) {
+                window.leaveRoom(currentRoomCode); // Hostitel opouští, server zruší místnost
+                currentRoomCode = null;
+                showSection('gameSection'); // Vrátíme se na herní sekci
             }
         });
     }
 
     // --- DARK MODE LOGIC: Funkce a event listener ---
-
-    /**
-     * Nastaví nebo odebere třídu 'dark-mode' z <body> elementu
-     * a uloží preference do localStorage.
-     * @param {boolean} isDark True pro aktivaci Dark Mode, false pro Light Mode.
-     */
     function setDarkMode(isDark) {
         if (isDark) {
-            document.body.classList.add('dark-mode'); // Přidá třídu dark-mode
-            console.log('Dark Mode activated.');
+            document.body.classList.add('dark-mode');
+            console.log('Dark Mode aktivován.');
         } else {
-            document.body.classList.remove('dark-mode'); // Odebere třídu dark-mode
-            console.log('Light Mode activated.');
+            document.body.classList.remove('dark-mode');
+            console.log('Light Mode aktivován.');
         }
-        // Ulož preference uživatele do Local Storage
-        localStorage.setItem('darkMode', isDark);
+        localStorage.setItem('darkMode', isDark); // Uloží preference uživatele
     }
 
-    // Načti preference z Local Storage při načtení stránky
-    // Pokud je 'darkMode' nastaveno na 'true' (jako string), aktivuj Dark Mode
+    // Načte preferenci dark mode z localStorage a aplikuje ji
     const savedDarkMode = localStorage.getItem('darkMode') === 'true';
-    if (darkModeToggle) { // Zajištění, že element existuje před manipulací
+    if (darkModeToggle) {
         if (savedDarkMode) {
             setDarkMode(true);
-            darkModeToggle.checked = true; // Nastav přepínač do správné pozice
+            darkModeToggle.checked = true; // Nastaví přepínač podle preference
         } else {
             setDarkMode(false);
-            darkModeToggle.checked = false; // Nastav přepínač do správné pozice
+            darkModeToggle.checked = false;
         }
 
-        // Přidej posluchač události pro změnu přepínače Dark Mode
+        // Posluchač pro změnu stavu přepínače dark mode
         darkModeToggle.addEventListener('change', () => {
             setDarkMode(darkModeToggle.checked);
         });
-        console.log('Dark Mode toggle listener set up.');
+        console.log('Posluchač přepínače Dark Mode nastaven.');
     } else {
-        console.warn('Dark Mode toggle element (darkModeToggle) not found.');
+        console.warn('Element přepínače Dark Mode (darkModeToggle) nenalezen.');
     }
 
-    // --- Konec DARK MODE LOGIC ---
+    // --- SOCKET.IO EVENT LISTENERS ---
+    // Tyto posluchače je dobré mít v DOMContentLoaded, aby byly aktivní po načtení DOM.
 
-}); // End of DOMContentLoaded
+    // Událost od serveru po úspěšném vytvoření místnosti
+    socket.on('roomCreated', (roomId) => {
+        console.log(`app.js: Místnost úspěšně vytvořena! Kód: ${roomId}`);
+        currentRoomCode = roomId; // Uložíme kód místnosti
+        playerNameInput.value = ''; // Vyčisti jméno po odeslání
+
+        // Zobrazíme kód místnosti a výchozí nastavení v roomSettingsSection
+        if (settingsRoomCode) {
+            settingsRoomCode.textContent = roomId;
+            // Předvyplníme nastavení, která budou odeslána serveru přes updateGameSettings
+            // Tyto hodnoty by měly odpovídat výchozím na serveru
+            maxPlayersInput.value = 4; // Max Players (možná by to mělo být numRounds)
+            roundTimeInput.value = 30; // Round Time
+            buzzerDelayInput.value = 0; // Buzzer Delay
+            hostPlaysToggle.checked = true; // Host Plays
+        }
+        showSection('roomSettingsSection'); // Přepneme na sekci nastavení místnosti
+    });
+
+    // Událost od serveru po úspěšném připojení k místnosti
+    socket.on('roomJoined', (roomId) => {
+        console.log(`app.js: Úspěšně připojeno k místnosti! Kód: ${roomId}`);
+        currentRoomCode = roomId; // Uložíme kód místnosti
+        playerNameInput.value = ''; // Vyčisti jméno po odeslání
+        if (lobbyRoomCode) {
+            lobbyRoomCode.textContent = roomId; // Zobraz kód místnosti v lobby
+        }
+        showSection('lobbySection'); // Přepneme na lobby sekci
+    });
+
+    // Událost od serveru, pokud místnost nebyla nalezena
+    socket.on('roomNotFound', () => {
+        console.error('app.js: Místnost s tímto kódem nebyla nalezena.');
+        alert('Místnost s tímto kódem neexistuje. Zkontrolujte kód.');
+        showSection('gameSection'); // Vrátíme se na výběr join/create
+    });
+
+    // Událost od serveru při chybě autorizace nebo jiné operace
+    socket.on('notAuthorized', (message) => {
+        console.error(`app.js: Chyba autorizace/operace: ${message}`);
+        alert(`Chyba: ${message}`);
+        // Můžeme se vrátit na předchozí sekci nebo zůstat, záleží na kontextu chyby
+        // goBack(); // Příklad: vrátit se zpět, pokud uživatel nemá oprávnění
+    });
+
+    // Událost pro aktualizaci stavu místnosti (posílá server všem v místnosti)
+    socket.on('roomState', (roomData) => {
+        console.log('app.js: Přijat roomState aktualizace:', roomData);
+        // Aktualizujeme UI podle aktuálního stavu místnosti, pokud je to pro naši aktivní místnost
+        if (roomData && roomData.roomId === currentRoomCode) { 
+            // Aktualizace seznamu hráčů v lobby (pro hostitele i hráče)
+            if (lobbyPlayerList) {
+                lobbyPlayerList.innerHTML = ''; // Vyčisti starý seznam
+                if (roomData.players && roomData.players.length > 0) {
+                    roomData.players.forEach(player => {
+                        const li = document.createElement('li');
+                        li.textContent = player.username;
+                        // Přidáme indikátor hostitele
+                        if (player.id === roomData.hostId) {
+                            li.textContent += ' (Host)';
+                            li.style.fontWeight = 'bold';
+                        }
+                        lobbyPlayerList.appendChild(li);
+                    });
+                } else {
+                    const li = document.createElement('li');
+                    li.textContent = 'Žádní hráči v místnosti.';
+                    lobbyPlayerList.appendChild(li);
+                }
+            }
+
+            // Aktualizace nastavení hry v roomSettingsSection, pokud je klient hostitelem
+            // To zajišťuje, že hostitel vidí aktuální nastavení i po jejich změně nebo po připojení jiných hráčů
+            if (roomData.hostId === socket.id && roomData.gameSettings) {
+                maxPlayersInput.value = roomData.gameSettings.numRounds || 3; // Používáme numRounds pro maxPlayersInput
+                roundTimeInput.value = roomData.gameSettings.roundDuration || 30;
+                buzzerDelayInput.value = roomData.gameSettings.buzzerDelay || 0;
+                hostPlaysToggle.checked = roomData.gameSettings.hostPlays;
+            }
+
+            // Zde by se mohla implementovat logika pro přepínání sekcí na základě `gameState`
+            // Například: pokud je `gameState` "ACTIVE_ROUND", přepni na herní obrazovku
+            // if (roomData.gameState === 'ACTIVE_ROUND' && currentActiveSectionId !== 'gameplaySection') {
+            //     showSection('gameplaySection');
+            // } else if (roomData.gameState === 'LOBBY' && roomData.hostId === socket.id && currentActiveSectionId !== 'roomSettingsSection') {
+            //     showSection('roomSettingsSection');
+            // } else if (roomData.gameState === 'LOBBY' && roomData.hostId !== socket.id && currentActiveSectionId !== 'lobbySection') {
+            //     showSection('lobbySection');
+            // }
+        }
+    });
+
+    // Událost, když je místnost zavřena (např. hostitelem nebo když odejde poslední hráč)
+    socket.on('roomClosed', (message) => {
+        console.log(`app.js: Místnost uzavřena: ${message}`);
+        alert(message || 'Místnost byla zrušena.');
+        currentRoomCode = null; // Vyčistíme kód místnosti
+        showSection('homeSection'); // Vrátíme se na domovskou obrazovku
+    });
+
+    // Zde budou další Socket.IO listenery pro herní události (buzzerWinner, roundStarted, roundEnded atd.)
+    // Tyto by se implementovaly, až budeš mít rozpracovanou herní logiku a UI pro ně.
+    // socket.on('buzzerWinner', (winnerData) => { console.log('Bzučel:', winnerData.username); /* Aktualizuj UI vítěze */ });
+    // socket.on('roundStarted', (roundNum, settings) => { console.log(`Kolo ${roundNum} začalo!`); /* Zobraz časovač, skryj bzučák */ });
+    // socket.on('roundEnded', (roundNum, winner) => { console.log(`Kolo ${roundNum} skončilo. Vítěz: ${winner?.username || 'nikdo'}`); /* Zobraz výsledky kola */ });
+    // socket.on('gameOver', () => { console.log('Hra skončila!'); /* Zobraz výsledky hry, nabídni reset */ });
+    // socket.on('countdownStart', (time) => { console.log(`Kolo začne za ${time} sekund...`); /* Zobraz odpočet */ });
+}); // Konec DOMContentLoaded
