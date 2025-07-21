@@ -19,22 +19,20 @@ app.use(cors());
 // Toto je klíčové pro Render, kde se URL mohou lišit
 const allowedOrigins = [
     "http://127.0.0.1:5500", // Povolit váš lokální frontend
-    "https://buzzer-app-t20g.onrender.com" // Povolit vaši nasazenou frontend URL
+    "https://buzzer-app-t20g.onrender.com", // Původní nasazená frontend URL
+    "https://buzzer-app1.onrender.com" // NOVÁ nasazená frontend URL
 ];
 
 // Přidáme proměnnou prostředí Renderu, pokud existuje
 if (process.env.RENDER_EXTERNAL_URL) {
-    // RENDER_EXTERNAL_URL je URL vašeho backendu, takže přidáme frontend URL
-    // Můžete to upravit, pokud se vaše frontend URL liší od backend URL na Renderu
-    // Například, pokud je frontend na 'https://your-frontend-app.onrender.com'
-    // allowedOrigins.push('https://your-frontend-app.onrender.com'); 
-    // Pro jednoduchost předpokládáme, že frontend je na stejné doméně jako backend, ale bez '/api' nebo podobně
-    // NEBO pokud máte frontend na jiné subdoméně, přidejte ji explicitně
-    // Například, pokud je váš frontend na 'https://my-buzzer-frontend.onrender.com'
-    // allowedOrigins.push('https://my-buzzer-frontend.onrender.com');
-    // Vzhledem k tomu, že hlásíte chybu z 'https://buzzer-app-t20g.onrender.com', ujistěte se, že je zde
+    // RENDER_EXTERNAL_URL je URL vašeho backendu.
+    // Zde zajistíme, že všechny relevantní frontend URL jsou zahrnuty.
+    // Měli byste zde přidat jakékoli další URL, ze kterých se váš frontend může připojovat.
     if (!allowedOrigins.includes("https://buzzer-app-t20g.onrender.com")) {
         allowedOrigins.push("https://buzzer-app-t20g.onrender.com");
+    }
+    if (!allowedOrigins.includes("https://buzzer-app1.onrender.com")) {
+        allowedOrigins.push("https://buzzer-app1.onrender.com");
     }
 }
 
