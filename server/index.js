@@ -12,13 +12,19 @@ const app = express();
 const server = http.createServer(app);
 
 // Povolení CORS pro Express aplikaci (pro HTTP požadavky, jako je generování QR)
-app.use(cors()); // Toto povolí všechny cross-origin požadavky
+// Toto je pro REST API endpoints, jako je /generate_qr
+app.use(cors()); 
 
-// Inicializace Socket.IO serveru s CORS konfigurací
+// Inicializace Socket.IO serveru s rozšířenou CORS konfigurací
 const io = new Server(server, {
   cors: {
-    origin: "*", // Povolí připojení z jakékoli domény (pro vývoj/testování)
-    methods: ["GET", "POST"] // Povolí metody pro komunikaci
+    origin: [
+        "http://127.0.0.1:5500", // Povolit váš lokální frontend
+        "https://buzzer-app-t20g.onrender.com" // Povolit vaši nasazenou frontend URL (pokud ji budete mít)
+        // Můžete přidat i další povolené domény, např. "http://localhost:3000"
+    ],
+    methods: ["GET", "POST"], // Povolí metody pro komunikaci
+    credentials: true // Důležité pro přenos cookies a autorizačních hlaviček
   }
 });
 
