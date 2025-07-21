@@ -5,7 +5,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const qrcode = require('qrcode'); // Import knihovny qrcode
-const cors = require('require'); // Import knihovny cors
+const cors = require('cors'); // Import knihovny cors
 
 // Inicializace Express aplikace a HTTP serveru
 const app = express();
@@ -581,7 +581,7 @@ io.on('connection', (socket) => {
         if (rooms[roomId].hostId === socket.id) {
             console.log(`Hostitel ${socket.username} se odpojil. Místnost ${roomId} byla zrušena.`);
             io.to(roomId).emit('roomClosed', 'Hostitel opustil místnost. Místnost byla zrušena.');
-            // Zruš případný časovač kola, pokud existuje
+            // Zruš případný časovač kola
             if (rooms[roomId].roundTimer) { 
                 clearTimeout(rooms[roomId].roundTimer);
                 rooms[roomId].roundTimer = null;
