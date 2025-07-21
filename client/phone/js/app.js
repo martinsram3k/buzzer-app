@@ -50,7 +50,7 @@ const hostPlaysToggle = document.getElementById('hostPlays'); // Změněno z hos
 const updateSettingsButton = document.getElementById('updateSettingsButton');
 const startGameButton = document.getElementById('startGameButton');
 const closeRoomButton = document.getElementById('closeRoomButton');
-const hostPlayerList = document.getElementById('hostPlayerList'); // Seznam hráčů pro hostitele
+const hostPlayerList = document.getElementById('hostPlayerList'); // Seznam hráčů pro hostitele (NOVÝ ELEMENT)
 const qrCodeContainer = document.getElementById('qrCodeContainer'); // OPRAVENO: ID elementu pro QR kód
 
 // Reference pro elementy v gameplaySection
@@ -357,10 +357,29 @@ function updateLobbyUI(roomData) {
             hostPlayerList.innerHTML = ''; // Vyčistíme seznam hráčů
             roomData.players.forEach(player => {
                 const li = document.createElement('li');
-                li.textContent = player.username;
+                li.classList.add('player-item'); // Přidáme třídu pro styling
+
+                // Jméno hráče
+                const playerNameSpan = document.createElement('span');
+                playerNameSpan.textContent = player.username;
                 if (player.id === roomData.hostId) {
-                    li.textContent += ' (Host)';
-                    li.classList.add('player-host');
+                    playerNameSpan.textContent += ' (Host)';
+                    playerNameSpan.classList.add('player-host');
+                }
+                li.appendChild(playerNameSpan);
+
+                // Tlačítko pro vyhození hráče (pouze pokud to není hostitel)
+                if (player.id !== roomData.hostId) {
+                    const kickButton = document.createElement('button');
+                    kickButton.textContent = 'Vykopnout';
+                    kickButton.classList.add('kick-button');
+                    kickButton.addEventListener('click', () => {
+                        // Potvrzení před vykopnutím
+                        if (confirm(`Opravdu chcete vykopnout hráče ${player.username}?`)) {
+                            window.kickPlayer(player.id); // Voláme funkci z socketService.js
+                        }
+                    });
+                    li.appendChild(kickButton);
                 }
                 hostPlayerList.appendChild(li);
             });
@@ -921,7 +940,7 @@ window.onload = () => {
         buzzButton.classList.remove('hidden');
         // Povol bzučák, pokud hostitel hraje nebo jsi hráč
         if (currentRoomState.hostId === socket.id && !settings.hostPlays) {
-            buzzButton.disabled = true; // Hostitel nehraje
+            buzzButton.disabled = true;
             buzzButton.classList.add('disabled');
         } else {
             buzzButton.disabled = false;
