@@ -1,9 +1,10 @@
 // server/index.js
 
-// Import modulů Express a Socket.IO
+// Import modulů Express, HTTP a Socket.IO
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
+const qrcode = require('qrcode'); // Import knihovny qrcode
 
 // Inicializace Express aplikace a HTTP serveru
 const app = express();
@@ -39,6 +40,33 @@ function generateRoomCode() {
 app.get('/', (req, res) => {
   res.send('Buzzer server is running!');
 });
+
+// NOVÝ ENDPOINT: Generování QR kódu
+app.get('/generate_qr', async (req, res) => {
+    const text = req.query.text; // Získání textu z query parametru
+    if (!text) {
+        return res.status(400).json({ error: "Parametr 'text' je povinný." });
+    }
+
+    try {
+        // Generování QR kódu jako datového URI (base64)
+        // Použijeme toDataURL, které vrací string 'data:image/png;base64,...'
+        const qrCodeDataUrl = await qrcode.toDataURL(text, {
+            errorCorrectionLevel: 'H', // Vysoká úroveň korekce chyb
+            width: 200, // Šířka QR kódu v pixelech
+            margin: 1, // Okraj kolem QR kódu
+        });
+
+        // Odešle base64 řetězec zpět klientovi
+        // Odstraníme prefix 'data:image/png;base64,' protože frontend ho přidá
+        const base64Image = qrCodeDataUrl.split(',')[1];
+        res.json({ qr_code_image: base64Image });
+    } catch (err) {
+        console.error('Chyba při generování QR kódu:', err);
+        res.status(500).json({ error: 'Interní chyba serveru při generování QR kódu.' });
+    }
+});
+
 
 // --- Socket.IO logika ---
 io.on('connection', (socket) => {
@@ -412,7 +440,7 @@ io.on('connection', (socket) => {
       emitRoomState(roomId); // Pošleme aktualizovaný stav
 
       // Zkontroluj, zda je konec hry po bzučení (pokud je aktuální kolo poslední)
-      if (rooms[roomId].currentRound >= rooms[roomId].gameSettings.numRounds) {
+      if (rooms[roomId].currentRound >= rooms[roomId].gameSettings.numRrounds) {
         console.log(`Server: Všechna kola odehrána po bzučení v místnosti ${roomId}. Hra končí.`);
         rooms[roomId].gameState = 'GAME_OVER'; // Nastav stav na konec hry
         emitRoomState(roomId);

@@ -46,12 +46,12 @@ const settingsRoomCode = document.getElementById('settingsRoomCode');
 const maxPlayersInput = document.getElementById('maxPlayers'); // Předpokládá se pro numRounds
 const roundTimeInput = document.getElementById('roundTime');
 const buzzerDelayInput = document.getElementById('buzzerDelay');
-const hostPlaysToggle = document.getElementById('hostPlays');
+const hostPlaysToggle = document.getElementById('hostPlays'); // Změněno z hostPlays na hostPlaysToggle pro konzistenci
 const updateSettingsButton = document.getElementById('updateSettingsButton');
 const startGameButton = document.getElementById('startGameButton');
 const closeRoomButton = document.getElementById('closeRoomButton');
 const hostPlayerList = document.getElementById('hostPlayerList'); // Seznam hráčů pro hostitele
-const qrcodeContainer = document.getElementById('qrcodeContainer'); // KONTEJNER PRO QR KÓD
+const qrCodeContainer = document.getElementById('qrCodeContainer'); // OPRAVENO: ID elementu pro QR kód
 
 // Reference pro elementy v gameplaySection
 const currentRoundDisplay = document.getElementById('currentRoundDisplay');
@@ -73,9 +73,13 @@ let html5QrCode = null; // Instance HTML5-QR kód čtečky
 let gameMode = null; // Ukládá herní režim ('join' nebo 'create')
 let currentRoomCode = null; // Pro uložení kódu místnosti (získaného ze serveru)
 let currentRoomState = null; // Ukládá aktuální stav místnosti ze serveru (z roomState události)
-let qrCodeInstance = null; // Instance pro generování QR kódu
+// let qrCodeInstance = null; // Tato proměnná již není potřeba pro klientské generování QR kódu
 
 const sectionHistory = []; // Historie navštívených sekcí pro funkci zpět
+
+// URL vašeho backend serveru pro generování QR kódů
+// ZMĚŇTE TUTO URL na skutečnou URL vašeho Render serveru!
+const QR_BACKEND_URL = 'https://buzzer-app-t20g.onrender.com/generate_qr'; // PŘÍKLAD! AKTUALIZUJTE TOTO!
 
 
 // --- Funkce pro přepínání sekcí ---
@@ -163,9 +167,9 @@ function showSection(newSectionId, isBackNavigation = false) {
     }
 
     // Vyčištění QR kódu, pokud opouštíme roomSettingsSection
-    if (newSectionId !== 'roomSettingsSection' && qrCodeInstance) {
-        if (qrcodeContainer) qrcodeContainer.innerHTML = '';
-        qrCodeInstance = null;
+    if (newSectionId !== 'roomSettingsSection') { // Není potřeba kontrolovat qrCodeInstance, stačí vyčistit
+        if (qrCodeContainer) qrCodeContainer.innerHTML = ''; 
+        qrCodeContainer.classList.add('hidden'); 
         console.log('QR kód vyčištěn, protože jsme opustili roomSettingsSection.');
     }
 }
@@ -271,34 +275,72 @@ function handleGameModeEntry(mode) {
 }
 
 
-// --- Funkce pro generování QR kódu ---
+// --- Funkce pro generování QR kódu z backendu ---
 /**
- * Generuje QR kód a zobrazí ho v určeném kontejneru.
+ * Generuje QR kód voláním backendu a zobrazí ho v určeném kontejneru.
  * @param {string} dataText Data, která mají být zakódována do QR kódu (např. kód místnosti).
  */
-function generateQRCode(dataText) {
-    // Nejdříve vyčistíme předchozí QR kód, pokud existuje
-    if (qrCodeInstance) {
-        if (qrcodeContainer) qrcodeContainer.innerHTML = ''; // Vyčistí obsah divu
-        qrCodeInstance = null; // Resetuje instanci
-        console.log('Předchozí QR kód vyčištěn.');
+async function generateQRCode(dataText) {
+    console.log('generateQRCode called with data:', dataText);
+    console.log('qrCodeContainer element:', qrCodeContainer);
+
+    // Nejdříve vyčistíme předchozí obsah kontejneru
+    if (qrCodeContainer) {
+        qrCodeContainer.innerHTML = '';
+        qrCodeContainer.classList.add('hidden'); // Skryjeme kontejner, dokud se obrázek nenačte
+        qrCodeContainer.style.display = 'flex'; // Zajištění flex display pro centrování
+    } else {
+        console.error('Nelze generovat QR kód: Kontejner (qrCodeContainer) nebyl nalezen v DOM.');
+        return;
     }
 
-    if (qrcodeContainer && typeof QRCode !== 'undefined') { // Zkontrolujeme, zda qrcode.js je načten
-        console.log("Generuji QR kód pro data:", dataText);
-        qrCodeInstance = new QRCode(qrcodeContainer, {
-            text: dataText,
-            width: 180, // Velikost QR kódu
-            height: 180,
-            colorDark : "#000000",
-            colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.H // Úroveň korekce chyb (L, M, Q, H)
-        });
-        qrcodeContainer.style.display = 'flex'; // Zobrazíme kontejner QR kódu
-    } else {
-        console.warn('Nelze generovat QR kód. Kontejner (qrcodeContainer) nebo knihovna QRCode.js není dostupná.');
+    // Vytvoříme element pro obrázek, který bude obsahovat QR kód
+    const qrImage = document.createElement('img');
+    qrImage.alt = 'QR Code';
+    qrImage.style.maxWidth = '100%'; // Zajistí, že obrázek nepřeteče kontejner
+    qrImage.style.height = 'auto';
+
+    // Přidáme loading spinner
+    const spinner = document.createElement('div');
+    spinner.className = 'spinner'; // Použijte existující styl spinneru
+    qrCodeContainer.appendChild(spinner);
+    qrCodeContainer.classList.remove('hidden'); // Zobrazíme kontejner se spinnerem
+
+    try {
+        const response = await fetch(`${QR_BACKEND_URL}?text=${encodeURIComponent(dataText)}`);
+        if (!response.ok) {
+            throw new Error(`HTTP chyba! Status: ${response.status}`);
+        }
+        const data = await response.json();
+
+        if (data.qr_code_image) {
+            qrImage.src = `data:image/png;base64,${data.qr_code_image}`;
+            qrImage.onload = () => {
+                // Po načtení obrázku odstraníme spinner a zobrazíme obrázek
+                qrCodeContainer.innerHTML = ''; // Vyčistíme spinner
+                qrCodeContainer.appendChild(qrImage);
+                qrCodeContainer.classList.remove('hidden'); // Zobrazíme kontejner s QR kódem
+                console.log('QR kód z backendu úspěšně zobrazen.');
+            };
+            qrImage.onerror = () => {
+                console.error('Chyba při načítání QR kódu z base64 dat.');
+                qrCodeContainer.innerHTML = '<p style="color: red;">Chyba: Nelze načíst QR kód.</p>';
+            };
+        } else {
+            console.error('Odpověď z backendu neobsahuje qr_code_image.');
+            qrCodeContainer.innerHTML = '<p style="color: red;">Chyba: QR kód nebyl vygenerován.</p>';
+        }
+    } catch (error) {
+        console.error('Chyba při volání backendu pro QR kód:', error);
+        qrCodeContainer.innerHTML = `<p style="color: red;">Chyba generování QR kódu: ${error.message}</p>`;
+    } finally {
+        // Ujistíme se, že spinner je odstraněn i v případě chyby
+        if (spinner.parentNode === qrCodeContainer) {
+            spinner.remove();
+        }
     }
 }
+
 
 // --- Funkce pro aktualizaci UI lobby sekce (pro hostitele i hráče) ---
 /**
@@ -309,22 +351,27 @@ function updateLobbyUI(roomData) {
     if (!roomData) return;
 
     // Aktualizace pro hostitele (roomSettingsSection)
-    if (roomData.hostId === socket.id && hostPlayerList) {
-        hostPlayerList.innerHTML = '';
-        roomData.players.forEach(player => {
-            const li = document.createElement('li');
-            li.textContent = player.username;
-            if (player.id === roomData.hostId) {
-                li.textContent += ' (Host)';
-                li.classList.add('player-host');
-            }
-            hostPlayerList.appendChild(li);
-        });
-        settingsRoomCode.textContent = roomData.roomId;
+    // Zde by se měl aktualizovat seznam hráčů a nastavení v roomSettingsSection
+    if (roomData.hostId === socket.id) {
+        if (hostPlayerList) {
+            hostPlayerList.innerHTML = ''; // Vyčistíme seznam hráčů
+            roomData.players.forEach(player => {
+                const li = document.createElement('li');
+                li.textContent = player.username;
+                if (player.id === roomData.hostId) {
+                    li.textContent += ' (Host)';
+                    li.classList.add('player-host');
+                }
+                hostPlayerList.appendChild(li);
+            });
+        }
+        if (settingsRoomCode) {
+            settingsRoomCode.textContent = roomData.roomId;
+        }
 
         // Aktualizuj nastavení UI podle dat ze serveru (pro případ, že je hostitel znovu načte)
         if (roomData.gameSettings) {
-            maxPlayersInput.value = roomData.gameSettings.numRounds;
+            maxPlayersInput.value = roomData.gameSettings.numRounds; // Předpokládá se, že maxPlayers je pro numRounds
             roundTimeInput.value = roomData.gameSettings.roundDuration;
             buzzerDelayInput.value = roomData.gameSettings.buzzerDelay;
             hostPlaysToggle.checked = roomData.gameSettings.hostPlays;
@@ -343,21 +390,31 @@ function updateLobbyUI(roomData) {
                 startGameButton.classList.add('disabled');
             }
         }
+        // Zobrazíme QR kód, pokud je hostitel a je v roomSettingsSection
+        if (currentActiveSectionId === 'roomSettingsSection') {
+            generateQRCode(roomData.roomId);
+        } else {
+            qrCodeContainer.classList.add('hidden'); // Skryjeme QR kód, pokud nejsme v roomSettingsSection
+        }
 
     } 
     // Aktualizace pro hráče (lobbySection)
-    else if (roomData.hostId !== socket.id && lobbyPlayerList) {
-        lobbyPlayerList.innerHTML = '';
-        roomData.players.forEach(player => {
-            const li = document.createElement('li');
-            li.textContent = player.username;
-            if (player.id === roomData.hostId) {
-                li.textContent += ' (Host)';
-                li.classList.add('player-host');
-            }
-            lobbyPlayerList.appendChild(li);
-        });
-        lobbyRoomCode.textContent = roomData.roomId;
+    else { // if (roomData.hostId !== socket.id)
+        if (lobbyPlayerList) {
+            lobbyPlayerList.innerHTML = '';
+            roomData.players.forEach(player => {
+                const li = document.createElement('li');
+                li.textContent = player.username;
+                if (player.id === roomData.hostId) {
+                    li.textContent += ' (Host)';
+                    li.classList.add('player-host');
+                }
+                lobbyPlayerList.appendChild(li);
+            });
+        }
+        if (lobbyRoomCode) {
+            lobbyRoomCode.textContent = roomData.roomId;
+        }
 
         // Skrýt text "Čekání na hostitele", pokud hra začala
         if (waitingForHostText) {
@@ -367,6 +424,7 @@ function updateLobbyUI(roomData) {
                 waitingForHostText.classList.add('hidden');
             }
         }
+        qrCodeContainer.classList.add('hidden'); // Skryjeme QR kód pro hráče
     }
 }
 
@@ -418,7 +476,7 @@ function updateGameplayUI(roomData) {
             buzzButton.disabled = true; // Zakaž bzučák po konci kola
 
             // Tlačítko pro další kolo pro hostitele
-            if (roomData.hostId === socket.id && roomData.currentRound < roomData.gameSettings.numRounds) {
+            if (currentRoomState && currentRoomState.hostId === socket.id && currentRoomState.currentRound < currentRoomState.gameSettings.numRounds) {
                 nextRoundButton.classList.remove('hidden');
             }
             break;
@@ -429,7 +487,7 @@ function updateGameplayUI(roomData) {
             buzzButton.disabled = true;
 
             // Tlačítko pro novou hru pro hostitele
-            if (roomData.hostId === socket.id) {
+            if (currentRoomState && currentRoomState.hostId === socket.id) {
                 newGameButton.classList.remove('hidden');
             }
             break;
@@ -441,10 +499,10 @@ function updateGameplayUI(roomData) {
 }
 
 
-// --- DOMContentLoaded Event Listener ---
-// Zajišťuje, že kód se spustí až po načtení celého DOM.
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOMContentLoaded: DOM je načten.');
+// --- window.onload Event Listener (Změněno z DOMContentLoaded) ---
+// Zajišťuje, že kód se spustí až po načtení celého DOM a všech zdrojů.
+window.onload = () => {
+    console.log('window.onload: Všechny zdroje načteny, DOM je připraven.');
 
     // Zobrazení/skrytí loading screenu po krátké prodlevě
     setTimeout(() => {
@@ -763,7 +821,7 @@ document.addEventListener('DOMContentLoaded', () => {
             hostPlaysToggle.checked = true; // Host Plays
         }
         showSection('roomSettingsSection'); // Přepneme na sekci nastavení místnosti
-        generateQRCode(roomId); // ZAVOLÁNÍ FUNKCE PRO GENERování QR KÓDU PRO HOSTITELE
+        // generateQRCode(roomId); // Původní volání, které bylo přesunuto do updateLobbyUI
     });
 
     // Událost od serveru po úspěšném připojení k místnosti
@@ -802,17 +860,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Aktualizujeme UI podle aktuálního stavu místnosti, pokud je to pro naši aktivní místnost
         if (roomData && roomData.roomId === currentRoomCode) { 
-            updateLobbyUI(roomData); // Aktualizuje UI lobby (seznam hráčů, nastavení pro hostitele)
+            // Zkontrolujeme, zda je uživatel hostitel nebo hráč
+            const isCurrentUserHost = roomData.hostId === socket.id;
 
             // Logika pro přepínání sekcí na základě `gameState`
-            // Pokud je klient hostitel, ukáže roomSettings, jinak lobby
             if (roomData.gameState === 'LOBBY') {
-                if (roomData.hostId === socket.id && currentActiveSectionId !== 'roomSettingsSection') {
+                if (isCurrentUserHost && currentActiveSectionId !== 'roomSettingsSection') {
                     showSection('roomSettingsSection');
-                    generateQRCode(roomData.roomId); // Znovu vygeneruj QR kód, pokud se hostitel vrací do nastavení
-                } else if (roomData.hostId !== socket.id && currentActiveSectionId !== 'lobbySection') {
+                } else if (!isCurrentUserHost && currentActiveSectionId !== 'lobbySection') {
                     showSection('lobbySection');
                 }
+                updateLobbyUI(roomData); // Aktualizuje UI lobby (seznam hráčů, nastavení pro hostitele)
             } else if (roomData.gameState === 'COUNTDOWN' || roomData.gameState === 'ACTIVE_ROUND' || roomData.gameState === 'ROUND_END' || roomData.gameState === 'GAME_OVER') {
                 // Přepne na herní obrazovku, pokud se hra aktivně hraje nebo skončila
                 if (currentActiveSectionId !== 'gameplaySection') {
@@ -830,9 +888,9 @@ document.addEventListener('DOMContentLoaded', () => {
         currentRoomCode = null; // Vyčistíme kód místnosti
         currentRoomState = null; // Vyčistíme stav místnosti
         showSection('homeSection'); // Vrátíme se na domovskou obrazovku
-        if (qrCodeInstance) { // Vyčistíme QR kód
-            if (qrcodeContainer) qrcodeContainer.innerHTML = '';
-            qrCodeInstance = null;
+        if (qrCodeContainer) { // Vyčistíme QR kód
+            qrCodeContainer.innerHTML = ''; 
+            qrCodeContainer.classList.add('hidden'); // Skryjeme kontejner
         }
     });
 
@@ -940,10 +998,10 @@ document.addEventListener('DOMContentLoaded', () => {
         currentRoomCode = null;
         currentRoomState = null;
         showSection('homeSection'); // Vrátíme se na domovskou obrazovku
-        if (qrCodeInstance) { // Vyčistíme QR kód
-            if (qrcodeContainer) qrcodeContainer.innerHTML = '';
-            qrCodeInstance = null;
+        if (qrCodeContainer) { // Vyčistíme QR kód
+            qrCodeContainer.innerHTML = ''; 
+            qrCodeContainer.classList.add('hidden'); // Skryjeme kontejner
         }
     });
 
-}); // Konec DOMContentLoaded
+}; // Konec window.onload

@@ -1071,15 +1071,16 @@ input:checked+.slider:before {
 
 .qr-code-container {
     margin: 20px auto;
-    width: 200px; /* Nastav šířku QR kódu */
-    height: 200px; /* Nastav výšku QR kódu */
-    border: 1px solid #ccc;
+    width: 180px; /* Nastav šířku QR kódu */
+    height: 180px; /* Nastav výšku QR kódu */
+    border: 1px solid var(--input-border-color); /* Použij proměnnou pro barvu rámečku */
     padding: 10px;
-    background-color: white;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    background-color: var(--background-light); /* Použij proměnnou pro pozadí */
+    box-shadow: var(--box-shadow); /* Použij proměnnou pro stín */
     display: flex; /* Pro vycentrování canvasu uvnitř, pokud je potřeba */
     justify-content: center;
     align-items: center;
+    border-radius: 10px; /* Zaoblené rohy */
 }
 
 .qr-code-container canvas {
