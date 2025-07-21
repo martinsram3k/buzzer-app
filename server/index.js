@@ -15,14 +15,34 @@ const server = http.createServer(app);
 // Toto je pro REST API endpoints, jako je /generate_qr
 app.use(cors()); 
 
+// Dynamické určení povolených originů pro Socket.IO
+// Toto je klíčové pro Render, kde se URL mohou lišit
+const allowedOrigins = [
+    "http://127.0.0.1:5500", // Povolit váš lokální frontend
+    "https://buzzer-app-t20g.onrender.com" // Povolit vaši nasazenou frontend URL
+];
+
+// Přidáme proměnnou prostředí Renderu, pokud existuje
+if (process.env.RENDER_EXTERNAL_URL) {
+    // RENDER_EXTERNAL_URL je URL vašeho backendu, takže přidáme frontend URL
+    // Můžete to upravit, pokud se vaše frontend URL liší od backend URL na Renderu
+    // Například, pokud je frontend na 'https://your-frontend-app.onrender.com'
+    // allowedOrigins.push('https://your-frontend-app.onrender.com'); 
+    // Pro jednoduchost předpokládáme, že frontend je na stejné doméně jako backend, ale bez '/api' nebo podobně
+    // NEBO pokud máte frontend na jiné subdoméně, přidejte ji explicitně
+    // Například, pokud je váš frontend na 'https://my-buzzer-frontend.onrender.com'
+    // allowedOrigins.push('https://my-buzzer-frontend.onrender.com');
+    // Vzhledem k tomu, že hlásíte chybu z 'https://buzzer-app-t20g.onrender.com', ujistěte se, že je zde
+    if (!allowedOrigins.includes("https://buzzer-app-t20g.onrender.com")) {
+        allowedOrigins.push("https://buzzer-app-t20g.onrender.com");
+    }
+}
+
+
 // Inicializace Socket.IO serveru s rozšířenou CORS konfigurací
 const io = new Server(server, {
   cors: {
-    origin: [
-        "http://127.0.0.1:5500", // Povolit váš lokální frontend
-        "https://buzzer-app-t20g.onrender.com" // Povolit vaši nasazenou frontend URL (pokud ji budete mít)
-        // Můžete přidat i další povolené domény, např. "http://localhost:3000"
-    ],
+    origin: allowedOrigins, // Použijeme dynamicky definované povolené originy
     methods: ["GET", "POST"], // Povolí metody pro komunikaci
     credentials: true // Důležité pro přenos cookies a autorizačních hlaviček
   }
