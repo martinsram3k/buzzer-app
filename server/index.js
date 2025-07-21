@@ -5,10 +5,14 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const qrcode = require('qrcode'); // Import knihovny qrcode
+const cors = require('cors'); // Import knihovny cors
 
 // Inicializace Express aplikace a HTTP serveru
 const app = express();
 const server = http.createServer(app);
+
+// Povolení CORS pro Express aplikaci (pro HTTP požadavky, jako je generování QR)
+app.use(cors()); // Toto povolí všechny cross-origin požadavky
 
 // Inicializace Socket.IO serveru s CORS konfigurací
 const io = new Server(server, {
@@ -440,7 +444,7 @@ io.on('connection', (socket) => {
       emitRoomState(roomId); // Pošleme aktualizovaný stav
 
       // Zkontroluj, zda je konec hry po bzučení (pokud je aktuální kolo poslední)
-      if (rooms[roomId].currentRound >= rooms[roomId].gameSettings.numRrounds) {
+      if (rooms[roomId].currentRound >= rooms[roomId].gameSettings.numRounds) {
         console.log(`Server: Všechna kola odehrána po bzučení v místnosti ${roomId}. Hra končí.`);
         rooms[roomId].gameState = 'GAME_OVER'; // Nastav stav na konec hry
         emitRoomState(roomId);
@@ -494,7 +498,7 @@ io.on('connection', (socket) => {
 
         // Pokud odešel hostitel, zruš celou místnost
         if (rooms[roomId].hostId === socket.id) {
-            console.log(`Hostitel ${socket.username} se odpojil. Místnost ${roomId} bude zrušena.`);
+            console.log(`Hostitel ${socket.username} se odpojil. Místnost ${roomId} byla zrušena.`);
             io.to(roomId).emit('roomClosed', 'Hostitel opustil místnost. Místnost byla zrušena.');
             // Zruš případný časovač kola, pokud existuje
             if (rooms[roomId].roundTimer) { 
