@@ -1,16 +1,16 @@
 // client-web/js/app.js
 
-// --- Reference na HTML elementy (Zajišťujeme, že elementy existují) ---
-// Hlavní sekce aplikace
+// --- References to HTML elements (Ensuring elements exist) ---
+// Main application sections
 const homeSection = document.getElementById('homeSection');
 const gameSection = document.getElementById('gameSection');
 const accountSection = document.getElementById('accountSection');
 const nameSection = document.getElementById('nameSection');
 const lobbySection = document.getElementById('lobbySection');
 const roomSettingsSection = document.getElementById('roomSettingsSection');
-const gameplaySection = document.getElementById('gameplaySection'); // Nová sekce pro aktivní hru
+const gameplaySection = document.getElementById('gameplaySection'); // New section for active game
 
-// Speciální elementy pro načítání a navigaci
+// Special elements for loading and navigation
 const loadingScreen = document.getElementById('loadingScreen');
 const appContainer = document.getElementById('appContainer');
 const navButtons = document.querySelectorAll('.nav-button');
@@ -21,7 +21,7 @@ const navTitle = document.querySelector('.top-nav .nav-title');
 const navHome = document.querySelector('.top-nav .nav-home');
 const bottomNav = document.querySelector('.bottom-nav');
 
-// Elementy pro vstup a akce
+// Elements for input and actions
 const clearGameCodeButton = document.getElementById('clearGameCodeButton');
 const qrCodeScanIcon = document.getElementById('qrCodeScanIcon');
 const qrReaderDiv = document.getElementById('qr-reader');
@@ -35,25 +35,35 @@ const playerNameInput = document.getElementById('playerNameInput');
 const submitNameButton = document.getElementById('submitNameButton');
 const createGameButton = document.getElementById('createGameButton');
 
-// Reference pro elementy v lobbySection (pro hráče)
+// References for elements in lobbySection (for players)
 const lobbyRoomCode = document.getElementById('lobbyRoomCode');
 const lobbyPlayerList = document.getElementById('lobbyPlayerList');
 const leaveLobbyButton = document.getElementById('leaveLobbyButton');
-const waitingForHostText = document.getElementById('waitingForHostText'); // Přidáno
+const waitingForHostText = document.getElementById('waitingForHostText'); // Added
 
-// Reference pro elementy v roomSettingsSection (pro hostitele)
+// References for elements in roomSettingsSection (for host)
 const settingsRoomCode = document.getElementById('settingsRoomCode');
-const maxPlayersInput = document.getElementById('maxPlayers'); // Předpokládá se pro numRounds
+const maxPlayersAllowedInput = document.getElementById('maxPlayersAllowedInput'); // NEW: Max players in room
 const roundTimeInput = document.getElementById('roundTime');
-const buzzerDelayInput = document.getElementById('buzzerDelay');
-const hostPlaysToggle = document.getElementById('hostPlays'); // Změněno z hostPlays na hostPlaysToggle pro konzistenci
+const hostPlaysToggle = document.getElementById('hostPlays');
+const numRoundsInput = document.getElementById('numRoundsInput'); // NEW: Number of rounds
 const updateSettingsButton = document.getElementById('updateSettingsButton');
 const startGameButton = document.getElementById('startGameButton');
 const closeRoomButton = document.getElementById('closeRoomButton');
-const hostPlayerList = document.getElementById('hostPlayerList'); // Seznam hráčů pro hostitele (NOVÝ ELEMENT)
-const qrCodeContainer = document.getElementById('qrCodeContainer'); // OPRAVENO: ID elementu pro QR kód
+const hostPlayerList = document.getElementById('hostPlayerList');
+const qrCodeContainer = document.getElementById('qrCodeContainer');
 
-// Reference pro elementy v gameplaySection
+// References for advanced settings
+const advanceModeToggle = document.getElementById('advanceModeToggle'); // NEW
+const advancedSettingsContainer = document.getElementById('advancedSettingsContainer'); // NEW
+const multipleBuzzToggle = document.getElementById('multipleBuzzToggle'); // NEW
+const teamsToggle = document.getElementById('teamsToggle'); // NEW
+const teamSizeInput = document.getElementById('teamSizeInput'); // NEW
+const numTeamsInput = document.getElementById('numTeamsInput'); // NEW
+const hostStartsNextRoundToggle = document.getElementById('hostStartsNextRoundToggle'); // NEW
+const restTimeBetweenRoundsInput = document.getElementById('restTimeBetweenRoundsInput'); // NEW
+
+// References for elements in gameplaySection
 const currentRoundDisplay = document.getElementById('currentRoundDisplay');
 const gameStateMessage = document.getElementById('gameStateMessage');
 const countdownDisplay = document.getElementById('countdownDisplay');
@@ -61,91 +71,75 @@ const buzzButton = document.getElementById('buzzButton');
 const winnerDisplay = document.getElementById('winnerDisplay');
 const nextRoundButton = document.getElementById('nextRoundButton');
 const newGameButton = document.getElementById('newGameButton');
-const leaveGameButton = document.getElementById('leaveGameButton'); // Tlačítko pro opuštění hry během aktivní fáze
+const leaveGameButton = document.getElementById('leaveGameButton');
 
 const darkModeToggle = document.getElementById('darkModeToggle');
 
 
-// --- Globální stavové proměnné ---
-let currentActiveSectionId = null; // ID aktuálně aktivní sekce
-let isShifted = false; // Stav pro posun horní a dolní navigace
-let html5QrCode = null; // Instance HTML5-QR kód čtečky
-let gameMode = null; // Ukládá herní režim ('join' nebo 'create')
-let currentRoomCode = null; // Pro uložení kódu místnosti (získaného ze serveru)
-let currentRoomState = null; // Ukládá aktuální stav místnosti ze serveru (z roomState události)
-// let qrCodeInstance = null; // Tato proměnná již není potřeba pro klientské generování QR kódu
+// --- Global state variables ---
+let currentActiveSectionId = null;
+let isShifted = false;
+let html5QrCode = null;
+let gameMode = null;
+let currentRoomCode = null;
+let currentRoomState = null;
 
-const sectionHistory = []; // Historie navštívených sekcí pro funkci zpět
+const sectionHistory = [];
 
-// URL vašeho backend serveru pro generování QR kódů
-// ZMĚŇTE TUTO URL na skutečnou URL vašeho Render serveru!
-const QR_BACKEND_URL = 'https://buzzer-app-t20g.onrender.com/generate_qr'; // PŘÍKLAD! AKTUALIZUJTE TOTO!
+const QR_BACKEND_URL = 'https://buzzer-app-t20g.onrender.com/generate_qr';
 
 
-// --- Funkce pro přepínání sekcí ---
+// --- Functions for switching sections ---
 /**
- * Zobrazí konkrétní sekci a skryje všechny ostatní.
- * Používá CSS třídy 'active' pro plynulé přechody.
- * @param {string} newSectionId ID HTML elementu sekce, která se má zobrazit (např. 'homeSection').
- * @param {boolean} isBackNavigation Indikuje, zda jde o navigaci zpět (výchozí hodnota false).
+ * Displays a specific section and hides all others.
+ * Uses CSS 'active' classes for smooth transitions.
+ * @param {string} newSectionId ID of the HTML element section to display (e.g., 'homeSection').
+ * @param {boolean} isBackNavigation Indicates whether it's a back navigation (default false).
  */
 function showSection(newSectionId, isBackNavigation = false) {
-    // Pokud je sekce již aktivní, nic neděláme
     if (newSectionId === currentActiveSectionId) {
-        console.log(`showSection: Sekce '${newSectionId}' je již aktivní, přeskočeno.`);
+        console.log(`showSection: Section '${newSectionId}' is already active, skipped.`);
         return;
     }
 
-    console.log(`showSection: Přepínání ze sekce '${currentActiveSectionId || 'žádná'}' na '${newSectionId}'. Je to návrat: ${isBackNavigation}`);
+    console.log(`showSection: Switching from section '${currentActiveSectionId || 'none'}' to '${newSectionId}'. Is it a return: ${isBackNavigation}`);
 
-    // --- Správa historie sekcí ---
     if (!isBackNavigation) {
-        // Přidáme aktuální sekci do historie POUZE, pokud to není stejná sekce, na které již jsme
-        // a pokud to není stejná sekce jako ta poslední v historii (aby se zabránilo duplikátům při opakovaných kliknutích).
         if (currentActiveSectionId && (sectionHistory.length === 0 || sectionHistory[sectionHistory.length - 1] !== currentActiveSectionId)) {
             sectionHistory.push(currentActiveSectionId);
         }
     }
 
-    console.log(`showSection: Aktuální historie před nastavením nové sekce: ${sectionHistory.join(' -> ')}`);
+    console.log(`showSection: Current history before setting new section: ${sectionHistory.join(' -> ')}`);
 
-    // Získání referencí na starou a novou aktivní sekci
     const oldActiveSection = document.getElementById(currentActiveSectionId);
     const newActiveSection = document.getElementById(newSectionId);
 
-    // Skrýt starou aktivní sekci
     if (oldActiveSection) {
         oldActiveSection.classList.remove('active');
-        console.log(`showSection: Odebrána třída 'active' ze staré sekce '${currentActiveSectionId}'.`);
+        console.log(`showSection: Removed 'active' class from old section '${currentActiveSectionId}'.`);
     }
 
-    // Zobrazit novou sekci
     if (newActiveSection) {
         newActiveSection.classList.add('active');
-        currentActiveSectionId = newSectionId; // Aktualizovat ID aktivní sekce.
-        console.log(`showSection: Sekce '${newSectionId}' zobrazena. Nové currentActiveSectionId: ${currentActiveSectionId}`);
+        currentActiveSectionId = newSectionId;
+        console.log(`showSection: Section '${newSectionId}' displayed. New currentActiveSectionId: ${currentActiveSectionId}`);
     } else {
-        console.warn(`showSection: Nová sekce s ID '${newSectionId}' nebyla nalezena v DOM.`);
+        console.warn(`showSection: New section with ID '${newSectionId}' was not found in the DOM.`);
     }
 
-    // --- LOGIKA PRO ANIMACE NAVIGACE (Horní a spodní navigace) ---
-    // Sekce, které vyžadují posunutou navigaci (pro zobrazení tlačítka zpět a menšího titulu)
     const shouldNavBeShifted = (newSectionId === 'nameSection' || newSectionId === 'lobbySection' || newSectionId === 'roomSettingsSection' || newSectionId === 'gameplaySection');
 
-    // Animace posunu navigace, pokud je potřeba změnit stav
     if (shouldNavBeShifted && !isShifted) {
         animateTopNav();
         if (bottomNav) bottomNav.classList.add('shifted');
-        console.log(`showSection: Přepnuto na sekci vyžadující posun (${newSectionId}), navigace posunuta.`);
+        console.log(`showSection: Switched to section requiring shift (${newSectionId}), navigation shifted.`);
     } else if (!shouldNavBeShifted && isShifted) {
         animateTopNav();
         if (bottomNav) bottomNav.classList.remove('shifted');
-        console.log('showSection: Přepnuto na sekci nevyžadující posun, navigace vrácena.');
+        console.log('showSection: Switched to section not requiring shift, navigation returned.');
     }
-    // Pokud je stav již správný, nedělej nic.
 
-    // --- LOGIKA PRO AKTIVNÍ STAV NAVIGAČNÍCH TLAČÍTEK (spodní navigace) ---
-    // Deaktivujeme všechna navigační tlačítka
     navButtons.forEach(button => {
         const navText = button.querySelector('.nav-text');
         const navIcon = button.querySelector('.nav-icon');
@@ -155,7 +149,6 @@ function showSection(newSectionId, isBackNavigation = false) {
         button.classList.remove('active');
     });
 
-    // Aktivujeme správné navigační tlačítko, pokud se nová sekce shoduje s datovou sekcí tlačítka
     const activeButton = document.querySelector(`.nav-button[data-section="${newSectionId}"]`);
     if (activeButton) {
         const activeNavText = activeButton.querySelector('.nav-text');
@@ -166,34 +159,33 @@ function showSection(newSectionId, isBackNavigation = false) {
         activeButton.classList.add('active');
     }
 
-    // Vyčištění QR kódu, pokud opouštíme roomSettingsSection
-    if (newSectionId !== 'roomSettingsSection') { // Není potřeba kontrolovat qrCodeInstance, stačí vyčistit
+    if (newSectionId !== 'roomSettingsSection') {
         if (qrCodeContainer) qrCodeContainer.innerHTML = ''; 
         qrCodeContainer.classList.add('hidden'); 
-        console.log('QR kód vyčištěn, protože jsme opustili roomSettingsSection.');
+        console.log('QR code cleared because we left roomSettingsSection.');
     }
 }
 
-// --- Funkce pro animaci horní navigace ---
+// --- Function for animating top navigation ---
 function animateTopNav() {
     if (navTitle && navHome) {
-        if (!isShifted) { // Pokud není posunuto, posuneme
+        if (!isShifted) {
             navTitle.classList.add('shifted');
             navHome.classList.add('visible');
-        } else { // Pokud je posunuto, vrátíme
+        } else {
             navTitle.classList.remove('shifted');
             navHome.classList.remove('visible');
         }
-        isShifted = !isShifted; // Přepnutí stavu posunu
+        isShifted = !isShifted;
     } else {
-        console.warn('animateTopNav: Některé elementy (navTitle nebo navHome) nebyly nalezeny pro animaci.');
+        console.warn('animateTopNav: Some elements (navTitle or navHome) were not found for animation.');
     }
 }
 
-// --- Funkce pro spuštění postupné animace tlačítek spodní navigace ---
+// --- Function to start staggered animation of bottom navigation buttons ---
 function startStaggeredNavButtonAnimation(delayBetweenButtons = 200) {
     if (navButtons.length === 0) {
-        console.warn('startStaggeredNavButtonAnimation: Nebyla nalezena žádná navigační tlačítka.');
+        console.warn('startStaggeredNavButtonAnimation: No navigation buttons found.');
         return;
     }
 
@@ -202,34 +194,32 @@ function startStaggeredNavButtonAnimation(delayBetweenButtons = 200) {
             button.classList.add('nav-button-hop');
             button.addEventListener('animationend', () => {
                 button.classList.remove('nav-button-hop');
-            }, { once: true }); // Odebere posluchače po první animaci
+            }, { once: true });
         }, index * delayBetweenButtons);
     });
 }
 
-// --- Funkce pro navigaci zpět ---
+// --- Function for navigating back ---
 /**
- * Naviguje na předchozí sekci v historii.
- * Pokud není žádná předchozí sekce (nebo jen homeSection), zůstane na homeSection.
+ * Navigates to the previous section in history.
+ * If there is no previous section (or only homeSection), it stays on homeSection.
  */
 function goBack() {
     if (sectionHistory.length > 0) {
-        const previousSectionId = sectionHistory.pop(); // Vezme poslední sekci z historie
-        console.log(`goBack: Naviguji zpět na '${previousSectionId}'. Aktuální historie: ${sectionHistory.join(' -> ')}`);
-        showSection(previousSectionId, true); // Zobrazí předchozí sekci, označeno jako návrat
+        const previousSectionId = sectionHistory.pop();
+        console.log(`goBack: Navigating back to '${previousSectionId}'. Current history: ${sectionHistory.join(' -> ')}`);
+        showSection(previousSectionId, true);
     } else {
-        console.log('goBack: Historie je prázdná nebo na začátku. Zůstávám na homeSection.');
-        showSection('homeSection', true); // Pokud není kam jít zpět, jdi na home
+        console.log('goBack: History is empty or at the beginning. Staying on homeSection.');
+        showSection('homeSection', true);
     }
 }
 
-
-// --- Funkce pro zobrazení/skrytí QR překrytí ---
+// --- Function for showing/hiding QR overlay ---
 function toggleQrOverlay(show) {
     if (qrOverlay) {
         if (show) {
             qrOverlay.classList.add('active');
-            // Vyčistíme výsledky a vstupní pole, když se překrytí otevře
             if (qrReaderResultsDiv) qrReaderResultsDiv.textContent = '';
             if (joinGameCodeInput) joinGameCodeInput.value = '';
         } else {
@@ -238,128 +228,119 @@ function toggleQrOverlay(show) {
     }
 }
 
-// --- Funkce pro skrytí loading screenu a zobrazení obsahu aplikace ---
+// --- Function for hiding loading screen and showing app content ---
 function hideLoadingScreen() {
     if (loadingScreen) {
-        loadingScreen.classList.add('fade-out'); // Spustí fade-out animaci
-        // Po skončení animace skryje element
+        loadingScreen.classList.add('fade-out');
         loadingScreen.addEventListener('transitionend', () => {
             loadingScreen.style.display = 'none';
-        }, { once: true }); // Posluchač se spustí jen jednou
+        }, { once: true });
     }
 
     if (appContainer) {
         appContainer.classList.remove('hidden-app-content');
         appContainer.classList.add('visible-app-content');
-        console.log('appContainer je viditelný.');
+        console.log('appContainer is visible.');
     }
 
-    // Zpožděné zobrazení první sekce pro plynulejší start
     setTimeout(() => {
         showSection('homeSection');
     }, 100);
 
-    console.log('Aplikace je načtena a připravena.');
+    console.log('Application loaded and ready.');
 }
 
-// --- Centralizovaná logika pro vstup do nameSection ---
+// --- Centralized logic for entering nameSection ---
 /**
- * Zpracuje vstup do nameSection, nastaví gameMode a přepne sekci.
- * @param {string} mode Režim hry ('join' nebo 'create').
+ * Processes entry into nameSection, sets gameMode, and switches section.
+ * @param {string} mode Game mode ('join' or 'create').
  */
 function handleGameModeEntry(mode) {
-    gameMode = mode; // Uložíme režim hry
-    console.log(`handleGameModeEntry: Režim hry nastaven na '${gameMode}'. Přepínám na nameSection.`);
-    playerNameInput.value = ''; // Vyčisti pole jména při vstupu do nameSection
+    gameMode = mode;
+    console.log(`handleGameModeEntry: Game mode set to '${gameMode}'. Switching to nameSection.`);
+    playerNameInput.value = '';
     showSection('nameSection');
 }
 
-
-// --- Funkce pro generování QR kódu z backendu ---
+// --- Function for generating QR code from backend ---
 /**
- * Generuje QR kód voláním backendu a zobrazí ho v určeném kontejneru.
- * @param {string} dataText Data, která mají být zakódována do QR kódu (např. kód místnosti).
+ * Generates a QR code by calling the backend and displays it in the specified container.
+ * @param {string} dataText Data to be encoded into the QR code (e.g., room code).
  */
 async function generateQRCode(dataText) {
     console.log('generateQRCode called with data:', dataText);
     console.log('qrCodeContainer element:', qrCodeContainer);
 
-    // Nejdříve vyčistíme předchozí obsah kontejneru
     if (qrCodeContainer) {
         qrCodeContainer.innerHTML = '';
-        qrCodeContainer.classList.add('hidden'); // Skryjeme kontejner, dokud se obrázek nenačte
-        qrCodeContainer.style.display = 'flex'; // Zajištění flex display pro centrování
+        qrCodeContainer.classList.add('hidden');
+        qrCodeContainer.style.display = 'flex';
     } else {
-        console.error('Nelze generovat QR kód: Kontejner (qrCodeContainer) nebyl nalezen v DOM.');
+        console.error('Cannot generate QR code: Container (qrCodeContainer) was not found in the DOM.');
         return;
     }
 
-    // Vytvoříme element pro obrázek, který bude obsahovat QR kód
     const qrImage = document.createElement('img');
     qrImage.alt = 'QR Code';
-    qrImage.style.maxWidth = '100%'; // Zajistí, že obrázek nepřeteče kontejner
+    qrImage.style.maxWidth = '100%';
     qrImage.style.height = 'auto';
 
-    // Přidáme loading spinner
     const spinner = document.createElement('div');
-    spinner.className = 'spinner'; // Použijte existující styl spinneru
+    spinner.className = 'spinner';
     qrCodeContainer.appendChild(spinner);
-    qrCodeContainer.classList.remove('hidden'); // Zobrazíme kontejner se spinnerem
+    qrCodeContainer.classList.remove('hidden');
 
     try {
         const response = await fetch(`${QR_BACKEND_URL}?text=${encodeURIComponent(dataText)}`);
         if (!response.ok) {
-            throw new Error(`HTTP chyba! Status: ${response.status}`);
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
 
         if (data.qr_code_image) {
             qrImage.src = `data:image/png;base64,${data.qr_code_image}`;
             qrImage.onload = () => {
-                // Po načtení obrázku odstraníme spinner a zobrazíme obrázek
-                qrCodeContainer.innerHTML = ''; // Vyčistíme spinner
+                qrCodeContainer.innerHTML = '';
                 qrCodeContainer.appendChild(qrImage);
-                qrCodeContainer.classList.remove('hidden'); // Zobrazíme kontejner s QR kódem
-                console.log('QR kód z backendu úspěšně zobrazen.');
+                qrCodeContainer.classList.remove('hidden');
+                console.log('QR code successfully displayed from backend.');
             };
             qrImage.onerror = () => {
-                console.error('Chyba při načítání QR kódu z base64 dat.');
-                qrCodeContainer.innerHTML = '<p style="color: red;">Chyba: Nelze načíst QR kód.</p>';
+                console.error('Error loading QR code from base64 data.');
+                qrCodeContainer.innerHTML = '<p style="color: red;">Error: Could not load QR code.</p>';
             };
         } else {
-            console.error('Odpověď z backendu neobsahuje qr_code_image.');
-            qrCodeContainer.innerHTML = '<p style="color: red;">Chyba: QR kód nebyl vygenerován.</p>';
+            console.error('Backend response does not contain qr_code_image.');
+            qrCodeContainer.innerHTML = '<p style="color: red;">Error: QR code was not generated.</p>';
         }
     } catch (error) {
-        console.error('Chyba při volání backendu pro QR kód:', error);
-        qrCodeContainer.innerHTML = `<p style="color: red;">Chyba generování QR kódu: ${error.message}</p>`;
+        console.error('Error calling backend for QR code:', error);
+        qrCodeContainer.innerHTML = `<p style="color: red;">QR code generation error: ${error.message}</p>`;
     } finally {
-        // Ujistíme se, že spinner je odstraněn i v případě chyby
         if (spinner.parentNode === qrCodeContainer) {
             spinner.remove();
         }
     }
 }
 
-
-// --- Funkce pro aktualizaci UI lobby sekce (pro hostitele i hráče) ---
+// --- Function to update lobby UI section (for both host and players) ---
 /**
- * Aktualizuje seznam hráčů a další informace v lobby UI.
- * @param {object} roomData Objekt s daty místnosti ze serveru.
+ * Updates the player list and other information in the lobby UI.
+ * @param {object} roomData Object with room data from the server.
  */
 function updateLobbyUI(roomData) {
     if (!roomData) return;
 
-    // Aktualizace pro hostitele (roomSettingsSection)
-    // Zde by se měl aktualizovat seznam hráčů a nastavení v roomSettingsSection
+    // Update for host (roomSettingsSection)
+    // Here, the player list and settings in roomSettingsSection should be updated
     if (roomData.hostId === socket.id) {
         if (hostPlayerList) {
-            hostPlayerList.innerHTML = ''; // Vyčistíme seznam hráčů
+            hostPlayerList.innerHTML = ''; // Clear player list
             roomData.players.forEach(player => {
                 const li = document.createElement('li');
-                li.classList.add('player-item'); // Přidáme třídu pro styling
+                li.classList.add('player-item');
 
-                // Jméno hráče
+                // Player name
                 const playerNameSpan = document.createElement('span');
                 playerNameSpan.textContent = player.username;
                 if (player.id === roomData.hostId) {
@@ -368,15 +349,15 @@ function updateLobbyUI(roomData) {
                 }
                 li.appendChild(playerNameSpan);
 
-                // Tlačítko pro vyhození hráče (pouze pokud to není hostitel)
+                // Kick player button (only if not the host)
                 if (player.id !== roomData.hostId) {
                     const kickButton = document.createElement('button');
-                    kickButton.textContent = 'Vykopnout';
+                    kickButton.textContent = 'Kick';
                     kickButton.classList.add('kick-button');
                     kickButton.addEventListener('click', () => {
-                        // Potvrzení před vykopnutím
-                        if (confirm(`Opravdu chcete vykopnout hráče ${player.username}?`)) {
-                            window.kickPlayer(player.id); // Voláme funkci z socketService.js
+                        // Confirmation before kicking
+                        if (confirm(`Are you sure you want to kick player ${player.username}?`)) {
+                            window.kickPlayer(player.id); // Call function from socketService.js
                         }
                     });
                     li.appendChild(kickButton);
@@ -388,17 +369,36 @@ function updateLobbyUI(roomData) {
             settingsRoomCode.textContent = roomData.roomId;
         }
 
-        // Aktualizuj nastavení UI podle dat ze serveru (pro případ, že je hostitel znovu načte)
+        // Update UI settings based on server data (in case the host reloads)
         if (roomData.gameSettings) {
-            maxPlayersInput.value = roomData.gameSettings.numRounds; // Předpokládá se, že maxPlayers je pro numRounds
+            maxPlayersAllowedInput.value = roomData.gameSettings.maxPlayers;
             roundTimeInput.value = roomData.gameSettings.roundDuration;
-            buzzerDelayInput.value = roomData.gameSettings.buzzerDelay;
             hostPlaysToggle.checked = roomData.gameSettings.hostPlays;
+            numRoundsInput.value = roomData.gameSettings.numRounds;
+
+            // Advanced settings - update toggle state based on server data
+            advanceModeToggle.checked = roomData.gameSettings.advanceMode || false; // NEW: Sets toggle state
+            multipleBuzzToggle.checked = roomData.gameSettings.multipleBuzz || false;
+            teamsToggle.checked = roomData.gameSettings.teamsEnabled || false;
+            teamSizeInput.value = roomData.gameSettings.teamSize || 1; // Updated default to 1
+            numTeamsInput.value = roomData.gameSettings.numTeams || 0; // Updated default to 0
+            hostStartsNextRoundToggle.checked = roomData.gameSettings.hostStartsNextRound || true;
+            restTimeBetweenRoundsInput.value = roomData.gameSettings.restTimeBetweenRounds || 5;
+
+            // Show/hide advanced settings based on state from roomData
+            if (advancedSettingsContainer) { // Ensure the container exists
+                if (roomData.gameSettings.advanceMode) {
+                    advancedSettingsContainer.classList.remove('hidden');
+                    console.log('updateLobbyUI: Advanced settings container should be VISIBLE (from roomData).');
+                } else {
+                    advancedSettingsContainer.classList.add('hidden');
+                    console.log('updateLobbyUI: Advanced settings container should be HIDDEN (from roomData).');
+                }
+            } else {
+                console.warn('updateLobbyUI: advancedSettingsContainer element not found.');
+            }
         }
 
-        // Zobraz nebo skryj tlačítko "Start Game" na základě počtu hráčů
-        // Pokud hostitel nehraje, potřebuje alespoň 2 hráče (hostitel + 1 další)
-        // Pokud hostitel hraje, potřebuje alespoň 1 hráče (sám sebe)
         const requiredPlayers = roomData.gameSettings.hostPlays ? 1 : 2;
         if (startGameButton) {
              if (roomData.players.length >= requiredPlayers) {
@@ -409,16 +409,14 @@ function updateLobbyUI(roomData) {
                 startGameButton.classList.add('disabled');
             }
         }
-        // Zobrazíme QR kód, pokud je hostitel a je v roomSettingsSection
         if (currentActiveSectionId === 'roomSettingsSection') {
             generateQRCode(roomData.roomId);
         } else {
-            qrCodeContainer.classList.add('hidden'); // Skryjeme QR kód, pokud nejsme v roomSettingsSection
+            qrCodeContainer.classList.add('hidden');
         }
 
     } 
-    // Aktualizace pro hráče (lobbySection)
-    else { // if (roomData.hostId !== socket.id)
+    else {
         if (lobbyPlayerList) {
             lobbyPlayerList.innerHTML = '';
             roomData.players.forEach(player => {
@@ -435,7 +433,6 @@ function updateLobbyUI(roomData) {
             lobbyRoomCode.textContent = roomData.roomId;
         }
 
-        // Skrýt text "Čekání na hostitele", pokud hra začala
         if (waitingForHostText) {
             if (roomData.gameState === 'LOBBY') {
                 waitingForHostText.classList.remove('hidden');
@@ -443,37 +440,35 @@ function updateLobbyUI(roomData) {
                 waitingForHostText.classList.add('hidden');
             }
         }
-        qrCodeContainer.classList.add('hidden'); // Skryjeme QR kód pro hráče
+        qrCodeContainer.classList.add('hidden');
     }
 }
 
-// --- Funkce pro aktualizaci UI herní sekce ---
+// --- Function to update gameplay UI section ---
 function updateGameplayUI(roomData) {
     if (!roomData) return;
 
-    currentRoundDisplay.textContent = `Kolo ${roomData.currentRound} / ${roomData.gameSettings.numRounds}`;
+    currentRoundDisplay.textContent = `Round ${roomData.currentRound} / ${roomData.gameSettings.numRounds}`;
 
-    // Skryj všechna akční tlačítka a texty, pak zobraz ty relevantní
     countdownDisplay.classList.add('hidden');
     buzzButton.classList.add('hidden');
     winnerDisplay.classList.add('hidden');
     nextRoundButton.classList.add('hidden');
     newGameButton.classList.add('hidden');
-    leaveGameButton.classList.remove('hidden'); // Leave Game je vždy viditelné v herní sekci
+    leaveGameButton.classList.remove('hidden');
 
-    buzzButton.disabled = true; // Výchozí stav je vypnuto
+    buzzButton.disabled = true;
 
     switch (roomData.gameState) {
         case 'COUNTDOWN':
-            gameStateMessage.textContent = `Hra začíná za...`;
+            gameStateMessage.textContent = `Game starts in...`;
             countdownDisplay.textContent = roomData.countdownTime;
             countdownDisplay.classList.remove('hidden');
             break;
         case 'ACTIVE_ROUND':
-            gameStateMessage.textContent = 'Bzučte!';
+            gameStateMessage.textContent = 'Buzz!';
             buzzButton.classList.remove('hidden');
-            buzzButton.disabled = false; // Povolí bzučák
-            // Pokud hostitel nehraje, vypne bzučák pro něj
+            buzzButton.disabled = false;
             if (roomData.hostId === socket.id && !roomData.gameSettings.hostPlays) {
                 buzzButton.disabled = true;
                 buzzButton.classList.add('disabled');
@@ -484,68 +479,60 @@ function updateGameplayUI(roomData) {
             break;
         case 'ROUND_END':
             if (roomData.winner) {
-                gameStateMessage.textContent = `Kolo skončilo! Vítěz: ${roomData.winner.username}`;
-                winnerDisplay.textContent = `První bzučel: ${roomData.winner.username}`;
+                gameStateMessage.textContent = `Round ended! Winner: ${roomData.winner.username}!`;
+                winnerDisplay.textContent = `First to buzz: ${roomData.winner.username}`;
                 winnerDisplay.classList.remove('hidden');
             } else {
-                gameStateMessage.textContent = 'Kolo skončilo (čas vypršel).';
-                winnerDisplay.textContent = 'Nikdo nebzučel.';
+                gameStateMessage.textContent = 'Round ended (time expired).';
+                winnerDisplay.textContent = 'No one buzzed.';
                 winnerDisplay.classList.remove('hidden');
             }
-            buzzButton.disabled = true; // Zakaž bzučák po konci kola
+            buzzButton.disabled = true;
 
-            // Tlačítko pro další kolo pro hostitele
             if (currentRoomState && currentRoomState.hostId === socket.id && currentRoomState.currentRound < currentRoomState.gameSettings.numRounds) {
                 nextRoundButton.classList.remove('hidden');
             }
             break;
         case 'GAME_OVER':
-            gameStateMessage.textContent = 'Hra skončila!';
-            winnerDisplay.textContent = 'Děkujeme za hru!'; // Můžeš přidat celkové skóre
+            gameStateMessage.textContent = 'Game Over!';
+            winnerDisplay.textContent = 'Thanks for playing!';
             winnerDisplay.classList.remove('hidden');
             buzzButton.disabled = true;
 
-            // Tlačítko pro novou hru pro hostitele
             if (currentRoomState && currentRoomState.hostId === socket.id) {
                 newGameButton.classList.remove('hidden');
             }
             break;
         default:
-            gameStateMessage.textContent = 'Čekání na hru...';
+            gameStateMessage.textContent = 'Waiting for game...';
             buzzButton.disabled = true;
             break;
     }
 }
 
-
-// --- window.onload Event Listener (Změněno z DOMContentLoaded) ---
-// Zajišťuje, že kód se spustí až po načtení celého DOM a všech zdrojů.
+// --- window.onload Event Listener (Changed from DOMContentLoaded) ---
+// Ensures that the code runs only after the entire DOM and all resources are loaded.
 window.onload = () => {
-    console.log('window.onload: Všechny zdroje načteny, DOM je připraven.');
+    console.log('window.onload: All resources loaded, DOM is ready.');
 
-    // Zobrazení/skrytí loading screenu po krátké prodlevě
     setTimeout(() => {
         hideLoadingScreen();
     }, 200);
 
-    // Spuštění postupné animace tlačítek spodní navigace
     startStaggeredNavButtonAnimation(200);
 
-    // Posluchače pro navigační tlačítka (spodní navigace)
     if (navButtons.length > 0) {
         navButtons.forEach(button => {
             button.addEventListener('click', () => {
-                const sectionId = button.dataset.section; // Získá ID sekce z data-section atributu
+                const sectionId = button.dataset.section;
                 if (sectionId) {
                     showSection(sectionId);
-                    // Odstraní "hop" animaci, pokud klikneš na již animované tlačítko
                     navButtons.forEach(btn => btn.classList.remove('nav-button-hop'));
                 }
             });
         });
     }
 
-    // Posluchač pro tlačítko vymazání textarea (pro Game Code input)
     if (clearGameCodeButton) {
         clearGameCodeButton.addEventListener('click', () => {
             if (joinGameCodeInput) {
@@ -554,7 +541,6 @@ window.onload = () => {
         });
     }
 
-    // Posluchače pro Quick Actions tlačítka (na Home sekci)
     if (quickStartButton) {
         quickStartButton.addEventListener('click', () => {
             const sectionId = quickStartButton.dataset.section;
@@ -573,64 +559,56 @@ window.onload = () => {
         });
     }
 
-    // Posluchač pro ikonu domů v horní navigaci (nyní funguje jako tlačítko zpět)
     if (navHome) {
         navHome.addEventListener('click', () => {
             goBack();
         });
     }
 
-    // POSLUCHAČ PRO IKONU QR KÓDU (pro spuštění skeneru)
     if (qrCodeScanIcon) {
         qrCodeScanIcon.addEventListener('click', () => {
-            console.log('Ikona QR kódu kliknuta. Spouštím překrytí QR skeneru.');
-            toggleQrOverlay(true); // Zobrazí QR překrytí
+            console.log('QR code icon clicked. Starting QR scanner overlay.');
+            toggleQrOverlay(true);
 
-            // Inicializuje HTML5 QR kód čtečku, pokud ještě nebyla
             if (!html5QrCode) {
                 html5QrCode = new Html5Qrcode("qr-reader");
             }
 
-            // Spustí QR kód čtečku
             html5QrCode.start(
-                { facingMode: "environment" }, // Preferuje zadní kameru
-                { fps: 10, qrbox: { width: 250, height: 250 } }, // Nastavení skenování
-                (decodedText, decodedResult) => { // Callback při úspěšném naskenování
-                    console.log(`QR kód naskenován: ${decodedText}`);
-                    if (qrReaderResultsDiv) qrReaderResultsDiv.textContent = `Naskenováno: ${decodedText}`;
-                    if (joinGameCodeInput) joinGameCodeInput.value = decodedText; // Vloží kód do inputu
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                (decodedText, decodedResult) => {
+                    console.log(`QR code scanned: ${decodedText}`);
+                    if (qrReaderResultsDiv) qrReaderResultsDiv.textContent = `Scanned: ${decodedText}`;
+                    if (joinGameCodeInput) joinGameCodeInput.value = decodedText;
 
-                    // Zastaví čtečku a skryje překrytí po úspěšném skenování
                     html5QrCode.stop().then(() => {
-                        console.log('QR čtečka zastavena po úspěšném skenování.');
+                        console.log('QR reader stopped after successful scan.');
                         toggleQrOverlay(false);
                     }).catch((err) => {
-                        console.error('Chyba při zastavování QR čtečky po skenování:', err);
+                        console.error('Error stopping QR reader after scan:', err);
                         toggleQrOverlay(false);
                     });
                 },
-                (errorMessage) => { // Callback pro chyby skenování (často se opakuje)
-                    // console.warn(`Chyba skenování: ${errorMessage}`); // Vypnuto pro menší spam v konzoli
+                (errorMessage) => {
                 }
-            ).catch((err) => { // Chyba při spouštění kamery
-                console.error(`Chyba při spouštění QR čtečky: ${err}`);
-                if (qrReaderResultsDiv) qrReaderResultsDiv.textContent = `Chyba: ${err.message || err}`;
-                toggleQrOverlay(false); // Zavře překrytí i při chybě
+            ).catch((err) => {
+                console.error(`Error starting QR reader: ${err}`);
+                if (qrReaderResultsDiv) qrReaderResultsDiv.textContent = `Error: ${err.message || err}`;
+                toggleQrOverlay(false);
             });
         });
     }
 
-    // POSLUCHAČ PRO TLAČÍTKO ZAVŘÍT V QR PŘEKRYTÍ
     if (qrOverlayCloseButton) {
         qrOverlayCloseButton.addEventListener('click', () => {
-            console.log('Tlačítko zavřít překrytí kliknuto.');
-            // Zastaví QR čtečku, pokud je aktivní
+            console.log('Close overlay button clicked.');
             if (html5QrCode && html5QrCode.isScanning) {
                 html5QrCode.stop().then(() => {
-                    console.log('QR čtečka zastavena ručně.');
+                    console.log('QR reader stopped manually.');
                     toggleQrOverlay(false);
                 }).catch((err) => {
-                    console.error('Chyba při ručním zastavování QR čtečky:', err);
+                    console.error('Error manually stopping QR reader:', err);
                     toggleQrOverlay(false);
                 });
             } else {
@@ -639,369 +617,343 @@ window.onload = () => {
         });
     }
 
-    // LISTENER PRO "Join Game" TLAČÍTKO (na gameSection)
     if (joinGameButton) {
         joinGameButton.addEventListener('click', () => {
             handleGameModeEntry('join');
         });
     }
 
-    // LISTENER PRO "Create Game" TLAČÍTKO (na gameSection)
     if (createGameButton) {
         createGameButton.addEventListener('click', () => {
             handleGameModeEntry('create');
         });
     }
 
-
-    // LISTENER PRO TLAČÍTKO "Continue" (na nameSection)
     if (submitNameButton) {
         submitNameButton.addEventListener('click', () => {
-            const playerName = playerNameInput.value.trim(); // Získá a ořeže jméno hráče
-            if (playerName) { // Kontrola, zda jméno není prázdné
-                console.log(`Zadáno jméno hráče: ${playerName}. Režim hry: ${gameMode}`);
+            const playerName = playerNameInput.value.trim();
+            if (playerName) {
+                console.log(`Player name entered: ${playerName}. Game mode: ${gameMode}`);
 
-                // --- INTEGRACE SOCKET.IO pro vytvoření/připojení k místnosti ---
                 if (gameMode === 'join') {
-                    const gameCode = joinGameCodeInput.value.trim(); // Získá kód místnosti pro připojení
+                    const gameCode = joinGameCodeInput.value.trim();
                     if (!gameCode) {
-                        alert('Prosím, zadejte kód místnosti!');
+                        alert('Please enter a room code!');
                         return;
                     }
-                    console.log(`app.js: Pokus o připojení k místnosti ${gameCode} s jménem: ${playerName}`);
-                    // Voláme funkci z socketService.js k odeslání události na server
+                    console.log(`app.js: Attempting to join room ${gameCode} with name: ${playerName}`);
                     window.joinRoom(gameCode, playerName);
 
                 } else if (gameMode === 'create') {
-                    console.log(`app.js: Pokus o vytvoření místnosti s jménem: ${playerName}`);
-                    // Voláme funkci z socketService.js k odeslání události na server
+                    console.log(`app.js: Attempting to create room with name: ${playerName}`);
                     window.createRoom(playerName);
                 }
-
-                // Jméno se vymaže až po úspěšném připojení/vytvoření, nebo po chybě
-                // playerNameInput.value = ''; // Vymažeme až po úspěšném zpracování serverem
             } else {
-                alert('Prosím, zadejte své jméno!');
+                alert('Please enter your name!');
             }
         });
     }
 
-    // --- POSLUCHAČ PRO TLAČÍTKO "Update Settings" v roomSettingsSection ---
+    // LISTENER FOR "Update Settings" Button in roomSettingsSection
     if (updateSettingsButton) {
         updateSettingsButton.addEventListener('click', () => {
-            console.log('app.js: Tlačítko "Update Settings" kliknuto.');
-            // Získání aktuálních hodnot z inputů
+            console.log('app.js: "Update Settings" button clicked.');
             const settings = {
-                roundDuration: parseInt(roundTimeInput.value) || 30, // Výchozí 30s
-                numRounds: parseInt(maxPlayersInput.value) || 3, // Používáme maxPlayersInput pro numRounds
+                maxPlayers: parseInt(maxPlayersAllowedInput.value) || 10,
+                roundDuration: parseInt(roundTimeInput.value) || 30,
                 hostPlays: hostPlaysToggle.checked,
-                buzzerDelay: parseInt(buzzerDelayInput.value) || 0 // Výchozí 0ms
+                numRounds: parseInt(numRoundsInput.value) || 3,
+                
+                // Advanced settings
+                advanceMode: advanceModeToggle.checked, // NEW: Sending the state of advanced mode
+                multipleBuzz: multipleBuzzToggle.checked,
+                teamsEnabled: teamsToggle.checked,
+                teamSize: parseInt(teamSizeInput.value) || 1, // Updated default to 1
+                numTeams: parseInt(numTeamsInput.value) || 0, // Updated default to 0
+                hostStartsNextRound: hostStartsNextRoundToggle.checked,
+                restTimeBetweenRounds: parseInt(restTimeBetweenRoundsInput.value) || 5
             };
-            // Základní validace
-            if (settings.roundDuration < 0 || settings.numRounds < 1 || settings.buzzerDelay < 0) {
-                alert('Prosím, zadejte platné hodnoty pro nastavení.');
-                return;
-            }
+            
+            // Removed client-side validation alerts and returns.
+            // All settings will now be sent to the server for processing.
             if (currentRoomCode) {
                 window.updateGameSettings(currentRoomCode, settings);
             }
         });
     }
 
-    // --- POSLUCHAČ PRO TLAČÍTKO "Start Game" v roomSettingsSection ---
+    // LISTENER FOR ADVANCED MODE TOGGLE
+    if (advanceModeToggle) {
+        advanceModeToggle.addEventListener('change', () => {
+            if (advancedSettingsContainer) { // Ensure the container exists
+                if (advanceModeToggle.checked) {
+                    advancedSettingsContainer.classList.remove('hidden');
+                    console.log('Advanced Mode toggle: Advanced settings container should be VISIBLE.');
+                } else {
+                    advancedSettingsContainer.classList.add('hidden');
+                    console.log('Advanced Mode toggle: Advanced settings container should be HIDDEN.');
+                }
+            } else {
+                console.warn('Advanced Mode toggle: advancedSettingsContainer element not found.');
+            }
+        });
+    }
+
+
     if (startGameButton) {
         startGameButton.addEventListener('click', () => {
-            console.log('app.js: Tlačítko "Start Game" kliknuto.');
+            console.log('app.js: "Start Game" button clicked.');
             if (currentRoomCode) {
-                // Pošleme serveru, že hostitel chce spustit hru.
-                // Nastavení hry se již předpokládá aktualizované přes updateGameSettings.
                 window.startGame(currentRoomCode);
             }
         });
     }
 
-    // --- POSLUCHAČ PRO TLAČÍTKO "Leave Room" v lobbySection (pro hráče) ---
     if (leaveLobbyButton) {
         leaveLobbyButton.addEventListener('click', () => {
-            console.log('app.js: Tlačítko "Leave Room" kliknuto.');
+            console.log('app.js: "Leave Room" button clicked.');
             if (currentRoomCode) {
-                window.leaveRoom(currentRoomCode); // Informujeme server, že opouštíme místnost
-                currentRoomCode = null; // Vyčistíme lokální kód místnosti
-                // showSection('gameSection'); // Vrátíme se na herní sekci (výběr join/create)
-                // Pošle nás to na home, pokud to server neresetuje
+                window.leaveRoom(currentRoomCode);
+                currentRoomCode = null;
             }
         });
     }
 
-    // --- POSLUCHAČ PRO TLAČÍTKO "Close Room" v roomSettingsSection (pro hostitele) ---
     if (closeRoomButton) {
         closeRoomButton.addEventListener('click', () => {
-            console.log('app.js: Tlačítko "Close Room" kliknuto.');
+            console.log('app.js: "Close Room" button clicked.');
             if (currentRoomCode) {
-                window.leaveRoom(currentRoomCode); // Hostitel opouští, server zruší místnost
+                window.leaveRoom(currentRoomCode);
                 currentRoomCode = null;
-                // showSection('gameSection'); // Vrátíme se na herní sekci
-                // Pošle nás to na home, pokud to server neresetuje
             }
         });
     }
 
-    // --- POSLUCHAČ PRO TLAČÍTKO "Buzz" v gameplaySection ---
     if (buzzButton) {
         buzzButton.addEventListener('click', () => {
-            console.log('app.js: Tlačítko "Bzučet!" kliknuto.');
+            console.log('app.js: "Buzz!" button clicked.');
             window.buzz();
         });
     }
 
-    // --- POSLUCHAČ PRO TLAČÍTKO "Next Round" v gameplaySection (pro hostitele) ---
     if (nextRoundButton) {
         nextRoundButton.addEventListener('click', () => {
-            console.log('app.js: Tlačítko "Další Kolo" kliknuto.');
+            console.log('app.js: "Next Round" button clicked.');
             if (currentRoomCode) {
                 window.startNextRound(currentRoomCode);
             }
         });
     }
 
-    // --- POSLUCHAČ PRO TLAČÍTKO "New Game" v gameplaySection (pro hostitele) ---
     if (newGameButton) {
         newGameButton.addEventListener('click', () => {
-            console.log('app.js: Tlačítko "Nová Hra" kliknuto.');
+            console.log('app.js: "New Game" button clicked.');
             if (currentRoomCode) {
-                window.resetGame(currentRoomCode); // Resetuje hru do lobby
+                window.resetGame(currentRoomCode);
             }
         });
     }
 
-    // --- POSLUCHAČ PRO TLAČÍTKO "Leave Game" v gameplaySection ---
     if (leaveGameButton) {
         leaveGameButton.addEventListener('click', () => {
-            console.log('app.js: Tlačítko "Opustit Hru" kliknuto.');
+            console.log('app.js: "Leave Game" button clicked.');
             if (currentRoomCode) {
                 window.leaveRoom(currentRoomCode);
                 currentRoomCode = null;
-                // UI se resetuje přes roomClosed nebo disconnect event
             }
         });
     }
 
-
-    // --- DARK MODE LOGIC: Funkce a event listener ---
     function setDarkMode(isDark) {
         if (isDark) {
             document.body.classList.add('dark-mode');
-            console.log('Dark Mode aktivován.');
+            console.log('Dark Mode activated.');
         } else {
             document.body.classList.remove('dark-mode');
-            console.log('Light Mode aktivován.');
+            console.log('Light Mode activated.');
         }
-        localStorage.setItem('darkMode', isDark); // Uloží preference uživatele
+        localStorage.setItem('darkMode', isDark);
     }
 
-    // Načte preferenci dark mode z localStorage a aplikuje ji
     const savedDarkMode = localStorage.getItem('darkMode') === 'true';
     if (darkModeToggle) {
         if (savedDarkMode) {
             setDarkMode(true);
-            darkModeToggle.checked = true; // Nastaví přepínač podle preference
+            darkModeToggle.checked = true;
         } else {
             setDarkMode(false);
             darkModeToggle.checked = false;
         }
 
-        // Posluchač pro změnu stavu přepínače dark mode
         darkModeToggle.addEventListener('change', () => {
             setDarkMode(darkModeToggle.checked);
         });
-        console.log('Posluchač přepínače Dark Mode nastaven.');
+        console.log('Dark Mode toggle listener set.');
     } else {
-        console.warn('Element přepínače Dark Mode (darkModeToggle) nenalezen.');
+        console.warn('Dark Mode toggle element (darkModeToggle) not found.');
     }
 
-
-    // --- SOCKET.IO EVENT LISTENERS ---
-    // Tyto posluchače je dobré mít v DOMContentLoaded, aby byly aktivní po načtení DOM.
-
-    // Událost od serveru po úspěšném vytvoření místnosti
     socket.on('roomCreated', (roomId) => {
-        console.log(`app.js: Místnost úspěšně vytvořena! Kód: ${roomId}`);
-        currentRoomCode = roomId; // Uložíme kód místnosti
-        playerNameInput.value = ''; // Vyčisti jméno po odeslání
+        console.log(`app.js: Room successfully created! Code: ${roomId}`);
+        currentRoomCode = roomId;
+        playerNameInput.value = '';
 
-        // Zobrazíme kód místnosti a výchozí nastavení v roomSettingsSection
         if (settingsRoomCode) {
             settingsRoomCode.textContent = roomId;
-            // Předvyplníme nastavení, která budou odeslána serveru přes updateGameSettings
-            // Tyto hodnoty by měly odpovídat výchozím na serveru
-            maxPlayersInput.value = 4; // Max Players (možná by to mělo být numRounds)
-            roundTimeInput.value = 30; // Round Time
-            buzzerDelayInput.value = 0; // Buzzer Delay
-            hostPlaysToggle.checked = true; // Host Plays
+            maxPlayersAllowedInput.value = 10; // Default
+            roundTimeInput.value = 30; // Default
+            hostPlaysToggle.checked = true; // Default
+            numRoundsInput.value = 3; // Default
+
+            // Default values for advanced settings
+            advanceModeToggle.checked = false;
+            if (advancedSettingsContainer) { // Ensure the container exists
+                advancedSettingsContainer.classList.add('hidden'); // Hide initially
+            } else {
+                console.warn('roomCreated: advancedSettingsContainer element not found.');
+            }
+            multipleBuzzToggle.checked = false;
+            teamsToggle.checked = false;
+            teamSizeInput.value = 1; // Updated default
+            numTeamsInput.value = 0; // Updated default
+            hostStartsNextRoundToggle.checked = true;
+            restTimeBetweenRoundsInput.value = 5;
         }
-        showSection('roomSettingsSection'); // Přepneme na sekci nastavení místnosti
-        // generateQRCode(roomId); // Původní volání, které bylo přesunuto do updateLobbyUI
+        showSection('roomSettingsSection');
     });
 
-    // Událost od serveru po úspěšném připojení k místnosti
     socket.on('roomJoined', (roomId) => {
-        console.log(`app.js: Úspěšně připojeno k místnosti! Kód: ${roomId}`);
-        currentRoomCode = roomId; // Uložíme kód místnosti
-        playerNameInput.value = ''; // Vyčisti jméno po odeslání
+        console.log(`app.js: Successfully joined room! Code: ${roomId}`);
+        currentRoomCode = roomId;
+        playerNameInput.value = '';
         if (lobbyRoomCode) {
-            lobbyRoomCode.textContent = roomId; // Zobraz kód místnosti v lobby
+            lobbyRoomCode.textContent = roomId;
         }
-        // Rozhodni, zda jsi hostitel, pro správnou sekci
-        // (Serverová událost 'roomState' nám řekne, kdo je hostitel)
-        // Prozatím přepni na lobby, a roomState to upřesní
         showSection('lobbySection');
     });
 
-    // Událost od serveru, pokud místnost nebyla nalezena
     socket.on('roomNotFound', () => {
-        console.error('app.js: Místnost s tímto kódem nebyla nalezena.');
-        alert('Místnost s tímto kódem neexistuje. Zkontrolujte kód.');
-        showSection('gameSection'); // Vrátíme se na výběr join/create
+        console.error('app.js: Room with this code not found.');
+        alert('Room with this code does not exist. Please check the code.');
+        showSection('gameSection');
     });
 
-    // Událost od serveru při chybě autorizace nebo jiné operace
     socket.on('notAuthorized', (message) => {
-        console.error(`app.js: Chyba autorizace/operace: ${message}`);
-        alert(`Chyba: ${message}`);
-        // Můžeme se vrátit na předchozí sekci nebo zůstat, záleží na kontextu chyby
-        // goBack(); // Příklad: vrátit se zpět, pokud uživatel nemá oprávnění
+        console.error(`app.js: Authorization/operation error: ${message}`);
+        alert(`Error: ${message}`);
     });
 
-    // Událost pro aktualizaci stavu místnosti (posílá server všem v místnosti)
     socket.on('roomState', (roomData) => {
-        console.log('app.js: Přijat roomState aktualizace:', roomData);
-        currentRoomState = roomData; // Uložíme si aktuální stav místnosti
+        console.log('app.js: Received roomState update:', roomData);
+        currentRoomState = roomData;
 
-        // Aktualizujeme UI podle aktuálního stavu místnosti, pokud je to pro naši aktivní místnost
         if (roomData && roomData.roomId === currentRoomCode) { 
-            // Zkontrolujeme, zda je uživatel hostitel nebo hráč
             const isCurrentUserHost = roomData.hostId === socket.id;
 
-            // Logika pro přepínání sekcí na základě `gameState`
             if (roomData.gameState === 'LOBBY') {
                 if (isCurrentUserHost && currentActiveSectionId !== 'roomSettingsSection') {
                     showSection('roomSettingsSection');
                 } else if (!isCurrentUserHost && currentActiveSectionId !== 'lobbySection') {
                     showSection('lobbySection');
                 }
-                updateLobbyUI(roomData); // Aktualizuje UI lobby (seznam hráčů, nastavení pro hostitele)
+                updateLobbyUI(roomData);
             } else if (roomData.gameState === 'COUNTDOWN' || roomData.gameState === 'ACTIVE_ROUND' || roomData.gameState === 'ROUND_END' || roomData.gameState === 'GAME_OVER') {
-                // Přepne na herní obrazovku, pokud se hra aktivně hraje nebo skončila
                 if (currentActiveSectionId !== 'gameplaySection') {
                     showSection('gameplaySection');
                 }
-                updateGameplayUI(roomData); // Aktualizuje UI herní obrazovky
+                updateGameplayUI(roomData);
             }
         }
     });
 
-    // Událost, když je místnost zavřena (např. hostitelem nebo když odejde poslední hráč)
     socket.on('roomClosed', (message) => {
-        console.log(`app.js: Místnost uzavřena: ${message}`);
-        alert(message || 'Místnost byla zrušena.');
-        currentRoomCode = null; // Vyčistíme kód místnosti
-        currentRoomState = null; // Vyčistíme stav místnosti
-        showSection('homeSection'); // Vrátíme se na domovskou obrazovku
-        if (qrCodeContainer) { // Vyčistíme QR kód
+        console.log(`app.js: Room closed: ${message}`);
+        alert(message || 'The room has been closed.');
+        currentRoomCode = null;
+        currentRoomState = null;
+        showSection('homeSection');
+        if (qrCodeContainer) {
             qrCodeContainer.innerHTML = ''; 
-            qrCodeContainer.classList.add('hidden'); // Skryjeme kontejner
+            qrCodeContainer.classList.add('hidden');
         }
     });
 
-    // Událost, když je vykopnut hráč
     socket.on('playerKicked', (username) => {
-        console.log(`app.js: Hráč ${username} byl vykopnut.`);
-        alert(`${username} byl vykopnut z místnosti.`);
-        // UI by se mělo aktualizovat přes roomState
+        console.log(`app.js: Player ${username} was kicked.`);
+        alert(`${username} was kicked from the room.`);
     });
 
-    // Událost, když začne odpočet před kolem
     socket.on('countdownStart', (time) => {
-        console.log(`app.js: Kolo začne za ${time} sekund...`);
-        // Aktualizuje odpočet na obrazovce
+        console.log(`app.js: Round starts in ${time} seconds...`);
         countdownDisplay.textContent = time;
         countdownDisplay.classList.remove('hidden');
-        gameStateMessage.textContent = 'Hra začíná za...';
-        buzzButton.disabled = true; // Zakaž bzučák během odpočtu
+        gameStateMessage.textContent = 'Game starting in...';
+        buzzButton.disabled = true;
         buzzButton.classList.add('disabled');
     });
 
-    // Událost, když začne kolo
     socket.on('roundStarted', (roundNum, settings) => {
-        console.log(`app.js: Kolo ${roundNum} začalo!`);
-        currentRoundDisplay.textContent = `Kolo ${roundNum} / ${settings.numRounds}`;
-        gameStateMessage.textContent = 'Bzučte!';
+        console.log(`app.js: Round ${roundNum} started!`);
+        currentRoundDisplay.textContent = `Round ${roundNum} / ${settings.numRounds}`;
+        gameStateMessage.textContent = 'Buzz!';
         countdownDisplay.classList.add('hidden');
         buzzButton.classList.remove('hidden');
-        // Povol bzučák, pokud hostitel hraje nebo jsi hráč
         if (currentRoomState.hostId === socket.id && !settings.hostPlays) {
             buzzButton.disabled = true;
             buzzButton.classList.add('disabled');
         } else {
-            buzzButton.disabled = false;
-            buzzButton.classList.remove('disabled');
-        }
-        winnerDisplay.classList.add('hidden'); // Skryj případného vítěze z minulého kola
+                buzzButton.disabled = false;
+                buzzButton.classList.remove('disabled');
+            }
+        winnerDisplay.classList.add('hidden');
         nextRoundButton.classList.add('hidden');
         newGameButton.classList.add('hidden');
     });
 
-    // Událost, když někdo bzučí a je vítěz kola
     socket.on('buzzerWinner', (winnerData) => {
-        console.log(`app.js: Vítěz bzučení v kole: ${winnerData.username}`);
-        gameStateMessage.textContent = `Vítěz kola: ${winnerData.username}!`;
-        winnerDisplay.textContent = `První bzučel: ${winnerData.username}`;
+        console.log(`app.js: Round winner: ${winnerData.username}`);
+        gameStateMessage.textContent = `Round winner: ${winnerData.username}!`;
+        winnerDisplay.textContent = `First to buzz: ${winnerData.username}`;
         winnerDisplay.classList.remove('hidden');
-        buzzButton.disabled = true; // Zakaž bzučák, dokud hostitel nespustí další kolo/hru
+        buzzButton.disabled = true;
         buzzButton.classList.add('disabled');
     });
 
-    // Událost, když kolo skončí (čas vypršel nebo někdo bzučel)
     socket.on('roundEnded', (roundNum, winner) => {
-        console.log(`app.js: Kolo ${roundNum} skončilo.`);
+        console.log(`app.js: Round ${roundNum} ended.`);
         if (!winner) {
-            gameStateMessage.textContent = 'Kolo skončilo! Nikdo nebzučel.';
-            winnerDisplay.textContent = 'Nikdo nebzučel.';
+            gameStateMessage.textContent = 'Round ended! No one buzzed.';
+            winnerDisplay.textContent = 'No one buzzed.';
             winnerDisplay.classList.remove('hidden');
         }
-        buzzButton.disabled = true; // Zakaž bzučák
+        buzzButton.disabled = true;
         buzzButton.classList.add('disabled');
 
-        // Pokud je hostitel a nejsou všechna kola odehrána, zobraz "Další Kolo"
         if (currentRoomState && currentRoomState.hostId === socket.id && currentRoomState.currentRound < currentRoomState.gameSettings.numRounds) {
             nextRoundButton.classList.remove('hidden');
         }
     });
 
-    // Událost, když celá hra skončí
     socket.on('gameOver', () => {
-        console.log('app.js: Hra skončila!');
-        gameStateMessage.textContent = 'Hra skončila!';
-        winnerDisplay.textContent = 'Děkujeme za hru!'; // Zde můžeš přidat konečné skóre
+        console.log('app.js: Game Over!');
+        gameStateMessage.textContent = 'Game Over!';
+        winnerDisplay.textContent = 'Thanks for playing!';
         winnerDisplay.classList.remove('hidden');
         buzzButton.disabled = true;
         buzzButton.classList.add('disabled');
-        nextRoundButton.classList.add('hidden'); // Skryj tlačítko pro další kolo
+        nextRoundButton.classList.add('hidden');
 
-        // Pokud je hostitel, zobraz "Nová Hra"
         if (currentRoomState && currentRoomState.hostId === socket.id) {
             newGameButton.classList.remove('hidden');
         }
     });
 
-    // Událost pro reset bzučáku (server to posílá, když je potřeba vyčistit stav bzučáku)
     socket.on('buzzerReset', () => {
-        console.log('app.js: Buzzer resetován.');
-        winnerDisplay.classList.add('hidden'); // Skryj vítěze
-        // Pokud je v aktivním kole, znovu povol bzučák
+        console.log('app.js: Buzzer reset.');
+        winnerDisplay.classList.add('hidden');
         if (currentRoomState && currentRoomState.gameState === 'ACTIVE_ROUND') {
              if (currentRoomState.hostId === socket.id && !currentRoomState.gameSettings.hostPlays) {
-                buzzButton.disabled = true; // Hostitel nehraje
+                buzzButton.disabled = true;
                 buzzButton.classList.add('disabled');
             } else {
                 buzzButton.disabled = false;
@@ -1010,17 +962,16 @@ window.onload = () => {
         }
     });
 
-
     socket.on('disconnect', () => {
-        console.log('app.js: Odpojeno od serveru.');
-        alert('Byl jsi odpojen od serveru. Zkus se připojit znovu.');
+        console.log('app.js: Disconnected from server.');
+        alert('You have been disconnected from the server. Please try to reconnect.');
         currentRoomCode = null;
         currentRoomState = null;
-        showSection('homeSection'); // Vrátíme se na domovskou obrazovku
-        if (qrCodeContainer) { // Vyčistíme QR kód
+        showSection('homeSection');
+        if (qrCodeContainer) {
             qrCodeContainer.innerHTML = ''; 
-            qrCodeContainer.classList.add('hidden'); // Skryjeme kontejner
+            qrCodeContainer.classList.add('hidden');
         }
     });
 
-}; // Konec window.onload
+};

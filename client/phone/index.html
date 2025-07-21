@@ -111,7 +111,7 @@
                 </div>
 
                 <div id="lobbySection" class="content-section">
-                    <p class="room-info">Místnost: <span id="lobbyRoomCode">XXXXX</span></p>
+                    <p class="room-info">Room: <span id="lobbyRoomCode">XXXXX</span></p>
                     <div class="player-list">
                         <h2>Players:</h2>
                         <ul id="lobbyPlayerList">
@@ -124,39 +124,94 @@
                     <div class="room-settings-container">
                         <h1>Room Settings</h1>
                         <p>Your Room Code: <span id="settingsRoomCode">XXXXX</span></p>
-                        <!-- Kontejner pro QR kód -->
+                        <!-- Container for QR code -->
                         <div id="qrCodeContainer" class="qr-code-container hidden"></div>
+                        
+                        <!-- Normal Settings -->
                         <div class="setting-item">
-                            <label for="maxPlayers">Max Players:</label>
-                            <input type="number" id="maxPlayers" value="4" min="2" max="10">
+                            <label for="maxPlayersAllowedInput">Max Players:</label>
+                            <input type="number" id="maxPlayersAllowedInput" value="10" min="2" max="50">
                         </div>
                         <div class="setting-item">
-                            <label for="roundTime">Round Time (seconds):</label>
-                            <input type="number" id="roundTime" value="30" min="10" max="120">
+                            <label for="roundTime">Round Duration (s):</label>
+                            <input type="number" id="roundTime" value="30" min="5" max="300">
                         </div>
                         <div class="setting-item">
-                            <label for="buzzerDelay">Buzzer Delay (ms):</label>
-                            <input type="number" id="buzzerDelay" value="0" min="0" max="1000">
-                        </div>
-                        <!-- Původní hostPlays toggle je v app.js, ale v HTML chybí, přidávám ho zpět -->
-                        <div class="setting-item">
-                            <label for="hostPlays">Hostitel hraje (může bzučet):</label>
+                            <label for="hostPlays">Host plays:</label>
                             <label class="switch">
                                 <input type="checkbox" id="hostPlays" checked>
                                 <span class="slider round"></span>
                             </label>
                         </div>
+                        <div class="setting-item">
+                            <label for="numRoundsInput">Number of Rounds:</label>
+                            <input type="number" id="numRoundsInput" value="3" min="1" max="100">
+                        </div>
 
-                        <!-- NOVÝ SEZNAM HRÁČŮ PRO HOSTITELE -->
-                        <div class="player-list host-player-list">
-                            <h2>Hráči v místnosti:</h2>
-                            <ul id="hostPlayerList">
-                                <!-- Zde budou dynamicky přidáni hráči z app.js -->
-                            </ul>
+                        <!-- Advanced Mode Toggle -->
+                        <div class="setting-item">
+                            <label class="advanceToggle" for="advanceModeToggle">Advanced Mode:</label>
+                            <label class="switch">
+                                <input type="checkbox" id="advanceModeToggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                        <!-- Advanced Settings Container (initially hidden) -->
+                        <div id="advancedSettingsContainer" class="advancedSettingsContainer" class="hidden">
+                            <div class="setting-item">
+                                <label for="multipleBuzzToggle">Multiple Buzz:</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="multipleBuzzToggle">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <label for="teamsToggle">Teams:</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="teamsToggle">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <label for="teamSizeInput">Team Size:</label>
+                                <input type="number" id="teamSizeInput" value="1" min="1" max="25">
+                            </div>
+                            <div class="setting-item">
+                                <label for="numTeamsInput">Number of Teams:</label>
+                                <input type="number" id="numTeamsInput" value="0" min="2" max="25">
+                            </div>
+                            <div class="setting-item">
+                                <label for="hostStartsNextRoundToggle">Host Starts Next Round:</label>
+                                <label class="switch">
+                                    <input type="checkbox" id="hostStartsNextRoundToggle" checked>
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <label for="restTimeBetweenRoundsInput">Rest Time Between Rounds (s):</label>
+                                <input type="number" id="restTimeBetweenRoundsInput" value="5" min="0" max="60">
+                            </div>
                         </div>
                         
-                        <button id="startGameButton" class="action-button">Start Game</button>
-                        <button id="closeRoomButton" class="action-button">Close Room</button>
+                        <button id="updateSettingsButton" class="action-button">Update Settings</button>
+
+
+                        <!-- NEW PLAYER LIST FOR HOST -->
+                        <div class="player-list host-player-list">
+                            <h2>Players:</h2>
+                            <ul id="hostPlayerList">
+                                <!-- Players will be dynamically added here from app.js -->
+                            </ul>
+                        </div>
+
+                        <div class="action-button-container">
+                            <button id="startGameButton" class="action-button">Start Game</button>
+                            <button id="closeRoomButton" class="action-button">Close Room</button>
+
+                        </div>
+                        
+
                     </div>
                 </div>
 
@@ -175,7 +230,7 @@
                             </div>
 
                             <div class="account-item">
-                                <h2>Name</h2>
+                                <h2>John Doe</h2>
                             </div>
 
 
@@ -192,14 +247,8 @@
                     <div class="settings">
                         <h1>Settings</h1>
                         <div class="settings-container">
-                            <div class="settings-item">
-                                <h2>Notifications</h2>
-                                <label class="switch">
-                                    <input type="checkbox" id="notificationsToggle">
-                                    <span class="slider round"></span>
-                                </label>
-                            </div>
-                            <div class="settings-item">
+                       
+                            <div class="setting-item">
                                 <h2>Dark Mode</h2>
                                 <label class="switch">
                                     <input type="checkbox" id="darkModeToggle">
@@ -230,7 +279,7 @@
             <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
             <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
-            <!-- Odstraněno načítání qrcode.min.js, protože generování se přesouvá na backend -->
+            <!-- Removed qrcode.min.js loading, as generation is moved to backend -->
             <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode.js/1.5.1/qrcode.min.js"></script> -->
             <script src="js/socketService.js"></script>
 

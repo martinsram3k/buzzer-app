@@ -5,7 +5,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const qrcode = require('qrcode'); // Import knihovny qrcode
-const cors = require('cors'); // Import knihovny cors
+const cors = require('require'); // Import knihovny cors
 
 // Inicializace Express aplikace a HTTP serveru
 const app = express();
@@ -201,7 +201,7 @@ io.on('connection', (socket) => {
 
     const roomId = generateRoomCode(); // Generování unikátního kódu místnosti
     
-    // Počáteční stav místnosti pro lobby
+    // Počáteční stav místnosti pro lobby s výchozími pokročilými nastaveními
     rooms[roomId] = {
         roomId: roomId, // Uložení ID místnosti do objektu místnosti
         winner: null,
@@ -210,10 +210,20 @@ io.on('connection', (socket) => {
         gameState: 'LOBBY', // Počáteční stav je lobby
         currentRound: 0, // Aktuální kolo (0 před začátkem hry)
         gameSettings: { // Výchozí nastavení hry
-            roundDuration: 30, // 30 sekund na kolo
-            numRounds: 3, // 3 kola
+            roundDuration: 30, // 30 sekund na kolo (min 5, max 300)
+            numRounds: 3, // 3 kola (min 1, max 100)
             hostPlays: true, // Hostitel standardně hraje
-            buzzerDelay: 0 // Zpoždění bzučáku v ms
+            buzzerDelay: 0, // Zpoždění bzučáku v ms (min 0, max 5000)
+            
+            // Pokročilá nastavení (výchozí hodnoty)
+            advanceMode: false, // Výchozí stav pokročilého režimu
+            maxPlayers: 10, // Max hráčů v místnosti (min 2, max 50)
+            multipleBuzz: false, // Více bzučení v kole
+            teamsEnabled: false, // Týmy povoleny
+            teamSize: 1, // Velikost týmu (min 1, max 25)
+            numTeams: 0, // Počet týmů (min 0, max 25 - 0 pokud týmy nejsou povoleny)
+            hostStartsNextRound: true, // Host spouští další kolo
+            restTimeBetweenRounds: 5 // Čas odpočinku mezi koly v sekundách (min 0, max 60)
         },
         roundTimer: null // Pro ukládání časovače kola
     };
@@ -248,6 +258,13 @@ io.on('connection', (socket) => {
     if (rooms[roomId]) { // Kontrola, zda místnost existuje
       // Zabráníme duplicitnímu připojení (pokud už je uživatel v místnosti)
       if (!rooms[roomId].players.some(player => player.id === socket.id)) {
+        // Kontrola maximálního počtu hráčů
+        if (rooms[roomId].players.length >= rooms[roomId].gameSettings.maxPlayers) {
+            socket.emit('roomFull', 'Místnost je plná. Nelze se připojit.');
+            console.warn(`Server: Uživatel ${socket.username} se pokusil připojit do plné místnosti ${roomId}.`);
+            return;
+        }
+
         socket.join(roomId); // Uživatel se připojí do Socket.IO místnosti
         // Uložíme hráče jako objekt s ID a jménem
         rooms[roomId].players.push({ id: socket.id, username: socket.username });
@@ -273,36 +290,94 @@ io.on('connection', (socket) => {
    * Hostitel aktualizuje nastavení hry.
    */
   socket.on('updateGameSettings', (roomId, settings) => {
-    // Kontrola, zda místnost existuje a zda volající je hostitel
-    if (rooms[roomId] && rooms[roomId].hostId === socket.id) {
-        // Základní validace přijatých nastavení
-        const newRoundDuration = parseInt(settings.roundDuration);
-        const newNumRounds = parseInt(settings.numRounds);
-        const newHostPlays = Boolean(settings.hostPlays); // Zajistí boolean typ
-        const newBuzzerDelay = parseInt(settings.buzzerDelay); // Získání buzzerDelay
+    console.log(`Server: Přijato updateGameSettings pro místnost ${roomId}. Nastavení:`, settings);
 
-        // Rozšířená validace hodnot
-        if (isNaN(newRoundDuration) || (newRoundDuration < 0 && newRoundDuration !== 0) || // 0 pro bez omezení
-            isNaN(newNumRounds) || newNumRounds < 1 || newNumRounds > 100 || // Min 1 kolo, Max 100 kol
-            typeof newHostPlays !== 'boolean' ||
-            isNaN(newBuzzerDelay) || newBuzzerDelay < 0 || newBuzzerDelay > 5000) { // Zpoždění bzučáku 0-5000 ms
-            socket.emit('notAuthorized', 'Neplatné nastavení hry. Zkontrolujte zadané hodnoty.');
-            console.warn(`Server: Neplatné nastavení hry od ${socket.username} v místnosti ${roomId}.`);
-            return;
-        }
-        
-        // Aktualizace nastavení v objektu místnosti
-        rooms[roomId].gameSettings = {
-            roundDuration: newRoundDuration,
-            numRounds: newNumRounds,
-            hostPlays: newHostPlays,
-            buzzerDelay: newBuzzerDelay 
-        };
-        console.log(`Server: Nastavení hry v místnosti ${roomId} aktualizováno hostitelem ${socket.username}:`, rooms[roomId].gameSettings);
-        emitRoomState(roomId); // Informuj všechny o změně nastavení
-    } else {
+    // Kontrola, zda místnost existuje a zda volající je hostitel
+    if (!rooms[roomId] || rooms[roomId].hostId !== socket.id) {
         socket.emit('notAuthorized', 'Pouze hostitel může měnit nastavení hry.');
         console.warn(`Server: Pokus o změnu nastavení bez oprávnění od ${socket.username} v místnosti ${roomId}.`);
+        return;
+    }
+
+    // --- Validace přijatých nastavení ---
+    const currentSettings = rooms[roomId].gameSettings;
+    let newSettings = { ...currentSettings }; // Kopie aktuálních nastavení
+
+    try {
+        // Základní nastavení
+        newSettings.roundDuration = parseInt(settings.roundDuration);
+        newSettings.numRounds = parseInt(settings.numRounds);
+        newSettings.hostPlays = Boolean(settings.hostPlays);
+        newSettings.buzzerDelay = parseInt(settings.buzzerDelay || 0); // Default 0
+
+        // Pokročilá nastavení
+        newSettings.advanceMode = Boolean(settings.advanceMode);
+        newSettings.maxPlayers = parseInt(settings.maxPlayers);
+        newSettings.multipleBuzz = Boolean(settings.multipleBuzz);
+        newSettings.teamsEnabled = Boolean(settings.teamsEnabled);
+        newSettings.teamSize = parseInt(settings.teamSize);
+        newSettings.numTeams = parseInt(settings.numTeams);
+        newSettings.hostStartsNextRound = Boolean(settings.hostStartsNextRound);
+        newSettings.restTimeBetweenRounds = parseInt(settings.restTimeBetweenRounds);
+
+        // --- Rozsahy a logické validace ---
+        if (isNaN(newSettings.roundDuration) || newSettings.roundDuration < 5 || newSettings.roundDuration > 300) {
+            throw new Error('Neplatná délka kola (5-300 sekund).');
+        }
+        if (isNaN(newSettings.numRounds) || newSettings.numRounds < 1 || newSettings.numRounds > 100) {
+            throw new Error('Neplatný počet kol (1-100).');
+        }
+        if (typeof newSettings.hostPlays !== 'boolean') {
+            throw new Error('Neplatná hodnota pro "Host hraje".');
+        }
+        if (isNaN(newSettings.buzzerDelay) || newSettings.buzzerDelay < 0 || newSettings.buzzerDelay > 5000) {
+            throw new Error('Neplatné zpoždění bzučáku (0-5000 ms).');
+        }
+        if (typeof newSettings.advanceMode !== 'boolean') {
+            throw new Error('Neplatná hodnota pro "Pokročilý režim".');
+        }
+        if (isNaN(newSettings.maxPlayers) || newSettings.maxPlayers < 2 || newSettings.maxPlayers > 50) {
+            throw new Error('Neplatný maximální počet hráčů (2-50).');
+        }
+        if (typeof newSettings.multipleBuzz !== 'boolean') {
+            throw new Error('Neplatná hodnota pro "Více bzučení".');
+        }
+        if (typeof newSettings.teamsEnabled !== 'boolean') {
+            throw new Error('Neplatná hodnota pro "Týmy".');
+        }
+        if (isNaN(newSettings.restTimeBetweenRounds) || newSettings.restTimeBetweenRounds < 0 || newSettings.restTimeBetweenRounds > 60) {
+            throw new Error('Neplatný čas odpočinku (0-60 sekund).');
+        }
+        if (typeof newSettings.hostStartsNextRound !== 'boolean') {
+            throw new Error('Neplatná hodnota pro "Host spouští další kolo".');
+        }
+
+        // Validace pro týmy (pouze pokud jsou týmy povoleny)
+        if (newSettings.teamsEnabled) {
+            if (isNaN(newSettings.teamSize) || newSettings.teamSize < 1 || newSettings.teamSize > 25) {
+                throw new Error('Neplatná velikost týmu (1-25), pokud jsou týmy povoleny.');
+            }
+            if (isNaN(newSettings.numTeams) || newSettings.numTeams < 2 || newSettings.numTeams > 25) {
+                throw new Error('Neplatný počet týmů (min. 2, max. 25), pokud jsou týmy povoleny.');
+            }
+            // Kontrola dělitelnosti pouze pokud teamSize > 0
+            if (newSettings.teamSize > 0 && newSettings.maxPlayers % newSettings.teamSize !== 0) {
+                throw new Error('Maximální počet hráčů musí být dělitelný velikostí týmu.');
+            }
+        } else {
+            // Pokud týmy nejsou povoleny, vynulujeme hodnoty, aby nedocházelo k chybám
+            newSettings.teamSize = 1;
+            newSettings.numTeams = 0;
+        }
+
+        // Aktualizace nastavení v objektu místnosti
+        rooms[roomId].gameSettings = newSettings;
+        console.log(`Server: Nastavení hry v místnosti ${roomId} aktualizováno hostitelem ${socket.username}:`, rooms[roomId].gameSettings);
+        emitRoomState(roomId); // Informuj všechny o změně nastavení
+
+    } catch (error) {
+        console.warn(`Server: Chyba validace nastavení od ${socket.username} v místnosti ${roomId}: ${error.message}`);
+        socket.emit('notAuthorized', `Neplatné nastavení hry: ${error.message}`);
     }
   });
 
