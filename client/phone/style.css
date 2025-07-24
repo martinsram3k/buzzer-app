@@ -887,13 +887,14 @@ body {
     align-items: center;
 }
 
-/* --- Styly pro Toggle Switch --- */
+/* --- Styly pro Toggle Switch (přepracováno pro pevnou šířku a stín) --- */
 .switch {
     user-select: none;
     position: relative;
     display: inline-block;
-    width: 60px;
-    height: 34px;
+    width: 50px; /* Pevná šířka přepínače */
+    height: 28px; /* Pevná výška přepínače */
+    margin-left: auto; /* Zarovnání doprava v rámci rodičovského prvku */
 }
 
 /* Skryj výchozí HTML checkbox */
@@ -908,43 +909,50 @@ body {
     position: absolute;
     cursor: pointer;
     top: 0;
-    left: 120px;
-    right: 0px;
-    bottom: 0;
-    background-color: var(--secondary-color); /* Používá proměnnou */
+    left: 0;
+    bottom: 0; /* Pro úplné vyplnění výšky */
+    background-color: var(--primary-color); /* Neaktivní pozadí: primary-color */
     -webkit-transition: .4s;
     transition: .4s;
-    border-radius: 34px;
+    border-radius: 28px; /* Zaoblené rohy odpovídající výšce */
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.5); /* Výraznější stín pro slider */
 }
 
+/* Kulička slideru */
 .slider:before {
     position: absolute;
     content: "";
-    height: 26px;
-    width: 26px;
-    left: 4px;
-    bottom: 4px;
-    background-color: var(--background-light); /* Používá proměnnou */
+    height: 20px; /* Výška kuličky */
+    width: 20px; /* Šířka kuličky */
+    left: 4px; /* Odsazení zleva */
+    bottom: 4px; /* Odsazení zdola */
+    background-color: var(--background-dark); /* Barva kuličky: background-dark podle požadavku */
     -webkit-transition: .4s;
     transition: .4s;
-    border-radius: 50%;
+    border-radius: 50%; /* Kulatý tvar */
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.6); /* Výraznější stín pro kuličku */
 }
 
-/* Když je checkbox zaškrtnutý */
+/* Když je checkbox zaškrtnutý (aktivní stav) */
 input:checked+.slider {
-    background-color: var(--primary-color); /* Používá proměnnou */
+    background-color: var(--secondary-color); /* Aktivní pozadí: secondary-color ve světlém režimu */
 }
 
-/* Posun "kuličky" při zaškrtnutí */
+/* Aktivní pozadí v tmavém režimu (přepíše výchozí secondary-color) */
+body.dark-mode input:checked+.slider {
+    background-color: var(--text-color); /* Světlá barva pro kontrast v dark mode */
+}
+
+/* Posun kuličky při zaškrtnutí */
 input:checked+.slider:before {
-    -webkit-transform: translateX(26px);
-    -ms-transform: translateX(26px);
-    transform: translateX(26px);
+    -webkit-transform: translateX(22px); /* Posun kuličky: (šířka switche - 2x odsazení - šířka kuličky) = (50 - 4 - 4 - 20) = 22px */
+    -ms-transform: translateX(22px);
+    transform: translateX(22px);
 }
 
-/* Zaoblený slider */
+/* Zaoblený slider (redundantní, ale ponecháno pro jistotu) */
 .slider.round {
-    border-radius: 34px;
+    border-radius: 28px;
 }
 
 .slider.round:before {
