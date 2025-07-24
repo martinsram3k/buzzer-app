@@ -883,7 +883,7 @@ body {
     margin-bottom: 10px;
     box-sizing: border-box;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
 }
 
@@ -908,8 +908,8 @@ body {
     position: absolute;
     cursor: pointer;
     top: 0;
-    left: 10px;
-    right: 100px;
+    left: 120px;
+    right: 0px;
     bottom: 0;
     background-color: var(--secondary-color); /* Používá proměnnou */
     -webkit-transition: .4s;
@@ -1044,6 +1044,7 @@ input:checked+.slider:before {
 }
 
 .setting-item label {
+    width: fit-content;
     font-size: 1em;
     color: var(--text-color); /* Používá proměnnou */
     flex-basis: 50%;
