@@ -435,27 +435,40 @@ io.on('connection', (socket) => {
   /**
    * Hostitel spustí hru z lobby.
    */
-  socket.on('startGame', (roomId) => {
-    // Kontrola oprávnění hostitele a stavu hry (musí být v LOBBY)
-    if (rooms[roomId] && rooms[roomId].hostId === socket.id && rooms[roomId].gameState === 'LOBBY') {
-        // Zde by měla být herní nastavení již aktualizována z `updateGameSettings`.
-        // Získáme nastavení hostPlays pro kontrolu počtu hráčů
-        const { hostPlays } = rooms[roomId].gameSettings || { hostPlays: true }; 
-        // Požadovaný počet hráčů: 1 pokud hostitel hraje, 2 pokud ne (hostitel + 1 hráč)
-        const requiredPlayers = hostPlays ? 1 : 2; 
+  // EVENT: START GAME
+  socket.on('startGame', (roomId, gameSettings) => {
+    const room = rooms[roomId];
 
-        if (rooms[roomId].players.length < requiredPlayers) {
-            socket.emit('notAuthorized', `Potřebujete alespoň ${requiredPlayers} hráče(ů) pro spuštění hry.`);
-            console.warn(`Server: Hostitel ${socket.username} se pokusil spustit hru s nedostatkem hráčů v místnosti ${roomId}.`);
-            return;
+    if (room) {
+        // Kontrola oprávnění hostitele a stavu hry (musí být v LOBBY)
+        if (socket.id === room.hostId && room.gameState === 'LOBBY') {
+            
+            // Ulož nastavení, které přišlo od klienta, a inicializuj hru
+            room.gameSettings = gameSettings;
+            
+            const requiredPlayers = room.gameSettings.hostPlays ? 1 : 2; 
+
+            if (room.players.length < requiredPlayers) {
+                socket.emit('notAuthorized', `Potřebujete alespoň ${requiredPlayers} hráče(ů) pro spuštění hry.`);
+                console.warn(`Server: Hostitel ${socket.username} se pokusil spustit hru s nedostatkem hráčů v místnosti ${roomId}.`);
+                return;
+            }
+            
+            console.log(`Server: Hostitel ${socket.username} spustil hru v místnosti ${roomId} s nastavením:`, room.gameSettings);
+            
+            room.gameState = 'COUNTDOWN'; // Připraveno pro spuštění hry
+            room.currentRound = 1; // Začíná se prvním kolem
+            room.winner = null;
+            
+            // Informuj všechny klienty, že hra začala, a pošli jim aktuální nastavení
+            io.to(roomId).emit('gameStarted', room.gameSettings);
+
+        } else {
+            socket.emit('notAuthorized', 'Hru může spustit pouze hostitel z lobby.');
+            console.warn(`Server: Pokus o spuštění hry bez oprávnění nebo ve špatném stavu od ${socket.username} v místnosti ${roomId}.`);
         }
-        console.log(`Server: Hostitel ${socket.username} spustil hru v místnosti ${roomId}.`);
-        startNewRound(roomId); // Spustíme první kolo
-    } else {
-        socket.emit('notAuthorized', 'Hru může spustit pouze hostitel z lobby.');
-        console.warn(`Server: Pokus o spuštění hry bez oprávnění nebo ve špatném stavu od ${socket.username} v místnosti ${roomId}.`);
     }
-  });
+});
 
   /**
    * Hostitel spustí další kolo.
