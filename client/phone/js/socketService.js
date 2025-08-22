@@ -32,58 +32,48 @@ socket.on('disconnect', (reason) => {
 
 /**
  * Pošle požadavek na server pro vytvoření nové místnosti.
- * @param {string} username Jméno uživatele, který vytváří místnost (bude hostitelem).
+ * @param {string} playerName Jméno hráče, který vytváří místnost.
  */
-function createRoom(username) {
-    console.log('socketService: Emituji createRoom s jménem:', username);
-    socket.emit('createRoom', username);
+function createRoom(playerName) {
+    console.log('socketService: Emituji createRoom - Hráč:', playerName);
+    socket.emit('createRoom', playerName);
 }
 
 /**
- * Pošle požadavek na server pro připojení do existující místnosti.
- * @param {string} roomId Kód místnosti, do které se uživatel chce připojit.
- * @param {string} username Jméno uživatele, který se připojuje.
+ * Pošle požadavek na server pro připojení do místnosti.
+ * @param {string} roomCode Kód místnosti.
+ * @param {string} playerName Jméno hráče.
  */
-function joinRoom(roomId, username) {
-    console.log('socketService: Emituji joinRoom - Kód:', roomId, 'Jméno:', username);
-    socket.emit('joinRoom', roomId, username);
+function joinRoom(roomCode, playerName) {
+    console.log('socketService: Emituji joinRoom - Místnost:', roomCode, 'Hráč:', playerName);
+    socket.emit('joinRoom', roomCode, playerName);
 }
 
 /**
- * Pošle požadavek na server pro aktualizaci nastavení hry (pouze pro hostitele).
+ * Pošle požadavek na server pro aktualizaci nastavení místnosti (pouze pro hostitele).
  * @param {string} roomId ID místnosti.
- * @param {object} settings Objekt s nastavením hry (např. { roundDuration: 30, numRounds: 3, hostPlays: true, buzzerDelay: 0 }).
+ * @param {object} newSettings Nová nastavení pro hru.
  */
-function updateGameSettings(roomId, settings) {
-    console.log('socketService: Emituji updateGameSettings - Místnost:', roomId, 'Nastavení:', settings);
-    socket.emit('updateGameSettings', roomId, settings);
+function updateSettings(roomId, newSettings) {
+    console.log('socketService: Emituji updateSettings - Místnost:', roomId, 'Nastavení:', newSettings);
+    socket.emit('updateSettings', roomId, newSettings);
 }
 
 /**
- * Pošle požadavek na server pro vykopnutí hráče z místnosti (pouze pro hostitele).
- * @param {string} playerIdToKick ID hráče, který má být vykopnut.
+ * Pošle požadavek na server pro bzučení hráče.
  */
-function kickPlayer(playerIdToKick) {
-    console.log('socketService: Emituji kickPlayer - ID hráče:', playerIdToKick);
-    socket.emit('kickPlayer', playerIdToKick);
+function buzz() {
+    console.log('socketService: Emituji buzz.');
+    socket.emit('buzz');
 }
 
 /**
- * Pošle požadavek na server pro spuštění hry (pouze pro hostitele).
- * @param {string} roomId ID místnosti.
- */
-function startGame(roomId) {
-    console.log('socketService: Emituji startGame - Místnost:', roomId);
-    socket.emit('startGame', roomId);
-}
-
-/**
- * Pošle požadavek na server pro spuštění dalšího kola (pouze pro hostitele).
+ * Pošle požadavek na server pro přesun na další kolo (pouze pro hostitele).
  * @param {string} roomId ID místnosti.
  */
-function startNextRound(roomId) {
-    console.log('socketService: Emituji startNextRound - Místnost:', roomId);
-    socket.emit('startNextRound', roomId);
+function nextRound(roomId) {
+    console.log('socketService: Emituji nextRound - Místnost:', roomId);
+    socket.emit('nextRound', roomId);
 }
 
 /**
@@ -121,6 +111,15 @@ function leaveRoom(roomId) {
     socket.emit('leaveRoom', roomId);
 }
 
+/**
+ * Pošle požadavek na server pro spuštění hry.
+ * @param {string} roomId ID místnosti.
+ * @param {object} gameSettings Aktuální herní nastavení.
+ */
+function startGame(roomId, gameSettings) {
+    console.log('socketService: Emituji startGame - Místnost:', roomId, 'Nastavení:', gameSettings);
+    socket.emit('startGame', roomId, gameSettings);
+}
 
 // Exportování socket objektu a funkcí, aby byly dostupné v jiných souborech (např. app.js)
 // window je zde použito pro globální dostupnost ve webovém prohlížeči.
@@ -128,11 +127,11 @@ function leaveRoom(roomId) {
 window.socket = socket;
 window.createRoom = createRoom;
 window.joinRoom = joinRoom;
-window.updateGameSettings = updateGameSettings;
-window.kickPlayer = kickPlayer;
-window.startGame = startGame;
-window.startNextRound = startNextRound;
+window.updateSettings = updateSettings;
+window.startGame = startGame; // NOVÝ EXPORT
+window.buzz = buzz;
+window.nextRound = nextRound;
 window.endGame = endGame;
 window.resetGame = resetGame;
-window.buzz = buzz;
 window.leaveRoom = leaveRoom;
+

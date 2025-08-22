@@ -510,6 +510,27 @@ function updateGameplayUI(roomData) {
     }
 }
 
+/**
+ * Získá aktuální herní nastavení z formuláře pro hostitele.
+ * @returns {object} Objekt s herním nastavením.
+ */
+function getGameSettings() {
+    return {
+        roundDuration: parseInt(roundTimeInput.value, 10),
+        numRounds: parseInt(numRoundsInput.value, 10),
+        hostPlays: hostPlaysToggle.checked,
+        advanceMode: advanceModeToggle.checked,
+        multipleBuzz: multipleBuzzToggle.checked,
+        teamsEnabled: teamsToggle.checked,
+        teamSize: parseInt(teamSizeInput.value, 10),
+        numTeams: parseInt(numTeamsInput.value, 10),
+        hostStartsNextRound: hostStartsNextRoundToggle.checked,
+        restTimeBetweenRounds: parseInt(restTimeBetweenRoundsInput.value, 10),
+        maxPlayers: parseInt(maxPlayersAllowedInput.value, 10)
+    };
+}
+
+
 // --- window.onload Event Listener (Changed from DOMContentLoaded) ---
 // Ensures that the code runs only after the entire DOM and all resources are loaded.
 window.onload = () => {
@@ -702,12 +723,17 @@ window.onload = () => {
 
     if (startGameButton) {
         startGameButton.addEventListener('click', () => {
-            console.log('app.js: "Start Game" button clicked.');
-            if (currentRoomCode) {
-                window.startGame(currentRoomCode);
-            }
+            console.log('app.js: Tlačítko Start Game stisknuto.');
+            const gameSettings = getGameSettings();
+            startGame(currentRoomCode, gameSettings);
         });
     }
+
+    // Posluchač pro událost "gameStarted" ze serveru
+    socket.on('gameStarted', (gameSettings) => {
+        console.log('app.js: Hra byla spuštěna serverem! Nastavení:', gameSettings);
+        showSection('gameplaySection');
+    });
 
     if (leaveLobbyButton) {
         leaveLobbyButton.addEventListener('click', () => {

@@ -683,3 +683,46 @@ io.on('connection', (socket) => {
 server.listen(PORT, () => {
   console.log(`Buzzer server listening on port ${PORT}`);
 });
+
+
+
+io.on('connection', (socket) => {
+    console.log('Server: Nový klient připojen, ID:', socket.id);
+
+    // ... (existující obsluha událostí jako 'createRoom', 'joinRoom', 'updateSettings', atd.) ...
+    
+    // NOVÁ UDÁLOST: START GAME
+    socket.on('startGame', (roomId, gameSettings) => {
+        const room = rooms[roomId];
+
+        if (room) {
+            // Pouze hostitel může začít hru
+            if (socket.id === room.hostId) {
+                console.log(`Server: Hostitel spustil hru v místnosti ${roomId} s nastavením:`, gameSettings);
+                
+                // Ulož nastavení a inicializuj hru
+                room.gameSettings = gameSettings;
+                room.gameState = 'COUNTDOWN'; // Připraveno pro spuštění hry
+                room.currentRound = 1; // Začíná se prvním kolem
+                room.winner = null;
+                
+                // Informuj všechny klienty v místnosti, že hra začala
+                // Všimni si, že posíláme aktuální nastavení hry, která budou klienti potřebovat
+                io.to(roomId).emit('gameStarted', room.gameSettings);
+
+                // Zde můžeš později přidat logiku pro zahájení odpočtu, ale prozatím
+                // se klienti jen přesunou na herní obrazovku.
+            } else {
+                // Pokud to není hostitel, pošli chybu (nepovolená akce)
+                socket.emit('error', 'Pouze hostitel může začít hru.');
+                console.warn(`Server: Klient ${socket.id} se pokusil neoprávněně spustit hru v místnosti ${roomId}.`);
+            }
+        }
+    });
+    
+    // ... (existující obsluha události 'disconnect') ...
+});
+
+server.listen(PORT, () => {
+    console.log(`Server poslouchá na portu ${PORT}`);
+});
