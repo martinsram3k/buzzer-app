@@ -30,25 +30,14 @@
 
 /* --- Dark Mode Colors (AKTIVOVANÉ TŘÍDOU .dark-mode na body) --- */
 /* ZMĚNA: Selektor byl změněn z :root.dark-mode na body.dark-mode, aby odpovídal JavaScriptu */
+/* --- Dark Mode Colors (AKTIVOVANÉ TŘÍDOU .dark-mode na body) --- */
 body.dark-mode {
     --primary-color: hsl(0, 100%, 71%);
     --secondary-color: hsl(210, 28%, 23%);
-    --secondary-color-opacity: hsla(210, 28%, 23%, 0.8);
     --background-light: hsl(210, 28%, 23%);
     --background-dark: hsl(210, 29%, 17%);
     --text-color: hsl(200, 17%, 95%);
-    --nav-item-inactive: hsl(207, 12%, 63%);
-
-    --box-shadow: 0 0px 15px hsla(0, 0%, 0%, 0.5);
-
-    /* Text input colors for dark mode */
-    --input-border-color: hsl(0, 0%, 33%);
-    --input-background-color: hsl(210, 21%, 29%);
-    --input-text-color: var(--text-color);
-
-    /* Gradient colors for dark mode */
-    --gradient-start: hsl(210, 29%, 17%);
-    --gradient-end: hsl(220, 30%, 20%);
+    /* ... další proměnné ... */
 }
 
 
@@ -887,14 +876,20 @@ body {
     align-items: center;
 }
 
+.settings-item label {
+    flex-grow: 1; /* Povol, aby se label roztahoval a zabral volné místo */
+    width: auto;
+}
+
+/* --- Styly pro Toggle Switch (přepracováno pro pevnou šířku a stín) --- */
 /* --- Styly pro Toggle Switch (přepracováno pro pevnou šířku a stín) --- */
 .switch {
     user-select: none;
     position: relative;
     display: inline-block;
-    width: 50px; /* Pevná šířka přepínače */
-    height: 28px; /* Pevná výška přepínače */
-    margin-left: auto; /* Zarovnání doprava v rámci rodičovského prvku */
+    width: 50px;
+    height: 28px;
+    margin-left: auto;
 }
 
 /* Skryj výchozí HTML checkbox */
@@ -909,43 +904,39 @@ body {
     position: absolute;
     cursor: pointer;
     top: 0;
-    left: 0;
-    bottom: 0; /* Pro úplné vyplnění výšky */
-    background-color: var(--primary-color); /* Neaktivní pozadí: primary-color */
+    left: 70%;
+    right: 0;
+    bottom: 0;
+    background-color: var(--secondary-color); /* Používá sekundární barvu pro neaktivní stav */
     -webkit-transition: .4s;
     transition: .4s;
-    border-radius: 28px; /* Zaoblené rohy odpovídající výšce */
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.5); /* Výraznější stín pro slider */
+    border-radius: 28px;
+    box-shadow: inset 0px 4px 12px rgba(0, 0, 0, 0.2); /* Vnitřní stín pro hloubku */
 }
 
 /* Kulička slideru */
 .slider:before {
     position: absolute;
     content: "";
-    height: 20px; /* Výška kuličky */
-    width: 20px; /* Šířka kuličky */
-    left: 4px; /* Odsazení zleva */
-    bottom: 4px; /* Odsazení zdola */
-    background-color: var(--background-dark); /* Barva kuličky: background-dark podle požadavku */
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: var(--background-light); /* Barva kuličky je světlá, aby vynikla */
     -webkit-transition: .4s;
     transition: .4s;
-    border-radius: 50%; /* Kulatý tvar */
-    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.6); /* Výraznější stín pro kuličku */
+    border-radius: 50%;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.3); /* Mírný vnější stín kuličky */
 }
 
 /* Když je checkbox zaškrtnutý (aktivní stav) */
 input:checked+.slider {
-    background-color: var(--secondary-color); /* Aktivní pozadí: secondary-color ve světlém režimu */
-}
-
-/* Aktivní pozadí v tmavém režimu (přepíše výchozí secondary-color) */
-body.dark-mode input:checked+.slider {
-    background-color: var(--text-color); /* Světlá barva pro kontrast v dark mode */
+    background-color: var(--primary-color); /* Aktivní pozadí: primární barva */
 }
 
 /* Posun kuličky při zaškrtnutí */
 input:checked+.slider:before {
-    -webkit-transform: translateX(22px); /* Posun kuličky: (šířka switche - 2x odsazení - šířka kuličky) = (50 - 4 - 4 - 20) = 22px */
+    -webkit-transform: translateX(22px);
     -ms-transform: translateX(22px);
     transform: translateX(22px);
 }
@@ -957,6 +948,22 @@ input:checked+.slider:before {
 
 .slider.round:before {
     border-radius: 50%;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* Oprava pro správné zarovnání a šířku přepínače */
+/* Oprava pro správné zarovnání a šířku přepínače */
+.settings-item .switch {
+    flex-shrink: 0; /* Zabrání zmenšování přepínače */
+    margin-left: 20px; /* Dodá mezeru od textu */
+}
+
+/* Zajištění správné šířky přepínače, aby nebyl příliš široký */
+.room-settings-container .settings-item .switch {
+    width: 50px;
 }
 
 .lobby-container,
