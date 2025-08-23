@@ -2,8 +2,10 @@
 
 /* Základní reset a barvy */
 :root {
+    --sirka: 300px;
     /* DEFAULT COLORS (LIGHT MODE) */
     --primary-color: hsl(5, 78%, 57%);
+    --primary-color-dark: hsl(5, 78%, 30%);
     --secondary-color: hsl(211, 29%, 29%);
     --secondary-color-opacity: hsla(211, 29%, 29%, 0.8);
     --background-light: hsl(39, 100%, 98%);
@@ -1135,4 +1137,101 @@ input:checked+.slider:before {
     border-radius: 10px;
     box-shadow: var(--box-shadow);
     text-align: center;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
 }
+
+/* Upravené CSS pro kruhové tlačítko */
+.pushable {
+    user-select: none;
+    position: relative;
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    outline-offset: 4px;
+    transition: filter 250ms;
+    width: 300px; /* Nastavuje šířku na 300px */
+    height: 300px; /* Nastavuje výšku na 300px */
+    transition: filter 600ms;
+  }
+  
+  .shadow {
+    user-select: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%; /* Dělá z obdelníku kruh */
+    background: hsl(0deg 0% 0% / 1);
+    will-change: transform;
+    transform: translateY(2px);
+    transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1);
+  }
+  
+  .edge {
+    user-select: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%; /* Dělá z obdelníku kruh */
+    background: linear-gradient(
+      to left,
+      hsl(340deg 100% 16%) 0%,
+      hsl(340deg 100% 32%) 8%,
+      hsl(340deg 100% 32%) 92%,
+      hsl(340deg 100% 16%) 100%
+    );
+  }
+  
+  .front {
+    user-select: none;
+    display: flex; /* Použijeme flexbox pro centrování textu */
+    align-items: center; /* Centruje vertikálně */
+    justify-content: center; /* Centruje horizontálně */
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: 0; /* Odstraníme původní padding */
+    border-radius: 50%; /* Dělá z obdelníku kruh */
+    font-size: 60px;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: var(--background-light);
+    background: var(--primary-color);
+    will-change: transform;
+    transform: translateY(-10px);
+    transition: transform 600ms cubic-bezier(0.3, 0.7, 0.4, 1);
+  }
+  
+  .pushable:hover {
+    transition: filter 250ms;
+    filter: brightness(110%);
+  }
+  
+  .pushable:hover .front {
+    transform: translateY(-15px);
+    transition: transform 250ms cubic-bezier(0.3, 0.7, 0.4, 1.5);
+  }
+  .pushable:active .front {
+    transform: translateY(-2px);
+    transition: transform 34ms;
+  }
+  .pushable:hover .shadow {
+    filter: blur(10px);
+    transform: translateY(4px);
+    transition: transform 300ms cubic-bezier(0.3, 0.7, 0.4, 1.5);
+    transition: filter 300ms cubic-bezier(0.3, 0.7, 0.4, 1.5);
+  }
+  .pushable:active .shadow {
+    transform: translateY(1px);
+    transition: transform 34ms;
+  }
+  .pushable:focus:not(:focus-visible) {
+    outline: none;
+  }

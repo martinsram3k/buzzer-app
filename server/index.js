@@ -133,16 +133,19 @@ io.on('connection', (socket) => {
   /**
    * Funkce pro spuštění nového kola hry.
    * Obsahuje odpočet a nastavení časovače kola.
-   * @param {string} roomId ID místnosti.
-   */
-  function startNewRound(roomId) {
+  /**
+ * Funkce pro spuštění nového kola hry.
+ * Obsahuje odpočet a nastavení časovače kola.
+ * @param {string} roomId ID místnosti.
+ */
+function startNewRound(roomId) {
     if (!rooms[roomId]) {
-      console.warn(`Server: Pokus o spuštění kola v neexistující místnosti: ${roomId}`);
-      return;
+        console.warn(`Server: Pokus o spuštění kola v neexistující místnosti: ${roomId}`);
+        return;
     }
 
     resetBuzzerState(roomId); // Resetujeme stav bzučáku před novým kolem
-
+    
     // Zvýšíme číslo kola, pokud už nejsme v lobby nebo je to první kolo
     if (rooms[roomId].gameState !== 'LOBBY' && rooms[roomId].gameState !== 'GAME_OVER') {
         rooms[roomId].currentRound++;
@@ -150,54 +153,59 @@ io.on('connection', (socket) => {
         rooms[roomId].currentRound = 1; // Začínáme první kolo
     }
 
-    const { roundDuration } = rooms[roomId].gameSettings; // Získání délky kola z nastavení
-    const countdownTime = 3; // Odpočet před startem kola v sekundách
+    const { roundDuration } = rooms[roomId].gameSettings;
+    let countdownTime = 3; // Odpočet před startem kola v sekundách
+    
+    rooms[roomId].gameState = 'COUNTDOWN';
+    rooms[roomId].countdownTime = countdownTime;
+    emitRoomState(roomId); // Pošle počáteční stav s odpočtem
 
-    rooms[roomId].gameState = 'COUNTDOWN'; // Nastaví stav na odpočet
-    rooms[roomId].countdownTime = countdownTime; // Uloží čas odpočtu pro klienta
-    emitRoomState(roomId); // Pošle aktuální stav s odpočtem klientům
-
-    // Spustí odpočet událost pro klienty
-    io.to(roomId).emit('countdownStart', countdownTime);
-
-    // Po odpočtu se spustí kolo
-    setTimeout(() => {
+    // Spustíme interval pro odpočet
+    const countdownInterval = setInterval(() => {
+        countdownTime--; // Snížíme čas
+        
         // Znovu zkontroluj, zda místnost stále existuje, mohla být mezitím zrušena
         if (!rooms[roomId]) {
-          console.warn(`Server: Místnost ${roomId} zrušena během odpočtu.`);
-          return;
+            console.warn(`Server: Místnost ${roomId} zrušena během odpočtu.`);
+            clearInterval(countdownInterval);
+            return;
         }
 
-        rooms[roomId].gameState = 'ACTIVE_ROUND'; // Nastaví stav na aktivní kolo
-        emitRoomState(roomId); // Pošle aktualizovaný stav
+        rooms[roomId].countdownTime = countdownTime; // Aktualizujeme stav místnosti
+        emitRoomState(roomId); // Odešleme aktualizovaný stav
 
-        console.log(`Server: Kolo ${rooms[roomId].currentRound} v místnosti ${roomId} začalo.`);
-        io.to(roomId).emit('roundStarted', rooms[roomId].currentRound, rooms[roomId].gameSettings);
+        if (countdownTime <= 0) {
+            clearInterval(countdownInterval); // Zastavíme odpočet
+            
+            rooms[roomId].gameState = 'ACTIVE_ROUND'; // Nastaví stav na aktivní kolo
+            emitRoomState(roomId); // Pošle aktualizovaný stav
+            
+            console.log(`Server: Kolo ${rooms[roomId].currentRound} v místnosti ${roomId} začalo.`);
+            io.to(roomId).emit('roundStarted', rooms[roomId].currentRound, rooms[roomId].gameSettings);
 
-        // Nastav časovač pro délku kola, pokud není bez omezení (roundDuration > 0)
-        if (roundDuration > 0) {
-            rooms[roomId].roundTimer = setTimeout(() => {
-                // Zkontroluj, zda místnost stále existuje
-                if (!rooms[roomId]) return; 
+            // Nastav časovač pro délku kola
+            if (roundDuration > 0) {
+                rooms[roomId].roundTimer = setTimeout(() => {
+                    if (!rooms[roomId]) return; 
 
-                console.log(`Server: Kolo ${rooms[roomId].currentRound} v místnosti ${roomId} skončilo vypršením času.`);
-                rooms[roomId].gameState = 'ROUND_END'; // Stav konec kola (vypršení času)
-                emitRoomState(roomId); // Pošle aktualizovaný stav
-                io.to(roomId).emit('roundEnded', rooms[roomId].currentRound, rooms[roomId].winner);
-
-                // Zkontroluj, zda je konec hry po vypršení času
-                if (rooms[roomId].currentRound >= rooms[roomId].gameSettings.numRounds) {
-                    console.log(`Server: Všechna kola v místnosti ${roomId} odehrána. Hra končí.`);
-                    rooms[roomId].gameState = 'GAME_OVER'; // Nastav stav na konec hry
+                    console.log(`Server: Kolo ${rooms[roomId].currentRound} v místnosti ${roomId} skončilo vypršením času.`);
+                    rooms[roomId].gameState = 'ROUND_END';
                     emitRoomState(roomId);
-                    io.to(roomId).emit('gameOver');
-                }
-            }, roundDuration * 1000); // Převeď sekundy na milisekundy
-        } else {
-            console.log(`Server: Kolo ${rooms[roomId].currentRound} v místnosti ${roomId} začalo (bez časového omezení).`);
+                    io.to(roomId).emit('roundEnded', rooms[roomId].currentRound, rooms[roomId].winner);
+
+                    if (rooms[roomId].currentRound >= rooms[roomId].gameSettings.numRounds) {
+                        console.log(`Server: Všechna kola v místnosti ${roomId} odehrána. Hra končí.`);
+                        rooms[roomId].gameState = 'GAME_OVER';
+                        emitRoomState(roomId);
+                        io.to(roomId).emit('gameOver');
+                    }
+                }, roundDuration * 1000);
+            } else {
+                console.log(`Server: Kolo ${rooms[roomId].currentRound} v místnosti ${roomId} začalo (bez časového omezení).`);
+            }
         }
-    }, countdownTime * 1000); // Počkej na dokončení odpočtu
-  }
+    }, 1000); // Interval 1 sekunda
+}
 
   // --- UDÁLOSTI Z KLIENTA ---
 
@@ -530,50 +538,84 @@ io.on('connection', (socket) => {
   /**
    * Klient bzučí.
    */
-  socket.on('buzz', () => {
-    const roomId = socket.currentRoom; // Získá aktuální místnost uživatele
-    // Kontrola, zda je uživatel v místnosti, zda místnost existuje, zda je aktivní kolo a zda už není vítěz
-    if (roomId && rooms[roomId] && rooms[roomId].gameState === 'ACTIVE_ROUND' && !rooms[roomId].winner) {
-      // Kontrola, zda hostitel hraje (pokud je volající hostitel a gameSettings.hostPlays je false)
-      if (rooms[roomId].hostId === socket.id && !rooms[roomId].gameSettings.hostPlays) {
+  // Nová a kompletní obsluha události 'buzz'
+socket.on('buzz', (buzzTime) => {
+    const roomId = socket.currentRoom;
+    const room = rooms[roomId];
+
+    // Základní kontroly: místnost existuje, je aktivní kolo
+    if (!roomId || !room || room.gameState !== 'ACTIVE_ROUND') {
+        socket.emit('notAuthorized', 'Nemůžeš bzučet v tomto stavu hry.');
+        console.warn(`Server: Buzz zamítnut v místnosti ${roomId} od ${socket.username || socket.id} - špatný stav hry.`);
+        return;
+    }
+
+    // Kontrola, zda hostitel hraje
+    if (room.hostId === socket.id && !room.gameSettings.hostPlays) {
         socket.emit('notAuthorized', 'Jako hostitel, který nehraje, nemůžete bzučet.');
         console.log(`Server: Hostitel ${socket.username} se pokusil bzučet, ale nehraje v místnosti ${roomId}.`);
         return;
-      }
-      
-      // Zastavíme časovač kola, jakmile někdo bzučí
-      if (rooms[roomId].roundTimer) {
-        clearTimeout(rooms[roomId].roundTimer);
-        rooms[roomId].roundTimer = null;
-        console.log(`Server: Časovač kola pro místnost ${roomId} byl zastaven.`);
-      }
-
-      // Nastavení vítěze bzučení
-      rooms[roomId].winner = { id: socket.id, username: socket.username, time: new Date().toISOString() };
-      rooms[roomId].gameState = 'ROUND_END'; // Kolo končí bzučením
-      console.log(`Server: Buzz v místnosti ${roomId} od: ${socket.id} (Jméno: ${socket.username})`);
-      io.to(roomId).emit('buzzerWinner', rooms[roomId].winner); // Informuje všechny o vítězi
-      emitRoomState(roomId); // Pošleme aktualizovaný stav
-
-      // Zkontroluj, zda je konec hry po bzučení (pokud je aktuální kolo poslední)
-      if (rooms[roomId].currentRound >= rooms[roomId].gameSettings.numRounds) {
-        console.log(`Server: Všechna kola odehrána po bzučení v místnosti ${roomId}. Hra končí.`);
-        rooms[roomId].gameState = 'GAME_OVER'; // Nastav stav na konec hry
-        emitRoomState(roomId);
-        io.to(roomId).emit('gameOver');
-      }
-    } else {
-        console.warn(`Server: Buzz zamítnut v místnosti ${roomId} od ${socket.username || socket.id}. Stav: ${rooms[roomId]?.gameState}, Vítěz: ${rooms[roomId]?.winner?.username || 'žádný'}.`);
-        // Odeslání konkrétních chybových zpráv klientovi
-        if (rooms[roomId]?.gameState !== 'ACTIVE_ROUND') {
-            socket.emit('notAuthorized', 'Nemůžeš bzučet v tomto stavu hry.');
-        } else if (rooms[roomId]?.winner) {
-            socket.emit('notAuthorized', 'Někdo už bzučel.');
-        } else if (!roomId || !rooms[roomId]) {
-            socket.emit('notAuthorized', 'Nejsi v žádné místnosti.');
-        }
     }
-  });
+
+    // Pokud už byl někdo dříve, odmítni to (pokud není zapnutý multipleBuzz)
+    if (room.winner && !room.gameSettings.multipleBuzz) {
+        socket.emit('notAuthorized', 'Někdo už bzučel.');
+        return;
+    }
+
+    // Vytvoříme a uložíme objekt bzučení pro tohoto hráče
+    const playerBuzz = {
+        id: socket.id,
+        username: socket.username,
+        buzzTime: buzzTime
+    };
+
+    // Vytvoříme pole buzzes, pokud ještě neexistuje
+    if (!room.buzzes) {
+        room.buzzes = [];
+    }
+    room.buzzes.push(playerBuzz);
+
+    // Pokud je to první bzučení v kole, nastavíme ho jako "vítěze" prozatím
+    // a zastavíme hlavní časovač kola
+    if (room.buzzes.length === 1) {
+        if (room.roundTimer) {
+            clearTimeout(room.roundTimer);
+            room.roundTimer = null;
+            console.log(`Server: Časovač kola pro místnost ${roomId} byl zastaven prvním bzučením.`);
+        }
+        
+        // Nastavíme dočasného vítěze a změníme stav
+        room.winner = playerBuzz;
+        room.gameState = 'ROUND_END';
+        
+        // Informujeme klienty, že kolo skončilo, ale vítěze určíme až později
+        io.to(roomId).emit('roundEnded', room.currentRound, room.winner); 
+        
+        console.log(`Server: První bzučení v místnosti ${roomId} od: ${playerBuzz.username}`);
+    }
+    
+    // Nyní čekáme na ostatní nebo na vypršení časovače. V tomto zjednodušeném
+    // příkladu již vítěze určíme hned po prvním bzučení. Pro složitější logiku
+    // s více bzučeními byste museli vyhodnotit až po vypršení času.
+    
+    // Finalizace a určení vítěze
+    room.winner = room.buzzes.reduce((prev, curr) => (prev.buzzTime < curr.buzzTime ? prev : curr));
+
+    console.log(`Server: Vítěz kola v místnosti ${roomId} je ${room.winner.username} s časem ${room.winner.buzzTime} ms.`);
+
+    // Odeslání výsledků všem klientům
+    io.to(roomId).emit('buzzerWinner', room.winner);
+    emitRoomState(roomId);
+    
+    // Kontrola konce hry
+    if (room.currentRound >= room.gameSettings.numRounds) {
+      console.log(`Server: Hra končí v místnosti ${roomId}.`);
+      room.gameState = 'GAME_OVER';
+      emitRoomState(roomId);
+      io.to(roomId).emit('gameOver');
+    }
+});
 
   /**
    * Původní resetBuzzer událost, nyní použitelná pro hostitele k resetování hry z GAME_OVER.

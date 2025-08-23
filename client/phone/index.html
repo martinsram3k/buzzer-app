@@ -216,8 +216,25 @@
                 </div>
 
                 <div id="gameplaySection" class="content-section">
+                    <div class="game-status-container">
+                        <h2 id="currentRoundDisplay" class="game-info-text"></h2>
+                        <h1 id="gameStateMessage" class="game-info-message"></h1>
+                        <h1 id="countdownDisplay" class="game-info-countdown hidden"></h1>
+                        <h2 id="winnerDisplay" class="game-info-winner hidden"></h2>
+                    </div>
+                
+                    <button id="buzzButton" class="pushable buzz-button">
+                        <span class="shadow"></span>
+                        <span class="edge"></span>
+                        <span class="front">BUZZ</span>
+                    </button>
                     
-
+                    <div class="host-actions-container">
+                        <button id="nextRoundButton" class="host-button next-round-button hidden">Next Round</button>
+                        <button id="newGameButton" class="host-button new-game-button hidden">New Game</button>
+                        <button id="leaveGameButton" class="host-button leave-game-button hidden">Leave Game</button>
+                        <button id="cancelGameButton" class="host-button cancel-game-button hidden">Cancel Game</button>
+                    </div>
                 </div>
 
                 <div id="accountSection" class="content-section">

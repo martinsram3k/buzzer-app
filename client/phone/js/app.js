@@ -72,6 +72,10 @@ const winnerDisplay = document.getElementById('winnerDisplay');
 const nextRoundButton = document.getElementById('nextRoundButton');
 const newGameButton = document.getElementById('newGameButton');
 const leaveGameButton = document.getElementById('leaveGameButton');
+const cancelGameButton = document.getElementById('cancelGameButton'); // NOVÉ: Tlačítko pro zrušení hry
+
+
+
 
 const darkModeToggle = document.getElementById('darkModeToggle');
 
@@ -445,39 +449,56 @@ function updateLobbyUI(roomData) {
 }
 
 // --- Function to update gameplay UI section ---
+/**
+ * Aktualizuje herní UI na základě dat ze serveru.
+ * @param {object} roomData Objekt s daty místnosti ze serveru.
+ */
 function updateGameplayUI(roomData) {
     if (!roomData) return;
 
+    // Vždy aktualizuj zobrazení kola
     currentRoundDisplay.textContent = `Round ${roomData.currentRound} / ${roomData.gameSettings.numRounds}`;
 
+    // Skryj všechny dynamické prvky na začátku každé aktualizace
     countdownDisplay.classList.add('hidden');
     buzzButton.classList.add('hidden');
     winnerDisplay.classList.add('hidden');
     nextRoundButton.classList.add('hidden');
     newGameButton.classList.add('hidden');
     leaveGameButton.classList.remove('hidden');
+    cancelGameButton.classList.add('hidden'); // Skryj tlačítko pro zrušení hry
 
-    buzzButton.disabled = true;
+    buzzButton.disabled = true; // Výchozí stav je zakázáno
+
+    const isHost = roomData.hostId === socket.id;
 
     switch (roomData.gameState) {
         case 'COUNTDOWN':
             gameStateMessage.textContent = `Game starts in...`;
             countdownDisplay.textContent = roomData.countdownTime;
             countdownDisplay.classList.remove('hidden');
+            if (isHost) {
+                cancelGameButton.classList.remove('hidden');
+            }
             break;
         case 'ACTIVE_ROUND':
             gameStateMessage.textContent = 'Buzz!';
             buzzButton.classList.remove('hidden');
-            buzzButton.disabled = false;
-            if (roomData.hostId === socket.id && !roomData.gameSettings.hostPlays) {
+            
+            // Povol bzučení jen pro hráče, kteří hrají
+            if (!isHost || (isHost && roomData.gameSettings.hostPlays)) {
+                buzzButton.disabled = false;
+                buzzButton.classList.remove('disabled');
+            } else {
                 buzzButton.disabled = true;
                 buzzButton.classList.add('disabled');
-            } else {
-                buzzButton.classList.remove('disabled');
             }
-
+            if (isHost) {
+                cancelGameButton.classList.remove('hidden');
+            }
             break;
         case 'ROUND_END':
+            // Zobrazení vítěze kola
             if (roomData.winner) {
                 gameStateMessage.textContent = `Round ended! Winner: ${roomData.winner.username}!`;
                 winnerDisplay.textContent = `First to buzz: ${roomData.winner.username}`;
@@ -487,25 +508,37 @@ function updateGameplayUI(roomData) {
                 winnerDisplay.textContent = 'No one buzzed.';
                 winnerDisplay.classList.remove('hidden');
             }
+            
+            // Deaktivace tlačítka pro bzučení
             buzzButton.disabled = true;
-
-            if (currentRoomState && currentRoomState.hostId === socket.id && currentRoomState.currentRound < currentRoomState.gameSettings.numRounds) {
+            buzzButton.classList.add('disabled');
+            
+            // Zobrazení tlačítka pro další kolo pro hostitele, pokud hra neskončila
+            if (isHost && roomData.currentRound < roomData.gameSettings.numRounds) {
                 nextRoundButton.classList.remove('hidden');
+            }
+            if (isHost) {
+                cancelGameButton.classList.remove('hidden');
             }
             break;
         case 'GAME_OVER':
             gameStateMessage.textContent = 'Game Over!';
             winnerDisplay.textContent = 'Thanks for playing!';
             winnerDisplay.classList.remove('hidden');
+            
+            // Deaktivace tlačítka pro bzučení
             buzzButton.disabled = true;
-
-            if (currentRoomState && currentRoomState.hostId === socket.id) {
+            buzzButton.classList.add('disabled');
+            
+            // Zobrazení tlačítka pro novou hru pro hostitele
+            if (isHost) {
                 newGameButton.classList.remove('hidden');
             }
             break;
         default:
             gameStateMessage.textContent = 'Waiting for game...';
             buzzButton.disabled = true;
+            buzzButton.classList.add('disabled');
             break;
     }
 }
@@ -686,17 +719,15 @@ window.onload = () => {
                 numRounds: parseInt(numRoundsInput.value) || 3,
                 
                 // Advanced settings
-                advanceMode: advanceModeToggle.checked, // NEW: Sending the state of advanced mode
+                advanceMode: advanceModeToggle.checked,
                 multipleBuzz: multipleBuzzToggle.checked,
                 teamsEnabled: teamsToggle.checked,
-                teamSize: parseInt(teamSizeInput.value) || 1, // Updated default to 1
-                numTeams: parseInt(numTeamsInput.value) || 0, // Updated default to 0
+                teamSize: parseInt(teamSizeInput.value) || 1,
+                numTeams: parseInt(numTeamsInput.value) || 0,
                 hostStartsNextRound: hostStartsNextRoundToggle.checked,
                 restTimeBetweenRounds: parseInt(restTimeBetweenRoundsInput.value) || 5
             };
             
-            // Removed client-side validation alerts and returns.
-            // All settings will now be sent to the server for processing.
             if (currentRoomCode) {
                 window.updateGameSettings(currentRoomCode, settings);
             }
@@ -706,7 +737,7 @@ window.onload = () => {
     // LISTENER FOR ADVANCED MODE TOGGLE
     if (advanceModeToggle) {
         advanceModeToggle.addEventListener('change', () => {
-            if (advancedSettingsContainer) { // Ensure the container exists
+            if (advancedSettingsContainer) {
                 if (advanceModeToggle.checked) {
                     advancedSettingsContainer.classList.remove('hidden');
                     console.log('Advanced Mode toggle: Advanced settings container should be VISIBLE.');
@@ -720,7 +751,6 @@ window.onload = () => {
         });
     }
 
-
     if (startGameButton) {
         startGameButton.addEventListener('click', () => {
             console.log('app.js: Tlačítko Start Game stisknuto.');
@@ -729,11 +759,8 @@ window.onload = () => {
         });
     }
 
-    // Posluchač pro událost "gameStarted" ze serveru
-    socket.on('gameStarted', (gameSettings) => {
-        console.log('app.js: Hra byla spuštěna serverem! Nastavení:', gameSettings);
-        showSection('gameplaySection');
-    });
+    // Zrušena obsluha pro 'gameStarted' - je nahrazena 'roomState'
+    // socket.on('gameStarted', (gameSettings) => { ... });
 
     if (leaveLobbyButton) {
         leaveLobbyButton.addEventListener('click', () => {
@@ -761,7 +788,19 @@ window.onload = () => {
             window.buzz();
         });
     }
-
+    
+    // Obsluha tlačítka pro zrušení hry
+    if (cancelGameButton) {
+        cancelGameButton.addEventListener('click', () => {
+            console.log('app.js: "Cancel Game" button clicked.');
+            if (confirm('Are you sure you want to cancel the game? All players will be returned to the lobby.')) {
+                if (currentRoomCode) {
+                    window.cancelGame(currentRoomCode);
+                }
+            }
+        });
+    }
+    
     if (nextRoundButton) {
         nextRoundButton.addEventListener('click', () => {
             console.log('app.js: "Next Round" button clicked.');
@@ -770,7 +809,7 @@ window.onload = () => {
             }
         });
     }
-
+    
     if (newGameButton) {
         newGameButton.addEventListener('click', () => {
             console.log('app.js: "New Game" button clicked.');
@@ -819,6 +858,35 @@ window.onload = () => {
         console.warn('Dark Mode toggle element (darkModeToggle) not found.');
     }
 
+    // Sjednocené obsluhy událostí od serveru
+    socket.on('roomState', (roomData) => {
+        currentRoomState = roomData;
+        console.log('app.js: Received updated room state:', roomData);
+
+        const isCurrentUserHost = roomData.hostId === socket.id;
+        
+        // Změna sekce na základě stavu hry
+        if (roomData.gameState === 'LOBBY' || roomData.gameState === 'ROOM_SETTINGS') {
+             // Pokud je hostitel a je v lobby, ukáže nastavení, jinak ukáže lobby
+            if (isCurrentUserHost) {
+                if (currentActiveSectionId !== 'roomSettingsSection') {
+                    showSection('roomSettingsSection');
+                }
+            } else {
+                if (currentActiveSectionId !== 'lobbySection') {
+                    showSection('lobbySection');
+                }
+            }
+            updateLobbyUI(roomData);
+        } else {
+            // Všechny ostatní stavy hry (countdown, active, end)
+            if (currentActiveSectionId !== 'gameplaySection') {
+                showSection('gameplaySection');
+            }
+            updateGameplayUI(roomData);
+        }
+    });
+
     socket.on('roomCreated', (roomId) => {
         console.log(`app.js: Room successfully created! Code: ${roomId}`);
         currentRoomCode = roomId;
@@ -826,22 +894,21 @@ window.onload = () => {
 
         if (settingsRoomCode) {
             settingsRoomCode.textContent = roomId;
-            maxPlayersAllowedInput.value = 10; // Default
-            roundTimeInput.value = 30; // Default
-            hostPlaysToggle.checked = true; // Default
-            numRoundsInput.value = 3; // Default
+            maxPlayersAllowedInput.value = 10;
+            roundTimeInput.value = 30;
+            hostPlaysToggle.checked = true;
+            numRoundsInput.value = 3;
 
-            // Default values for advanced settings
             advanceModeToggle.checked = false;
-            if (advancedSettingsContainer) { // Ensure the container exists
-                advancedSettingsContainer.classList.add('hidden'); // Hide initially
+            if (advancedSettingsContainer) {
+                advancedSettingsContainer.classList.add('hidden');
             } else {
                 console.warn('roomCreated: advancedSettingsContainer element not found.');
             }
             multipleBuzzToggle.checked = false;
             teamsToggle.checked = false;
-            teamSizeInput.value = 1; // Updated default
-            numTeamsInput.value = 0; // Updated default
+            teamSizeInput.value = 1;
+            numTeamsInput.value = 0;
             hostStartsNextRoundToggle.checked = true;
             restTimeBetweenRoundsInput.value = 5;
         }
@@ -869,27 +936,15 @@ window.onload = () => {
         alert(`Error: ${message}`);
     });
 
-    socket.on('roomState', (roomData) => {
-        console.log('app.js: Received roomState update:', roomData);
-        currentRoomState = roomData;
+    socket.on('roomFull', (message) => {
+        alert(message);
+    });
 
-        if (roomData && roomData.roomId === currentRoomCode) { 
-            const isCurrentUserHost = roomData.hostId === socket.id;
-
-            if (roomData.gameState === 'LOBBY') {
-                if (isCurrentUserHost && currentActiveSectionId !== 'roomSettingsSection') {
-                    showSection('roomSettingsSection');
-                } else if (!isCurrentUserHost && currentActiveSectionId !== 'lobbySection') {
-                    showSection('lobbySection');
-                }
-                updateLobbyUI(roomData);
-            } else if (roomData.gameState === 'COUNTDOWN' || roomData.gameState === 'ACTIVE_ROUND' || roomData.gameState === 'ROUND_END' || roomData.gameState === 'GAME_OVER') {
-                if (currentActiveSectionId !== 'gameplaySection') {
-                    showSection('gameplaySection');
-                }
-                updateGameplayUI(roomData);
-            }
-        }
+    socket.on('kickedFromRoom', (message) => {
+        alert(message);
+        currentRoomCode = null;
+        currentRoomState = null;
+        showSection('homeSection');
     });
 
     socket.on('roomClosed', (message) => {
@@ -908,86 +963,7 @@ window.onload = () => {
         console.log(`app.js: Player ${username} was kicked.`);
         alert(`${username} was kicked from the room.`);
     });
-
-    socket.on('countdownStart', (time) => {
-        console.log(`app.js: Round starts in ${time} seconds...`);
-        countdownDisplay.textContent = time;
-        countdownDisplay.classList.remove('hidden');
-        gameStateMessage.textContent = 'Game starting in...';
-        buzzButton.disabled = true;
-        buzzButton.classList.add('disabled');
-    });
-
-    socket.on('roundStarted', (roundNum, settings) => {
-        console.log(`app.js: Round ${roundNum} started!`);
-        currentRoundDisplay.textContent = `Round ${roundNum} / ${settings.numRounds}`;
-        gameStateMessage.textContent = 'Buzz!';
-        countdownDisplay.classList.add('hidden');
-        buzzButton.classList.remove('hidden');
-        if (currentRoomState.hostId === socket.id && !settings.hostPlays) {
-            buzzButton.disabled = true;
-            buzzButton.classList.add('disabled');
-        } else {
-                buzzButton.disabled = false;
-                buzzButton.classList.remove('disabled');
-            }
-        winnerDisplay.classList.add('hidden');
-        nextRoundButton.classList.add('hidden');
-        newGameButton.classList.add('hidden');
-    });
-
-    socket.on('buzzerWinner', (winnerData) => {
-        console.log(`app.js: Round winner: ${winnerData.username}`);
-        gameStateMessage.textContent = `Round winner: ${winnerData.username}!`;
-        winnerDisplay.textContent = `First to buzz: ${winnerData.username}`;
-        winnerDisplay.classList.remove('hidden');
-        buzzButton.disabled = true;
-        buzzButton.classList.add('disabled');
-    });
-
-    socket.on('roundEnded', (roundNum, winner) => {
-        console.log(`app.js: Round ${roundNum} ended.`);
-        if (!winner) {
-            gameStateMessage.textContent = 'Round ended! No one buzzed.';
-            winnerDisplay.textContent = 'No one buzzed.';
-            winnerDisplay.classList.remove('hidden');
-        }
-        buzzButton.disabled = true;
-        buzzButton.classList.add('disabled');
-
-        if (currentRoomState && currentRoomState.hostId === socket.id && currentRoomState.currentRound < currentRoomState.gameSettings.numRounds) {
-            nextRoundButton.classList.remove('hidden');
-        }
-    });
-
-    socket.on('gameOver', () => {
-        console.log('app.js: Game Over!');
-        gameStateMessage.textContent = 'Game Over!';
-        winnerDisplay.textContent = 'Thanks for playing!';
-        winnerDisplay.classList.remove('hidden');
-        buzzButton.disabled = true;
-        buzzButton.classList.add('disabled');
-        nextRoundButton.classList.add('hidden');
-
-        if (currentRoomState && currentRoomState.hostId === socket.id) {
-            newGameButton.classList.remove('hidden');
-        }
-    });
-
-    socket.on('buzzerReset', () => {
-        console.log('app.js: Buzzer reset.');
-        winnerDisplay.classList.add('hidden');
-        if (currentRoomState && currentRoomState.gameState === 'ACTIVE_ROUND') {
-             if (currentRoomState.hostId === socket.id && !currentRoomState.gameSettings.hostPlays) {
-                buzzButton.disabled = true;
-                buzzButton.classList.add('disabled');
-            } else {
-                buzzButton.disabled = false;
-                buzzButton.classList.remove('disabled');
-            }
-        }
-    });
-
+    
     socket.on('disconnect', () => {
         console.log('app.js: Disconnected from server.');
         alert('You have been disconnected from the server. Please try to reconnect.');
@@ -999,5 +975,4 @@ window.onload = () => {
             qrCodeContainer.classList.add('hidden');
         }
     });
-
 };
