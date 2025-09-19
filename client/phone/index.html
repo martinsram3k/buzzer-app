@@ -1,23 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buzzer App</title>
-    <link rel="stylesheet" href="style.css">
-</head>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Buzzer App</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
 
-<body>
-    <div id="loadingScreen" class="loading-screen">
-        <div class="spinner"></div>
-    </div>
+    <body>
+        <div id="loadingScreen" class="loading-screen">
+            <div class="spinner"></div>
+        </div>
 
-    <div id="appContainer">
-        <div class="top-nav">
-            <ul>
-                <li class="nav-item">
-                    <img src="assets/icon/back.png" alt="home" class="nav-home">
+        <div id="appContainer">
+            <div class="top-nav">
+                <ul>
+                    <li class="nav-item">
+                        <img src="assets/icon/back.png" alt="home"
+                            class="nav-home">
                     </li>
                     <li class="nav-item">
                         <h1 class="nav-title">Buzzer App</h1>
@@ -28,11 +29,14 @@
             <div class="main-wrapper">
                 <div id="homeSection" class="content-section">
                     <h1>Welcome to the Buzzer App!</h1>
-                    <p>We're glad you're here. Get ready for fun and excitement!</p>
+                    <p>We're glad you're here. Get ready for fun and
+                        excitement!</p>
 
                     <div class="quick-actions">
-                        <button id="quickStartButton" class="action-button" data-section="gameSection">Start Game</button>
-                        <button id="quickStartAccount" class="action-button" data-section="accountSection">My
+                        <button id="quickStartButton" class="action-button"
+                            data-section="gameSection">Start Game</button>
+                        <button id="quickStartAccount" class="action-button"
+                            data-section="accountSection">My
                             Profile</button>
                     </div>
 
@@ -43,13 +47,17 @@
 
                             <div class="news-item">
                                 <h2>Coming soon</h2>
-                                <img src="https://placehold.co/600x400/E74C3C/FFFFFF?text=Coming+Soon" alt="comingsoon"
+                                <img
+                                    src="https://placehold.co/600x400/E74C3C/FFFFFF?text=Coming+Soon"
+                                    alt="comingsoon"
                                     class="news-icon">
                             </div>
 
                             <div class="news-item">
                                 <h2>Coming soon</h2>
-                                <img src="https://placehold.co/600x400/E74C3C/FFFFFF?text=Coming+Soon" alt="comingsoon"
+                                <img
+                                    src="https://placehold.co/600x400/E74C3C/FFFFFF?text=Coming+Soon"
+                                    alt="comingsoon"
                                     class="news-icon">
                             </div>
 
@@ -69,17 +77,23 @@
                             <div class="game-section-container">
 
                                 <div class="input-with-clear">
-                                    <textarea maxlength="5" maxRows="1" minlength="5" inputmode="numeric" id="joinGameCode"
+                                    <textarea maxlength="5" maxRows="1"
+                                        minlength="5" inputmode="numeric"
+                                        id="joinGameCode"
                                         placeholder="Input game pin"></textarea>
-                                    <span id="clearGameCodeButton" class="clear-button">&times;</span>
+                                    <span id="clearGameCodeButton"
+                                        class="clear-button">&times;</span>
                                 </div>
 
-                                <img src="assets/icon/qr-code.png" alt="QR Code" class="qr-code" id="qrCodeScanIcon">
+                                <img src="assets/icon/qr-code.png" alt="QR Code"
+                                    class="qr-code" id="qrCodeScanIcon">
 
                                 <div id="qr-overlay">
                                     <div class="qr-overlay-content">
-                                        <span class="qr-overlay-close" id="qrOverlayCloseButton">&times;</span>
-                                        <p class="qr-overlay-instructions">Scan QR code</p>
+                                        <span class="qr-overlay-close"
+                                            id="qrOverlayCloseButton">&times;</span>
+                                        <p class="qr-overlay-instructions">Scan
+                                            QR code</p>
                                         <div id="qr-reader"></div>
                                         <div id="qr-reader-results"></div>
                                     </div>
@@ -87,7 +101,8 @@
 
                             </div>
 
-                            <button id="joinGameButton" class="action-button">Join</button>
+                            <button id="joinGameButton"
+                                class="action-button">Join</button>
 
                         </div>
 
@@ -105,36 +120,53 @@
                 <div id="nameSection" class="content-section">
                     <div class="name-input-container">
                         <h1>Name</h1>
-                        <input type="text" id="playerNameInput" placeholder="Name">
-                        <button id="submitNameButton" class="action-button">Continue</button>
+                        <input type="text" id="playerNameInput"
+                            placeholder="Name">
+                        <button id="submitNameButton"
+                            class="action-button">Continue</button>
                     </div>
                 </div>
 
                 <div id="lobbySection" class="content-section">
-                    <p class="room-info">Room: <span id="lobbyRoomCode">XXXXX</span></p>
+                    <p class="room-info">Room: <span
+                            id="lobbyRoomCode">XXXXX</span></p>
                     <div class="player-list">
                         <h2>Players:</h2>
                         <ul id="lobbyPlayerList">
-                            </ul>
+                        </ul>
                     </div>
-                    <button id="leaveLobbyButton" class="action-button">Leave Room</button>
+                    <button id="leaveLobbyButton" class="action-button">Leave
+                        Room</button>
                 </div>
 
                 <div id="roomSettingsSection" class="content-section">
                     <div class="room-settings-container">
                         <h1>Room Settings</h1>
-                        <p>Your Room Code: <span id="settingsRoomCode">XXXXX</span></p>
+                        <div class="room-code-container">
+                            <p>Your Room Code: <span
+                                    id="settingsRoomCode">XXXXX</span></p>
+                            <button id="copyRoomCodeButton" class="copy-button">
+                                <span id="copyConfirmationMessage"
+                                    class="confirmation-message hidden">Copied!</span>
+                                <img src="assets/icon/clipboard.png" alt="Copy"
+                                    class="copy-icon">
+                            </button>
+                        </div>
                         <!-- Container for QR code -->
-                        <div id="qrCodeContainer" class="qr-code-container hidden"></div>
-                        
+                        <div id="qrCodeContainer"
+                            class="qr-code-container hidden"></div>
+
                         <!-- Normal Settings -->
                         <div class="setting-item">
-                            <label for="maxPlayersAllowedInput">Max Players:</label>
-                            <input type="number" id="maxPlayersAllowedInput" value="10" min="2" max="50">
+                            <label for="maxPlayersAllowedInput">Max
+                                Players:</label>
+                            <input type="number" id="maxPlayersAllowedInput"
+                                value="10" min="2" max="50">
                         </div>
                         <div class="setting-item">
                             <label for="roundTime">Round Duration (s):</label>
-                            <input type="number" id="roundTime" value="30" min="5" max="300">
+                            <input type="number" id="roundTime" value="30"
+                                min="5" max="300">
                         </div>
                         <div class="setting-item">
                             <label for="hostPlays">Host plays:</label>
@@ -144,13 +176,16 @@
                             </label>
                         </div>
                         <div class="setting-item">
-                            <label for="numRoundsInput">Number of Rounds:</label>
-                            <input type="number" id="numRoundsInput" value="3" min="1" max="100">
+                            <label for="numRoundsInput">Number of
+                                Rounds:</label>
+                            <input type="number" id="numRoundsInput" value="3"
+                                min="1" max="100">
                         </div>
 
                         <!-- Advanced Mode Toggle -->
                         <div class="setting-item">
-                            <label class="advanceToggle" for="advanceModeToggle">Advanced Mode:</label>
+                            <label class="advanceToggle"
+                                for="advanceModeToggle">Advanced Mode:</label>
                             <label class="switch">
                                 <input type="checkbox" id="advanceModeToggle">
                                 <span class="slider round"></span>
@@ -158,11 +193,14 @@
                         </div>
 
                         <!-- Advanced Settings Container (initially hidden) -->
-                        <div id="advancedSettingsContainer" class="advancedSettingsContainer" class="hidden">
+                        <div id="advancedSettingsContainer"
+                            class="advancedSettingsContainer" class="hidden">
                             <div class="setting-item">
-                                <label for="multipleBuzzToggle">Multiple Buzz:</label>
+                                <label for="multipleBuzzToggle">Multiple
+                                    Buzz:</label>
                                 <label class="switch">
-                                    <input type="checkbox" id="multipleBuzzToggle">
+                                    <input type="checkbox"
+                                        id="multipleBuzzToggle">
                                     <span class="slider round"></span>
                                 </label>
                             </div>
@@ -175,27 +213,35 @@
                             </div>
                             <div class="setting-item">
                                 <label for="teamSizeInput">Team Size:</label>
-                                <input type="number" id="teamSizeInput" value="1" min="1" max="25">
+                                <input type="number" id="teamSizeInput"
+                                    value="1" min="1" max="25">
                             </div>
                             <div class="setting-item">
-                                <label for="numTeamsInput">Number of Teams:</label>
-                                <input type="number" id="numTeamsInput" value="0" min="2" max="25">
+                                <label for="numTeamsInput">Number of
+                                    Teams:</label>
+                                <input type="number" id="numTeamsInput"
+                                    value="0" min="2" max="25">
                             </div>
                             <div class="setting-item">
-                                <label for="hostStartsNextRoundToggle">Host Starts Next Round:</label>
+                                <label for="hostStartsNextRoundToggle">Host
+                                    Starts Next Round:</label>
                                 <label class="switch">
-                                    <input type="checkbox" id="hostStartsNextRoundToggle" checked>
+                                    <input type="checkbox"
+                                        id="hostStartsNextRoundToggle" checked>
                                     <span class="slider round"></span>
                                 </label>
                             </div>
                             <div class="setting-item">
-                                <label for="restTimeBetweenRoundsInput">Rest Time Between Rounds (s):</label>
-                                <input type="number" id="restTimeBetweenRoundsInput" value="5" min="0" max="60">
+                                <label for="restTimeBetweenRoundsInput">Rest
+                                    Time Between Rounds (s):</label>
+                                <input type="number"
+                                    id="restTimeBetweenRoundsInput" value="5"
+                                    min="0" max="60">
                             </div>
                         </div>
-                        
-                        <button id="updateSettingsButton" class="action-button">Update Settings</button>
 
+                        <button id="updateSettingsButton"
+                            class="action-button">Update Settings</button>
 
                         <!-- NEW PLAYER LIST FOR HOST -->
                         <div class="player-list host-player-list">
@@ -206,34 +252,47 @@
                         </div>
 
                         <div class="action-button-container">
-                            <button id="startGameButton" class="action-button">Start Game</button>
-                            <button id="closeRoomButton" class="action-button">Close Room</button>
+                            <button id="startGameButton"
+                                class="action-button">Start Game</button>
+                            <button id="closeRoomButton"
+                                class="action-button">Close Room</button>
 
                         </div>
-                        
 
                     </div>
                 </div>
 
                 <div id="gameplaySection" class="content-section">
                     <div class="game-status-container">
-                        <h2 id="currentRoundDisplay" class="game-info-text"></h2>
-                        <h1 id="gameStateMessage" class="game-info-message"></h1>
-                        <h1 id="countdownDisplay" class="game-info-countdown hidden"></h1>
-                        <h2 id="winnerDisplay" class="game-info-winner hidden"></h2>
+                        <h2 id="currentRoundDisplay"
+                            class="game-info-text"></h2>
+                        <h1 id="gameStateMessage"
+                            class="game-info-message"></h1>
+                        <h1 id="countdownDisplay"
+                            class="game-info-countdown hidden"></h1>
+                        <h2 id="winnerDisplay"
+                            class="game-info-winner hidden"></h2>
                     </div>
-                
+
                     <button id="buzzButton" class="pushable buzz-button">
                         <span class="shadow"></span>
                         <span class="edge"></span>
                         <span class="front">BUZZ</span>
                     </button>
-                    
+
                     <div class="host-actions-container">
-                        <button id="nextRoundButton" class="host-button next-round-button hidden">Next Round</button>
-                        <button id="newGameButton" class="host-button new-game-button hidden">New Game</button>
-                        <button id="leaveGameButton" class="host-button leave-game-button hidden">Leave Game</button>
-                        <button id="cancelGameButton" class="host-button cancel-game-button hidden">Cancel Game</button>
+                        <button id="nextRoundButton"
+                            class="host-button next-round-button hidden">Next
+                            Round</button>
+                        <button id="newGameButton"
+                            class="host-button new-game-button hidden">New
+                            Game</button>
+                        <button id="leaveGameButton"
+                            class="host-button leave-game-button hidden">Leave
+                            Game</button>
+                        <button id="cancelGameButton"
+                            class="host-button cancel-game-button hidden">Cancel
+                            Game</button>
                     </div>
                 </div>
 
@@ -244,9 +303,10 @@
                         <h1>My Profile</h1>
                         <div class="account-container">
 
-
                             <div class="account-item">
-                                <img src="https://placehold.co/600x600/E74C3C/FFFFFF?text=Avatar" alt="avatar"
+                                <img
+                                    src="https://placehold.co/600x600/E74C3C/FFFFFF?text=Avatar"
+                                    alt="avatar"
                                     class="account-pp">
 
                             </div>
@@ -255,13 +315,11 @@
                                 <h2>John Doe</h2>
                             </div>
 
-
                         </div>
 
-
-
                         <div class="account-buttons">
-                            <button id="logInButton" class="action-button">Log in</button>
+                            <button id="logInButton" class="action-button">Log
+                                in</button>
                         </div>
 
                     </div>
@@ -269,7 +327,7 @@
                     <div class="settings">
                         <h1>Settings</h1>
                         <div class="settings-container">
-                       
+
                             <div class="setting-item">
                                 <h2>Dark Mode</h2>
                                 <label class="switch">
@@ -284,21 +342,25 @@
 
                 <nav class="bottom-nav">
                     <button class="nav-button" data-section="homeSection">
-                        <img src="assets/icon/home.png" alt="Home" class="nav-icon">
+                        <img src="assets/icon/home.png" alt="Home"
+                            class="nav-icon">
                         <h1 class="nav-text">HOME</h1>
                     </button>
                     <button class="nav-button" data-section="gameSection">
-                        <img src="assets/icon/game.png" alt="Game" class="nav-icon">
+                        <img src="assets/icon/game.png" alt="Game"
+                            class="nav-icon">
                         <h1 class="nav-text">GAME</h1>
                     </button>
                     <button class="nav-button" data-section="accountSection">
-                        <img src="assets/icon/account.png" alt="Account" class="nav-icon">
+                        <img src="assets/icon/account.png" alt="Account"
+                            class="nav-icon">
                         <h1 class="nav-text">ACCOUNT</h1>
                     </button>
                 </nav>
             </div>
 
-            <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+            <script src="https://unpkg.com/html5-qrcode"
+                type="text/javascript"></script>
             <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
             <!-- Removed qrcode.min.js loading, as generation is moved to backend -->
@@ -307,6 +369,6 @@
 
             <!-- <script type="module" src="https://unpkg.com/@monokai/monoco@latest/dist/monoco.js"></script> -->
             <script src="js/app.js"></script>
-    </body>
+        </body>
 
     </html>
