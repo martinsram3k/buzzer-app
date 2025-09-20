@@ -165,7 +165,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  padding: 10px;
+  padding: 20px;
   padding-top: 60px;
   padding-bottom: 200px;
   text-align: center;
@@ -816,7 +816,6 @@ body {
   align-items: center;
   justify-content: center;
   gap: 20px;
-  padding-bottom: 20px;
 }
 
 .action-button {
@@ -843,6 +842,8 @@ body {
   background-color: var(--background-light); /* Používá proměnnou */
   border-radius: 20px;
   padding: 10px;
+  padding-left: 20px;
+  padding-right: 20px;
   margin-bottom: 15px;
   margin-top: 20px;
   box-shadow: var(--box-shadow); /* Používá proměnnou */
@@ -1060,8 +1061,8 @@ input:checked + .slider:before {
 
 .player-list {
   width: 100%;
-  margin-top: 10px;
   padding: 10px;
+  padding-top: 0;
   border-radius: 10px;
   text-align: left;
 }
@@ -1069,8 +1070,8 @@ input:checked + .slider:before {
 .player-list h2 {
   font-size: 1.2em;
   color: var(--secondary-color); /* Používá proměnnou */
-  margin-bottom: 10px;
-  text-align: center;
+  margin-bottom: 20px;
+  text-align: left;
 }
 
 .player-list ul {
@@ -1106,6 +1107,11 @@ input:checked + .slider:before {
   margin-bottom: 10px;
 }
 
+#top-border {
+  padding-top: 10px;
+  border-top: solid 1.5px var(--secondary-color);
+}
+
 .setting-item label {
   width: fit-content;
   font-size: 1em;
@@ -1119,7 +1125,7 @@ input:checked + .slider:before {
   border: 2px solid var(--input-border-color); /* Používá proměnnou */
   border-radius: 8px;
   font-size: 1em;
-  width: 45%;
+  width: fit-content;
   box-sizing: border-box;
   transition: border-color 0.3s ease;
   background-color: var(--input-background-color); /* Používá proměnnou */
