@@ -96,6 +96,8 @@ let html5QrCode = null;
 let gameMode = null;
 let currentRoomCode = null;
 let currentRoomState = null;
+let countdownInterval = 3000; // Počáteční hodnota, např. 3 sekundy
+let countdownIntervalId = null;
 
 const sectionHistory = [];
 
@@ -546,34 +548,63 @@ function updateLobbyUI(roomData) {
  */
 function updateGameplayUI(roomData) {
   if (!roomData) return;
+// Reference na HTML element, kde se má zobrazovat odpočet
+const countdownDisplay = document.getElementById("countdownDisplay");
+// Reference na HTML element, kde se má zobrazovat zpráva o stavu hry
+const gameStateMessage = document.getElementById("gameStateMessage");
 
-  // Vždy aktualizuj zobrazení kola
-  currentRoundDisplay.textContent = `Round ${roomData.currentRound} / ${roomData.gameSettings.numRounds}`;
+let countdownInterval = 3000; // Počáteční hodnota, např. 3 sekundy
+let countdownIntervalId = null;
 
-  // Skryj všechny dynamické prvky na začátku každé aktualizace
-  countdownDisplay.classList.add("hidden");
-  buzzButton.classList.add("hidden");
-  winnerDisplay.classList.add("hidden");
-  nextRoundButton.classList.add("hidden");
-  newGameButton.classList.add("hidden");
-  leaveGameButton.classList.remove("hidden");
-  cancelGameButton.classList.add("hidden"); // Skryj tlačítko pro zrušení hry
+function countdownIntervalFunction() {
+  countdownInterval -= 1000; 
 
-  buzzButton.disabled = true; // Výchozí stav je zakázáno
+  // Aktualizujeme text elementu na novou hodnotu
+  countdownDisplay.textContent = countdownInterval / 1000;
+  // A také aktualizujeme text v gameStateMessage
+  gameStateMessage.textContent = `Hra začne za ${countdownInterval / 1000} s`;
 
-  const isHost = roomData.hostId === socket.id;
+  console.log(`Zbývající čas: ${countdownInterval / 1000} s`);
 
-  switch (roomData.gameState) {
-    case "COUNTDOWN":
-      gameStateMessage.textContent = `Game starts in...`;
-      countdownDisplay.textContent = roomData.countdownTime;
-      countdownDisplay.classList.remove("hidden");
-      if (isHost) {
-        cancelGameButton.classList.remove("hidden");
-      }
+  // Pokud je čas menší nebo roven nule, zastavíme interval
+  if (countdownInterval <= 0) {
+    clearInterval(countdownIntervalId);
+    console.log("Odpočet dokončen!");
+    countdownInterval = 3000; // Resetování pro další použití
+  }
+}
+
+// Spuštění intervalu, který volá funkci každou sekundu
+countdownIntervalId = setInterval(countdownIntervalFunction, 1000);
+
+// ... (zbytek kódu)
+
+switch (roomData.gameState) {
+  case "COUNTDOWN":
+    // Nyní již nepotřebujeme nastavovat pevnou hodnotu zde.
+    // gameStateMessage.textContent = `Game starts in ${countdownInterval / 1000} seconds`;
+    
+    // Zde nastavíme pouze zobrazení odpočtu, ale samotné snižování
+    // a aktualizace textu probíhá ve funkci countdownIntervalFunction
+    countdownDisplay.textContent = roomData.countdownTime;
+    countdownDisplay.classList.remove("hidden");
+    
+    // Ujistíme se, že i gameStateMessage je viditelná a správně inicializovaná
+    gameStateMessage.classList.remove("hidden");
+    gameStateMessage.textContent = `Hra začne za ${roomData.countdownTime} s`;
+
+    if (isHost) {
+      cancelGameButton.classList.remove("hidden");
+    }
+
+    // Tady byste měli spustit nebo zresetovat interval, který jsem ti poslal v předchozích odpovědích
+    // (např. pomocí clearInterval a následně setInterval).
+    break;
+  // ... (zbytek kódu)
+
       break;
     case "ACTIVE_ROUND":
-      gameStateMessage.textContent = "Buzz!";
+      gameStateMessage.textContent = "";
       buzzButton.classList.remove("hidden");
 
       // Povol bzučení jen pro hráče, kteří hrají
